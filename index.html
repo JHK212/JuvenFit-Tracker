@@ -394,7 +394,11 @@ function renderWork(){
     
     sets.forEach((s,si)=>{
       const bc=s.rpe?({liviano:'var(--gn)',justo:'var(--yw)',limite:'var(--dn)'}[s.rpe]+'30'):'var(--bd)';
-      html+=`<div class="set-card" style="border-color:${bc}"><div class="text-xs fw-700 text-mt mb-12">SERIE ${si+1}</div>
+      const isLast=si===sets.length-1;
+      const hdr=isLast
+        ?`<div class="row mb-12"><span class="text-xs fw-700 text-mt">SERIE ${si+1}</span><div class="flex gap-6">${sets.length>1?`<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="removeWorkSet()">−</button>`:''}<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="addWorkSet()">+</button></div></div>`
+        :`<div class="text-xs fw-700 text-mt mb-12">SERIE ${si+1}</div>`;
+      html+=`<div class="set-card" style="border-color:${bc}">${hdr}
         <div class="row mb-12"><span class="text-sm text-mt fw-600">PESO</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},-2.5)">−</button><div id="val-w-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'w')">${s.w}<span class="text-sm text-mt">kg</span></div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},2.5)">+</button></div></div>
         <div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">REPS</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1)">−</button><div id="val-r-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r')">${s.r}</div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1)">+</button></div></div>
         <div class="flex gap-8"><button class="rpe-btn ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano')">🟢 Liviano</button><button class="rpe-btn ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo')">🟡 Justo</button><button class="rpe-btn ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite')">🔴 Al límite</button></div>
@@ -426,6 +430,14 @@ function renderWork(){
   if(curSess) saveDraft();
 }
 
+function addWorkSet(){
+  const sets=curSess.exercises[curExI].sets;const last=sets[sets.length-1];
+  sets.push({w:last.w,r:last.r,rpe:null});saveDraft();renderWork();
+}
+function removeWorkSet(){
+  const sets=curSess.exercises[curExI].sets;if(sets.length<=1) return;
+  sets.pop();saveDraft();renderWork();
+}
 function toggleAcc(accId,rest){
   curSess.accessories[accId]=!curSess.accessories[accId];
   if(curSess.accessories[accId]&&rest&&!timerRef) startTimer(rest);
