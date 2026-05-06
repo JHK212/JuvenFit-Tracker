@@ -310,20 +310,31 @@ function getRange(t){if(!t||t<=6) return 'bajo'; if(t<=10) return 'medio'; retur
 function setRecData(rpe,r,target,felt){
   if(!rpe) return null;
   const range=getRange(target);const diff=r-target;const completed=diff>=0;
+  const ceilings={bajo:6,medio:10,alto:15};
+  const tope=r>=ceilings[range];
   let phrase,direction;
   if(completed){
     if(range==='bajo'){
       if(rpe==='liviano'){phrase="Te sobró. Subí peso.";direction='up';}
-      else if(rpe==='justo'){phrase="Peso justo. Mantené.";direction='same';}
-      else{phrase="En el filo. Mantené.";direction='same';}
+      else if(rpe==='justo'){
+        if(tope){phrase="Llegaste al tope. Subí peso.";direction='up';}
+        else{phrase="Peso justo. Mantené.";direction='same';}
+      } else {
+        if(tope){phrase="Llegaste al tope. Subí peso.";direction='up';}
+        else{phrase="En el filo. Mantené.";direction='same';}
+      }
     } else if(range==='medio'){
       if(rpe==='liviano'){phrase="Te quedó tanque. Subí peso.";direction='up';}
-      else if(rpe==='justo'){phrase="Si la próxima sentís, subí un toque.";direction='same';}
-      else{phrase="En zona. Mantené.";direction='same';}
+      else if(rpe==='justo'){
+        if(tope){phrase="Ya estás arriba. Subí peso.";direction='up';}
+        else{phrase="Peso justo. Mantené.";direction='same';}
+      } else{phrase="En zona. Mantené.";direction='same';}
     } else {
       if(rpe==='liviano'){phrase="Muy cómodo. Subí peso.";direction='up';}
-      else if(rpe==='justo'){phrase="Buen estímulo. Repetí.";direction='same';}
-      else{phrase="Justo en zona. Mantené.";direction='same';}
+      else if(rpe==='justo'){
+        if(tope){phrase="Tope alto. Subí peso.";direction='up';}
+        else{phrase="Buen estímulo. Repetí.";direction='same';}
+      } else{phrase="Justo en zona. Mantené.";direction='same';}
     }
   } else {
     if(range==='bajo'){
@@ -348,12 +359,12 @@ function exerciseRec(exData,target){
   if(!sets.length||!sets.every(s=>s.rpe)) return null;
   const recs=sets.map(s=>setRecData(s.rpe,s.r,target,s.felt??null));
   if(recs.some(r=>!r)) return null;
-  const allUp=recs.every(r=>r.direction==='up');
+  const ups=recs.filter(r=>r.direction==='up').length;
   const anyDown=recs.some(r=>r.direction==='down');
   const anyNoFelt=sets.some(s=>s.felt===false);
   let p;
   if(anyDown) p="Próxima: bajá peso. Consolidá.";
-  else if(allUp) p="Próxima: subí peso.";
+  else if(ups>=Math.ceil(recs.length/2)) p="Próxima: subí peso.";
   else p="Próxima: repetí el peso.";
   if(anyNoFelt) p+=" Foco en técnica.";
   return p;
