@@ -380,7 +380,7 @@ function renderWork(){
     // Compound exercise view
     const ex=compounds[curExI];const sets=curSess.exercises[curExI]?.sets||[];const sessNote=curSess.exercises[curExI]?.note||'';
     html+=`<div id="work-pr" class="pr-banner"><span style="font-size:24px">🔥</span><div><div class="text-sm fw-700 text-ac">Nuevo PR</div><div id="work-pr-name" class="text-xs text-mt"></div></div></div>`;
-    html+=`<div class="mb-20"><div style="font-size:22px;font-weight:800;margin-bottom:4px;color:var(--ac)">${ex.name}</div><div class="text-sm text-mt">${ex.sets}×${ex.reps} · Descanso: ${fmtTime(ex.rest)}</div>`;
+    html+=`<div class="mb-20"><div class="row" style="margin-bottom:4px;align-items:flex-start"><div style="font-size:22px;font-weight:800;color:var(--ac)">${ex.name}</div><button class="icon-btn" onclick="showExHistoryModal('${ex.id}')" style="width:36px;height:36px;font-size:16px;flex-shrink:0">📈</button></div><div class="text-sm text-mt">${ex.sets}×${ex.reps} · Descanso: ${fmtTime(ex.rest)}</div>`;
     if(ex.notes) html+=`<button class="tips-btn" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none">${ex.notes}</div>`;
     html+=`</div>`;
     
@@ -543,6 +543,35 @@ function drawChart(data){
   let yLabels='';for(let i=0;i<=4;i++){const v=mn+((mx-mn)/4)*i;const y=pad.t+iH-((i/4)*iH);yLabels+=`<text x="${pad.l-8}" y="${y+4}" fill="#8A8478" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">${Math.round(v)}</text><line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="#E0DBD3" stroke-width="0.5"/>`;}
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
   svg.innerHTML=`${yLabels}<path d="${line}" fill="none" stroke="#5A1A1A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="#5A1A1A"/>`).join('')}${labels}`;
+}
+
+// ══ EXERCISE HISTORY MODAL (from workout) ══
+function showExHistoryModal(eid){
+  const ex=allCompounds().find(e=>e.id===eid);
+  const data=hist(eid);
+  const pr=prW(eid);
+  const rpeMap={liviano:{c:'var(--gn)',i:'🟢'},justo:{c:'var(--yw)',i:'🟡'},limite:{c:'var(--dn)',i:'🔴'}};
+  let html=`<div style="font-size:18px;font-weight:800;margin-bottom:12px">${ex?.name||'Historial'}</div>`;
+  if(!data.length){
+    html+=`<div class="text-sm text-mt">Sin registros todavía.</div><button class="btn-out mt-20" onclick="closeModal()">Cerrar</button>`;
+    $("modal-content").innerHTML=html;$("modal").classList.add('show');return;
+  }
+  const last=data[data.length-1];
+  html+=`<div class="flex gap-10 mb-18">`;
+  html+=`<div class="card flex-1" style="cursor:default;padding:12px 14px"><div class="text-xs text-mt fw-600 mb-4">ÚLTIMA VEZ</div><div class="mono fw-800" style="font-size:22px">${last.peso}kg</div><div class="text-xs text-mt mt-4">${last.date}</div></div>`;
+  html+=`<div class="card flex-1" style="cursor:default;padding:12px 14px"><div class="text-xs text-mt fw-600 mb-4">RÉCORD</div><div class="mono fw-800" style="font-size:22px;color:var(--ac)">${pr}kg</div></div>`;
+  html+=`</div>`;
+  const recent=[...data].reverse().slice(0,5);
+  recent.forEach(e=>{
+    html+=`<div class="set-card" style="margin-bottom:8px"><div class="row mb-8"><span class="text-sm fw-700">${e.date}</span><span class="mono fw-700" style="color:${e.peso>=pr?'var(--ac)':'var(--tx)'}">${e.peso}kg${e.peso>=pr?' 🔥':''}</span></div>`;
+    html+=`<div class="flex gap-6" style="flex-wrap:wrap">`;
+    e.sets.forEach(s=>{const r=rpeMap[s.rpe]||{c:'var(--mt)',i:''};html+=`<div class="badge" style="background:${r.c}18;color:${r.c};font-family:var(--fm)">${s.w}kg×${s.r}${r.i?' '+r.i:''}</div>`;});
+    html+=`</div>`;
+    if(e.note) html+=`<div class="text-xs mt-8" style="color:var(--mt);font-style:italic">📝 ${e.note}</div>`;
+    html+=`</div>`;
+  });
+  html+=`<button class="btn-out mt-8" onclick="closeModal()">Cerrar</button>`;
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
 }
 
 // ══ EDIT SESSION ══
