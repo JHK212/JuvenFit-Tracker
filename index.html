@@ -395,7 +395,7 @@ function renderWork(){
     });
     
     // Session note
-    html+=`<textarea class="note-input" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${curExI}].note=this.value">${sessNote}</textarea>`;
+    html+=`<textarea class="note-input" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${curExI}].note=this.value" onblur="curSess.exercises[${curExI}].note=this.value">${sessNote}</textarea>`;
     
   } else {
     // Accessories view
@@ -588,7 +588,7 @@ function editSession(sessId){
     });
     html+=`<button class="btn-sm mt-8" onclick="addSetToSess('${sessId}',${ei})" style="font-size:12px">+ Serie</button>`;
     if(ex.sets.length>1) html+=` <button class="btn-sm mt-8" onclick="removeSetFromSess('${sessId}',${ei})" style="font-size:12px;color:var(--dn)">- Serie</button>`;
-    html+=`<textarea class="note-input" placeholder="Notas..." onchange="updateSessNote('${sessId}',${ei},this.value)">${ex.note||''}</textarea>`;
+    html+=`<textarea class="note-input" placeholder="Notas..." oninput="updateSessNote('${sessId}',${ei},this.value)">${ex.note||''}</textarea>`;
     html+=`</div>`;
   });
   // Add exercise button
