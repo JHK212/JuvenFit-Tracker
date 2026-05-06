@@ -119,6 +119,7 @@ input:focus,textarea:focus{border-color:rgba(90,26,26,0.5)!important;}
     </div>
   </div>
   <div id="home-main">
+    <div id="draft-banner" style="display:none;padding:16px 20px 0"></div>
     <div class="sec">
       <div class="flex gap-12">
         <div class="card flex-1" style="cursor:default"><div class="text-xs text-mt fw-600 mb-8">RACHA</div><div class="flex gap-8" style="align-items:baseline"><span id="home-streak" class="accent-num">0</span><span class="text-sm text-mt">sem</span><span id="home-fire" style="font-size:22px;display:none">🔥</span></div><div id="home-streak-detail" class="text-xs text-mt mt-8"></div></div>
@@ -247,6 +248,8 @@ let selectedDel=new Set();
 
 function load(k,fb){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch{return fb;}}
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+function saveDraft(){if(curSess) save("gym-draft",curSess);}
+function clearDraft(){save("gym-draft",null);}
 function uid(){return Math.random().toString(36).slice(2,8);}
 function td(){return new Date().toISOString().slice(0,10);}
 function fd(d){try{return new Date(d+"T12:00:00").toLocaleDateString("es-AR",{day:"numeric",month:"short"});}catch{return d;}}
@@ -319,6 +322,10 @@ function renderHome(){
   const totalExercises=routine.days.reduce((s,d)=>s+d.exercises.length,0);
   if(totalExercises===0){$("home-welcome").style.display="block";$("home-main").style.display="none";return;}
   $("home-welcome").style.display="none";$("home-main").style.display="block";
+  const draft=load("gym-draft",null);
+  const db=$("draft-banner");
+  if(draft){const dayDef=routine.days.find(d=>d.id===draft.dayId);db.style.display="block";db.innerHTML=`<div class="card card-accent" style="cursor:default"><div class="row mb-8"><span class="fw-700">📋 Borrador sin guardar</span><span class="text-xs text-mt">${fd(draft.date)} · ${dayDef?.name||'?'}</span></div><div class="text-sm text-mt mb-14">Cerraste sin finalizar. ¿Continuás?</div><div class="flex gap-8"><button class="btn" style="flex:1;padding:12px 0" onclick="resumeDraft()">Continuar →</button><button class="btn-out" style="flex:1;padding:12px 0" onclick="discardDraft()">Descartar</button></div></div>`;}
+  else{db.style.display="none";db.innerHTML="";}
   const sg=sugDay();const sgD=routine.days.find(d=>d.id===sg);const st=streak();const tw=thisWeekSessions();const dpw=config.daysPerWeek||3;
   $("home-streak").textContent=st;$("home-fire").style.display=st>0?"inline":"none";$("home-sessions").textContent=sessions.length;
   $("home-streak-detail").innerHTML=`Esta semana: <strong style="color:${tw>=dpw?'var(--gn)':'var(--ac)'}">${tw}/${dpw}</strong>${tw>=dpw?' ✓':''}`;
@@ -360,7 +367,7 @@ function startWorkout(dayId,customDate){
     exercises:compounds.map(e=>({eid:e.id,sets:Array.from({length:e.sets},()=>({w:lastW(e.id)||0,r:e.reps,rpe:null})),note:''})),
     accessories:accessories.reduce((o,a)=>{o[a.id]=false;return o;},{})
   };
-  showPage('work');renderWork();
+  saveDraft();showPage('work');renderWork();
 }
 
 function renderWork(){
@@ -395,7 +402,7 @@ function renderWork(){
     });
     
     // Session note
-    html+=`<textarea class="note-input" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${curExI}].note=this.value" onblur="curSess.exercises[${curExI}].note=this.value">${sessNote}</textarea>`;
+    html+=`<textarea class="note-input" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${curExI}].note=this.value;saveDraft()" onblur="curSess.exercises[${curExI}].note=this.value;saveDraft()">${sessNote}</textarea>`;
     
   } else {
     // Accessories view
@@ -416,6 +423,7 @@ function renderWork(){
   html+=`</div></div>`;
   
   $("work-content").innerHTML=html;
+  if(curSess) saveDraft();
 }
 
 function toggleAcc(accId,rest){
@@ -432,9 +440,9 @@ function adjW(si,delta){
     curSess.exercises[curExI].sets[j].w=s.w;
     const el=$("val-w-"+j);if(el) el.innerHTML=s.w+'<span class="text-sm text-mt">kg</span>';
   }
-  checkPR(si);document.activeElement?.blur();
+  checkPR(si);document.activeElement?.blur();saveDraft();
 }
-function adjR(si,delta){const s=curSess.exercises[curExI].sets[si];s.r=Math.max(1,s.r+delta);$("val-r-"+si).textContent=s.r;document.activeElement?.blur();}
+function adjR(si,delta){const s=curSess.exercises[curExI].sets[si];s.r=Math.max(1,s.r+delta);$("val-r-"+si).textContent=s.r;document.activeElement?.blur();saveDraft();}
 function typeVal(si,field){
   const s=curSess.exercises[curExI].sets[si];const current=field==='w'?s.w:s.r;const label=field==='w'?'Peso (kg)':'Repeticiones';
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:16px">${label}</div>`;
@@ -449,7 +457,7 @@ function applyTypedVal(si,field){
   const s=curSess.exercises[curExI].sets[si];
   if(field==='w'){s.w=val;$("val-w-"+si).innerHTML=val+'<span class="text-sm text-mt">kg</span>';checkPR(si);}
   else{s.r=Math.max(1,Math.round(val));$("val-r-"+si).textContent=s.r;}
-  closeModal();
+  saveDraft();closeModal();
 }
 function checkPR(si){
   const day=routine.days.find(d=>d.id===curDayId);const compounds=getCompounds(day);
@@ -461,8 +469,10 @@ function setRpe(si,v){curSess.exercises[curExI].sets[si].rpe=v;
   if(!timerRef) startTimer(ex.rest);
   renderWork();
 }
-function finishWorkout(){sessions.push(curSess);save("gym-s",sessions);stopTimer();closeExitModal();showPage('home');}
-function discardWorkout(){curSess=null;stopTimer();closeExitModal();showPage('home');}
+function finishWorkout(){sessions.push(curSess);save("gym-s",sessions);clearDraft();stopTimer();closeExitModal();showPage('home');}
+function discardWorkout(){curSess=null;clearDraft();stopTimer();closeExitModal();showPage('home');}
+function resumeDraft(){const d=load("gym-draft",null);if(!d)return;curSess=d;curDayId=d.dayId;curExI=0;showPage('work');renderWork();}
+function discardDraft(){clearDraft();renderHome();}
 function confirmExit(){$("exit-modal").classList.add('show');}
 function closeExitModal(){$("exit-modal").classList.remove('show');}
 
