@@ -291,7 +291,8 @@ function streak(){
   if(!sessions.length) return 0;
   const dpw=config.daysPerWeek||3;const w={};
   sessions.forEach(s=>{const d=new Date(s.date+"T12:00:00");const st=new Date(d);st.setDate(st.getDate()-st.getDay());w[st.toISOString().slice(0,10)]=(w[st.toISOString().slice(0,10)]||0)+1;});
-  let c=0;for(const[,n] of Object.entries(w).sort((a,b)=>b[0].localeCompare(a[0]))){if(n>=dpw)c++;else break;}return c;
+  const now=new Date();const ws=new Date(now);ws.setDate(ws.getDate()-ws.getDay());ws.setHours(12,0,0,0);const twk=ws.toISOString().slice(0,10);
+  let c=0;for(const[wk,n] of Object.entries(w).sort((a,b)=>b[0].localeCompare(a[0]))){if(wk===twk&&n<dpw) continue;if(n>=dpw)c++;else break;}return c;
 }
 function thisWeekSessions(){const now=new Date();const day=now.getDay();const start=new Date(now);start.setDate(start.getDate()-day);start.setHours(0,0,0,0);return sessions.filter(s=>new Date(s.date+"T12:00:00")>=start).length;}
 function lastW(eid){for(let i=sessions.length-1;i>=0;i--){const e=sessions[i].exercises?.find(x=>x.eid===eid);if(e?.sets?.length){const s=e.sets.find(s=>s.w>0);if(s)return s.w;}}return 0;}
