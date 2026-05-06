@@ -309,50 +309,28 @@ function allCompounds(){return routine.days.flatMap(d=>getCompounds(d));}
 function getRange(t){if(!t||t<=6) return 'bajo'; if(t<=10) return 'medio'; return 'alto';}
 function setRecData(rpe,r,target,felt){
   if(!rpe) return null;
-  const range=getRange(target);const diff=r-target;const completed=diff>=0;
-  const ceilings={bajo:6,medio:10,alto:15};
-  const tope=r>=ceilings[range];
+  const range=getRange(target);
+  const completed=r>=target;
   let phrase,direction;
-  if(completed){
-    if(range==='bajo'){
-      if(rpe==='liviano'){phrase="Te sobró. Subí peso.";direction='up';}
-      else if(rpe==='justo'){
-        if(tope){phrase="Llegaste al tope. Subí peso.";direction='up';}
-        else{phrase="Peso justo. Mantené.";direction='same';}
-      } else {
-        if(tope){phrase="Llegaste al tope. Subí peso.";direction='up';}
-        else{phrase="En el filo. Mantené.";direction='same';}
-      }
-    } else if(range==='medio'){
-      if(rpe==='liviano'){phrase="Te quedó tanque. Subí peso.";direction='up';}
-      else if(rpe==='justo'){
-        if(tope){phrase="Ya estás arriba. Subí peso.";direction='up';}
-        else{phrase="Peso justo. Mantené.";direction='same';}
-      } else{phrase="En zona. Mantené.";direction='same';}
-    } else {
-      if(rpe==='liviano'){phrase="Muy cómodo. Subí peso.";direction='up';}
-      else if(rpe==='justo'){
-        if(tope){phrase="Tope alto. Subí peso.";direction='up';}
-        else{phrase="Buen estímulo. Repetí.";direction='same';}
-      } else{phrase="Justo en zona. Mantené.";direction='same';}
-    }
+  if(!completed){
+    if(range==='bajo'){phrase="🔻 Muy pesado → bajá peso";direction='down';}
+    else if(range==='medio'){phrase="⚠️ No llegaste → ajustá peso o reps";direction='down';}
+    else{phrase="🔸 Quedaste corto → completá el rango primero";direction='same';}
+  } else if(rpe==='liviano'){
+    if(range==='bajo'){phrase="🚀 Muy liviano → subí peso";direction='up';}
+    else if(range==='medio'){phrase="🔹 Subí un poco el peso";direction='up';}
+    else{phrase="🔹 Podés subir peso o sumar reps";direction='up';}
+  } else if(rpe==='justo'){
+    if(range==='bajo'){phrase="✅ Peso exacto. Mantené";direction='same';}
+    else if(range==='medio'){phrase="✅ Zona ideal. Mantené";direction='same';}
+    else{phrase="✅ Buen estímulo. Repetí";direction='same';}
   } else {
-    if(range==='bajo'){
-      if(diff===-1){phrase="Casi. Repetí el peso.";direction='same';}
-      else{phrase="Te pasaste. Bajá peso.";direction='down';}
-    } else if(range==='medio'){
-      if(diff===-1){phrase="Cerca. Repetí y completá.";direction='same';}
-      else{phrase="Bajá un toque y consolidá.";direction='down';}
-    } else {
-      if(diff>=-2){phrase="Cerca. Repetí antes de bajar.";direction='same';}
-      else{phrase="Bajá un poco. Sostené el volumen.";direction='down';}
-    }
+    if(range==='bajo'){phrase="⚠️ Muy exigente → bajá un poco";direction='down';}
+    else if(range==='medio'){phrase="🔸 Al límite → mantené o ajustá";direction='same';}
+    else{phrase="✔️ Bien de intensidad → mantené";direction='same';}
   }
-  if(felt===false){
-    if(direction==='up'){phrase="Antes de subir, conectá con el músculo.";direction='same';}
-    else{phrase=phrase+" Conectá con el músculo.";}
-  }
-  return {phrase,direction};
+  const muscle=felt===false?"🔸 No sentiste el músculo → bajá peso y enfocá técnica":null;
+  return {phrase,muscle,direction};
 }
 function exerciseRec(exData,target){
   const sets=exData.sets||[];
@@ -363,10 +341,10 @@ function exerciseRec(exData,target){
   const anyDown=recs.some(r=>r.direction==='down');
   const anyNoFelt=sets.some(s=>s.felt===false);
   let p;
-  if(anyDown) p="Próxima: bajá peso. Consolidá.";
-  else if(ups>=Math.ceil(recs.length/2)) p="Próxima: subí peso.";
-  else p="Próxima: repetí el peso.";
-  if(anyNoFelt) p+=" Foco en técnica.";
+  if(anyDown) p="🔻 Próxima: bajá el peso.";
+  else if(ups>=Math.ceil(recs.length/2)) p="🔹 Próxima: subí peso.";
+  else p="✅ Próxima: repetí el peso.";
+  if(anyNoFelt) p+="  🔸 Foco en técnica.";
   return p;
 }
 function lastSessionRec(eid){
@@ -484,7 +462,7 @@ function renderWork(){
         <div class="row mb-12"><span class="text-sm text-mt fw-600">PESO</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},-2.5)">−</button><div id="val-w-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'w')">${s.w}<span class="text-sm text-mt">kg</span></div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},2.5)">+</button></div></div>
         <div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">REPS</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1)">−</button><div id="val-r-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r')">${s.r}</div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1)">+</button></div></div>
         <div class="flex gap-8"><button class="rpe-btn ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano')">🟢 Liviano</button><button class="rpe-btn ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo')">🟡 Justo</button><button class="rpe-btn ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite')">🔴 Al límite</button></div>
-        ${s.rpe?(s.felt==null?`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="text-xs text-mt fw-600 mb-8" style="text-align:center">¿Sentiste el músculo?</div><div class="flex gap-8"><button class="rpe-btn" onclick="setFelt(${si},true)">✅ Sí</button><button class="rpe-btn" onclick="setFelt(${si},false)">❌ No</button></div></div>`:(()=>{const rd=setRecData(s.rpe,s.r,ex.reps,s.felt);return rd?`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="row mb-8"><span class="text-xs text-mt fw-600">${s.felt?'✅ Sintió':'❌ No sintió'}</span><button onclick="setFelt(${si},null)" style="background:none;border:1px solid var(--bd);color:var(--mt);font-size:11px;cursor:pointer;padding:4px 10px;border-radius:8px">cambiar</button></div><div class="tips-box" style="margin-top:0">💡 ${rd.phrase}</div></div>`:'';})()):''}
+        ${s.rpe?(s.felt==null?`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="text-xs text-mt fw-600 mb-8" style="text-align:center">¿Sentiste el músculo?</div><div class="flex gap-8"><button class="rpe-btn" onclick="setFelt(${si},true)">✅ Sí</button><button class="rpe-btn" onclick="setFelt(${si},false)">❌ No</button></div></div>`:(()=>{const rd=setRecData(s.rpe,s.r,ex.reps,s.felt);return rd?`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="row mb-8"><span class="text-xs text-mt fw-600">${s.felt?'✅ Sintió':'❌ No sintió'}</span><button onclick="setFelt(${si},null)" style="background:none;border:1px solid var(--bd);color:var(--mt);font-size:11px;cursor:pointer;padding:4px 10px;border-radius:8px">cambiar</button></div><div class="tips-box" style="margin-top:0">${rd.phrase}${rd.muscle?`<span style="display:block;margin-top:6px">${rd.muscle}</span>`:''}</div></div>`:'';})()):''}
       </div>`;
     });
     
