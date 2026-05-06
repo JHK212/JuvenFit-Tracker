@@ -174,7 +174,7 @@ input:focus,textarea:focus{border-color:rgba(90,26,26,0.5)!important;}
   <div class="sec">
     <div class="flex gap-12 mb-20">
       <div class="card flex-1" style="cursor:default"><div class="text-xs text-mt fw-600 mb-4">RECORD</div><div class="flex gap-8" style="align-items:baseline"><span id="hist-pr" class="accent-num">0</span><span class="text-sm text-mt">kg</span></div></div>
-      <div class="card flex-1" style="cursor:default"><div class="text-xs text-mt fw-600 mb-4">SESIONES</div><span id="hist-count" class="big-num">0</span></div>
+      <div class="card flex-1" style="cursor:default"><div class="row mb-4"><span class="text-xs text-mt fw-600">SESIONES</span><button class="icon-btn" onclick="showPage('delHist')" style="width:26px;height:26px;font-size:12px">✎</button></div><span id="hist-count" class="big-num">0</span></div>
     </div>
     <div id="hist-chart" class="card mb-20" style="cursor:default;display:none;padding:18px 10px 10px"><div class="text-xs text-mt fw-600 mb-12" style="padding-left:8px">PROGRESIÓN</div><svg id="hist-svg" class="chart-svg"></svg></div>
     <div class="sec-title">Historial</div><div id="hist-list"></div>
@@ -251,7 +251,9 @@ function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
 function saveDraft(){if(curSess) save("gym-draft",curSess);}
 function clearDraft(){save("gym-draft",null);}
 function uid(){return Math.random().toString(36).slice(2,8);}
-function td(){return new Date().toISOString().slice(0,10);}
+function nowBsAs(){return new Date(Date.now()-3*3600*1000);}
+function td(){const d=nowBsAs();return d.toISOString().slice(0,10);}
+function nowTime(){return nowBsAs().toISOString().slice(11,16);}
 function fd(d){try{return new Date(d+"T12:00:00").toLocaleDateString("es-AR",{day:"numeric",month:"short"});}catch{return d;}}
 function fmtTime(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
 function $(id){return document.getElementById(id);}
@@ -300,7 +302,7 @@ function streak(){
 function thisWeekSessions(){const now=new Date();const day=now.getDay();const start=new Date(now);start.setDate(start.getDate()-day);start.setHours(0,0,0,0);return sessions.filter(s=>new Date(s.date+"T12:00:00")>=start).length;}
 function lastW(eid){for(let i=sessions.length-1;i>=0;i--){const e=sessions[i].exercises?.find(x=>x.eid===eid);if(e?.sets?.length){const s=e.sets.find(s=>s.w>0);if(s)return s.w;}}return 0;}
 function prW(eid){let m=0;sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid)e.sets?.forEach(st=>{if(st.w>m)m=st.w;});}));return m;}
-function hist(eid){const d=[];sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid&&e.sets?.length)d.push({date:fd(s.date),peso:Math.max(...e.sets.map(x=>x.w||0)),sets:e.sets,note:e.note||''});}));return d;}
+function hist(eid){const d=[];sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid&&e.sets?.length)d.push({date:fd(s.date),time:s.time||'',peso:Math.max(...e.sets.map(x=>x.w||0)),sets:e.sets,note:e.note||''});}));return d;}
 function allCompounds(){return routine.days.flatMap(d=>getCompounds(d));}
 
 // ══ CALENDAR ══
@@ -333,7 +335,7 @@ function renderHome(){
   $("home-others").innerHTML=routine.days.filter(d=>d.id!==sg).map(d=>`<div class="card" onclick="startWorkout(${d.id})" style="cursor:pointer"><div class="row"><div><div style="font-size:16px;font-weight:700">${d.name}</div><div class="text-sm text-mt">${d.sub}</div></div><div style="font-size:20px;color:var(--mt)">→</div></div></div>`).join('');
   renderCalendar();
   const last=sessions.length?[...sessions].sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
-  if(last){$("home-last-sec").style.display="block";const dayDef=routine.days.find(d=>d.id===last.dayId);$("home-last").innerHTML=`<div class="row mb-8"><span class="text-sm text-mt">${fd(last.date)} — ${dayDef?.name||''}</span><button class="btn-sm" onclick="editSession('${last.id}')" style="font-size:12px">✎ Editar</button></div><div>${(last.exercises||[]).map(ex=>{const def=allCompounds().find(e=>e.id===ex.eid);if(!def) return '';const mw=Math.max(...(ex.sets||[]).map(s=>s.w||0));return`<div class="row" style="padding:4px 0;font-size:14px"><span class="text-mt">${def.name}</span><span class="mono fw-700">${mw}kg</span></div>`;}).join('')}</div>`;}else{$("home-last-sec").style.display="none";}
+  if(last){$("home-last-sec").style.display="block";const dayDef=routine.days.find(d=>d.id===last.dayId);$("home-last").innerHTML=`<div class="row mb-8"><span class="text-sm text-mt">${fd(last.date)}${last.time?' · '+last.time:''} — ${dayDef?.name||''}</span><button class="btn-sm" onclick="editSession('${last.id}')" style="font-size:12px">✎ Editar</button></div><div>${(last.exercises||[]).map(ex=>{const def=allCompounds().find(e=>e.id===ex.eid);if(!def) return '';const mw=Math.max(...(ex.sets||[]).map(s=>s.w||0));return`<div class="row" style="padding:4px 0;font-size:14px"><span class="text-mt">${def.name}</span><span class="mono fw-700">${mw}kg</span></div>`;}).join('')}</div>`;}else{$("home-last-sec").style.display="none";}
   const histItems=allCompounds().filter(ex=>hist(ex.id).length>0);
   if(histItems.length){$("home-hist-sec").style.display="block";$("home-hist").innerHTML=histItems.map(ex=>{const h=hist(ex.id);return`<div class="card" onclick="showHist('${ex.id}')" style="cursor:pointer"><div class="row"><div><div style="font-size:15px;font-weight:700;color:var(--ac)">${ex.name}</div><div class="text-xs text-mt">${h.length} sesiones · PR: ${prW(ex.id)}kg</div></div><div style="font-size:18px;color:var(--mt)">→</div></div></div>`;}).join('');}else{$("home-hist-sec").style.display="none";}
 }
@@ -363,7 +365,7 @@ function renderRoutine(){
 function startWorkout(dayId,customDate){
   const day=routine.days.find(d=>d.id===dayId);curDayId=dayId;curExI=0;
   const compounds=getCompounds(day);const accessories=getAccessories(day);
-  curSess={id:uid(),date:customDate||td(),dayId,
+  curSess={id:uid(),date:customDate||td(),time:customDate?null:nowTime(),dayId,
     exercises:compounds.map(e=>({eid:e.id,sets:Array.from({length:e.sets},()=>({w:lastW(e.id)||0,r:e.reps,rpe:null})),note:''})),
     accessories:accessories.reduce((o,a)=>{o[a.id]=false;return o;},{})
   };
@@ -553,7 +555,7 @@ function showHist(eid){
   $("hist-title").textContent=ex?.name||'Ejercicio';$("hist-pr").textContent=pr;$("hist-count").textContent=data.length;
   if(data.length>=2){$("hist-chart").style.display="block";drawChart(data);}else{$("hist-chart").style.display="none";}
   const rpeMap={liviano:{c:'var(--gn)',i:'🟢'},justo:{c:'var(--yw)',i:'🟡'},limite:{c:'var(--dn)',i:'🔴'}};
-  $("hist-list").innerHTML=data.length?[...data].reverse().map(e=>`<div class="card" style="cursor:default"><div class="row mb-8"><span class="fw-700" style="font-size:14px">${e.date}</span><span class="mono fw-800" style="font-size:18px;color:${e.peso>=pr?'var(--ac)':'var(--tx)'}">${e.peso}kg${e.peso>=pr?' 🔥':''}</span></div><div class="flex gap-8" style="flex-wrap:wrap">${e.sets.map(s=>{const r=rpeMap[s.rpe]||{c:'var(--mt)',i:''};return`<div class="badge" style="background:${r.c}18;color:${r.c}">${s.w}kg×${s.r} ${r.i}</div>`;}).join('')}</div>${e.note?`<div class="text-xs mt-8" style="color:var(--mt);font-style:italic">📝 ${e.note}</div>`:''}</div>`).join(''):'<div class="text-sm text-mt">Sin datos todavía.</div>';
+  $("hist-list").innerHTML=data.length?[...data].reverse().map(e=>`<div class="card" style="cursor:default"><div class="row mb-8"><span class="fw-700" style="font-size:14px">${e.date}${e.time?` <span class="text-xs text-mt fw-600">${e.time}</span>`:''}</span><span class="mono fw-800" style="font-size:18px;color:${e.peso>=pr?'var(--ac)':'var(--tx)'}">${e.peso}kg${e.peso>=pr?' 🔥':''}</span></div><div class="flex gap-8" style="flex-wrap:wrap">${e.sets.map(s=>{const r=rpeMap[s.rpe]||{c:'var(--mt)',i:''};return`<div class="badge" style="background:${r.c}18;color:${r.c}">${s.w}kg×${s.r} ${r.i}</div>`;}).join('')}</div>${e.note?`<div class="text-xs mt-8" style="color:var(--mt);font-style:italic">📝 ${e.note}</div>`:''}</div>`).join(''):'<div class="text-sm text-mt">Sin datos todavía.</div>';
   showPage('hist');
 }
 function drawChart(data){
@@ -581,7 +583,7 @@ function showExHistoryModal(eid){
   }
   const last=data[data.length-1];
   html+=`<div class="flex gap-10 mb-18">`;
-  html+=`<div class="card flex-1" style="cursor:default;padding:12px 14px"><div class="text-xs text-mt fw-600 mb-4">ÚLTIMA VEZ</div><div class="mono fw-800" style="font-size:22px">${last.peso}kg</div><div class="text-xs text-mt mt-4">${last.date}</div></div>`;
+  html+=`<div class="card flex-1" style="cursor:default;padding:12px 14px"><div class="text-xs text-mt fw-600 mb-4">ÚLTIMA VEZ</div><div class="mono fw-800" style="font-size:22px">${last.peso}kg</div><div class="text-xs text-mt mt-4">${last.date}${last.time?' · '+last.time:''}</div></div>`;
   html+=`<div class="card flex-1" style="cursor:default;padding:12px 14px"><div class="text-xs text-mt fw-600 mb-4">RÉCORD</div><div class="mono fw-800" style="font-size:22px;color:var(--ac)">${pr}kg</div></div>`;
   html+=`</div>`;
   const recent=[...data].reverse().slice(0,5);
