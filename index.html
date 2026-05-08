@@ -311,6 +311,19 @@ function saveRoutine(){save("gym-r",routineStore);}
 
 // ══ MUSCLE VOLUME ══
 const MUSCLE_COLORS={pecho:'#dc2626',dorsal:'#2563eb',trapecio:'#7c3aed',lumbar:'#92400e',biceps:'#ea580c',triceps:'#e11d48',antebrazo:'#ca8a04',delt_ant:'#db2777',delt_lat:'#0891b2',delt_post:'#0d9488',cuadriceps:'#3b82f6',isquios:'#16a34a',gluteo:'#9333ea',gemelos:'#84a829',aductor:'#a855f7',core:'#78716c'};
+// Parse de reps en items de biserie/triserie:
+//   "12"      → 12 reps
+//   "30 segs" → 10 reps eq (3 seg = 1 rep, tempo estándar de rep controlada)
+//   "1 min"   → 20 reps eq
+function parseRepsValue(s){
+  if(!s) return 0;
+  const str=s.toString().toLowerCase();
+  const num=parseFloat(str);
+  if(isNaN(num)) return 0;
+  if(/min/.test(str)) return num*20;
+  if(/seg|\bs\b/.test(str)) return num/3;
+  return num;
+}
 function routineMuscleVolume(){
   if(!routine||!routine.days) return {totals:{},uncovered:0};
   const totals={};
@@ -332,7 +345,7 @@ function routineMuscleVolume(){
           const eid=it.exerciseId;
           const lib=eid?getExercise(eid):null;
           if(!lib||!lib.muscleActivation){uncovered++;return;}
-          const reps=parseFloat(it.reps)||0;
+          const reps=parseRepsValue(it.reps);
           const vol=sets*reps;
           Object.entries(lib.muscleActivation).forEach(([m,pct])=>{
             totals[m]=(totals[m]||0)+vol*pct/100;
