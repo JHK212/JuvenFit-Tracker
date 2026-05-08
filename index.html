@@ -58,7 +58,9 @@ input:focus,textarea:focus{border-color:rgba(90,26,26,0.5)!important;}
 .timer-fill{height:100%;background:var(--ac);border-radius:4px;transition:width 1s linear;}
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:100;display:none;align-items:flex-end;justify-content:center;}
 .modal-overlay.show{display:flex;}
-.modal{background:var(--sf);border-radius:24px 24px 0 0;padding:28px 20px 40px;padding-bottom:calc(40px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:85vh;overflow-y:auto;}
+.modal{background:var(--sf);border-radius:24px 24px 0 0;padding:28px 20px 40px;padding-bottom:calc(40px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+body.modal-open{overflow:hidden;touch-action:none;}
+body.modal-open .page{overflow:hidden;}
 .pr-banner{background:rgba(90,26,26,0.08);border:1.5px solid rgba(90,26,26,0.25);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:none;align-items:center;gap:10px;}
 .pr-banner.show{display:flex;}
 .chart-svg{width:100%;height:180px;}
@@ -501,6 +503,7 @@ function drawMuscleChart(){
   }
   sec.style.display='block';
   // Pie chart con slices por sub-músculo (tonos del color de la zona)
+  // Approach: paths sin stroke (círculo perfecto) + líneas separadoras encima
   const cx=110,cy=110,r=100;
   let cum=-Math.PI/2;
   let paths='';
@@ -516,6 +519,7 @@ function drawMuscleChart(){
       slices.push({zoneName:z.name,muscle:sm.m,v:sm.v,color:subColors[i],isLastInZone:i===subMs.length-1});
     });
   });
+  // 1) Slices sin borde (forma perfecta)
   slices.forEach(s=>{
     const pct=s.v/total;
     const ang=pct*2*Math.PI;
@@ -527,11 +531,23 @@ function drawMuscleChart(){
     const d=slices.length===1
       ?`M ${cx} ${cy-r} A ${r} ${r} 0 1 1 ${cx} ${cy+r} A ${r} ${r} 0 1 1 ${cx} ${cy-r} Z`
       :`M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`;
-    // Stroke más grueso al final de zona para marcar transición
-    const sw=s.isLastInZone?3:1;
-    paths+=`<path d="${d}" fill="${s.color}" stroke="var(--cd)" stroke-width="${sw}" style="cursor:pointer" onclick="showZoneDetail('${s.zoneName}')"/>`;
+    paths+=`<path d="${d}" fill="${s.color}" style="cursor:pointer" onclick="showZoneDetail('${s.zoneName}')"/>`;
   });
-  const svg=`<svg width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto">${paths}</svg>`;
+  // 2) Líneas separadoras radiales: gris suave dentro de zona, blanco entre zonas
+  let separators='';
+  if(slices.length>1){
+    let acc=-Math.PI/2;
+    slices.forEach(s=>{
+      const pct=s.v/total;
+      acc+=pct*2*Math.PI;
+      const x=cx+r*Math.cos(acc);
+      const y=cy+r*Math.sin(acc);
+      const stroke=s.isLastInZone?'#FFFFFF':'rgba(0,0,0,0.18)';
+      const sw=s.isLastInZone?3.5:1.2;
+      separators+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(2)}" y2="${y.toFixed(2)}" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round" pointer-events="none"/>`;
+    });
+  }
+  const svg=`<svg width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto">${paths}${separators}</svg>`;
   // Legend de zonas (6 grupos grandes, clickable)
   let legend=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-top:18px">`;
   zoneVols.forEach(z=>{
@@ -659,6 +675,14 @@ function showPage(id){
   if(id==='routine') renderRoutine();
 }
 function closeModal(){$("modal").classList.remove('show');}
+// Sincronizar clase 'modal-open' del body cuando el modal abre/cierra → bloquea scroll del fondo
+(function(){
+  const m=document.getElementById('modal');
+  if(!m) return;
+  new MutationObserver(()=>{
+    document.body.classList.toggle('modal-open',m.classList.contains('show'));
+  }).observe(m,{attributes:true,attributeFilter:['class']});
+})();
 
 // ══ HELPERS ══
 function sugDay(){
