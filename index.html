@@ -343,6 +343,12 @@ function routineMuscleVolume(){
   });
   return {totals,uncovered};
 }
+const MUSCLE_GROUPS={
+  Push:['pecho','triceps','delt_ant','delt_lat'],
+  Pull:['dorsal','trapecio','biceps','delt_post','antebrazo'],
+  Pierna:['cuadriceps','isquios','gluteo','gemelos','aductor'],
+  Core:['lumbar','core']
+};
 function drawMuscleChart(){
   const {totals,uncovered}=routineMuscleVolume();
   const muscles=Object.entries(totals).filter(([_,v])=>v>0).sort((a,b)=>b[1]-a[1]);
@@ -355,7 +361,8 @@ function drawMuscleChart(){
     return;
   }
   sec.style.display='block';
-  const cx=110,cy=110,r=92,ir=58;
+  // Pie chart sólido (sin agujero)
+  const cx=110,cy=110,r=100;
   let cum=-Math.PI/2;
   let paths='';
   muscles.forEach(([m,v])=>{
@@ -365,15 +372,46 @@ function drawMuscleChart(){
     cum=ea;
     const x1=cx+r*Math.cos(sa),y1=cy+r*Math.sin(sa);
     const x2=cx+r*Math.cos(ea),y2=cy+r*Math.sin(ea);
-    const x3=cx+ir*Math.cos(ea),y3=cy+ir*Math.sin(ea);
-    const x4=cx+ir*Math.cos(sa),y4=cy+ir*Math.sin(sa);
     const large=ang>Math.PI?1:0;
     const color=MUSCLE_COLORS[m]||'#888';
-    const d=`M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} L ${x3.toFixed(2)} ${y3.toFixed(2)} A ${ir} ${ir} 0 ${large} 0 ${x4.toFixed(2)} ${y4.toFixed(2)} Z`;
+    // Caso especial: un solo músculo cubre 100% → círculo entero
+    const d=muscles.length===1
+      ?`M ${cx} ${cy-r} A ${r} ${r} 0 1 1 ${cx} ${cy+r} A ${r} ${r} 0 1 1 ${cx} ${cy-r} Z`
+      :`M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`;
     paths+=`<path d="${d}" fill="${color}" stroke="var(--cd)" stroke-width="2"/>`;
   });
-  let svg=`<svg width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto">${paths}<text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="11" fill="var(--mt)" style="font-family:var(--fs)">reps/semana</text><text x="${cx}" y="${cy+18}" text-anchor="middle" font-size="22" font-weight="800" fill="var(--tx)" style="font-family:var(--fm)">${Math.round(total)}</text></svg>`;
-  let legend=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:16px">`;
+  const svg=`<svg width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto">${paths}</svg>`;
+  // Stats por categoría de movimiento
+  const groupVols={};
+  Object.entries(MUSCLE_GROUPS).forEach(([g,ms])=>{
+    groupVols[g]=ms.reduce((s,m)=>s+(totals[m]||0),0);
+  });
+  const groupTotal=Object.values(groupVols).reduce((a,b)=>a+b,0);
+  const groupColors={Push:'#dc2626',Pull:'#2563eb',Pierna:'#16a34a',Core:'#78716c'};
+  let groupBar='';
+  if(groupTotal>0){
+    groupBar=`<div style="display:flex;border-radius:8px;overflow:hidden;height:8px;margin-top:18px;background:var(--bd)">`;
+    Object.entries(groupVols).forEach(([g,v])=>{
+      const pct=v/groupTotal*100;
+      if(pct>0) groupBar+=`<div style="width:${pct}%;background:${groupColors[g]}"></div>`;
+    });
+    groupBar+=`</div>`;
+    groupBar+=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px;font-size:12px;text-align:center">`;
+    Object.entries(groupVols).forEach(([g,v])=>{
+      const pct=(v/groupTotal*100).toFixed(0);
+      groupBar+=`<div><div class="fw-700" style="color:${groupColors[g]}">${pct}%</div><div class="text-mt" style="font-size:11px">${g}</div></div>`;
+    });
+    groupBar+=`</div>`;
+  }
+  // Cobertura
+  const covered=MUSCLES.filter(m=>(totals[m]||0)>0).length;
+  const totalMuscles=MUSCLES.length;
+  const missing=MUSCLES.filter(m=>!(totals[m]||0)>0).map(m=>MUSCLE_LABELS[m]||m);
+  const coverageColor=covered===totalMuscles?'var(--gn)':covered>=totalMuscles-3?'var(--ac)':'var(--yw)';
+  let coverage=`<div class="row mt-16" style="padding-top:14px;border-top:1px solid var(--bd)"><span class="text-sm text-mt">Cobertura</span><span class="fw-800 mono" style="color:${coverageColor}">${covered} / ${totalMuscles}</span></div>`;
+  if(missing.length&&missing.length<=4) coverage+=`<div class="text-xs text-mt mt-4">Sin entrenar: ${missing.join(', ')}</div>`;
+  // Legend detallado
+  let legend=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--bd)">`;
   muscles.forEach(([m,v])=>{
     const pct=(v/total*100).toFixed(0);
     const color=MUSCLE_COLORS[m]||'#888';
@@ -382,7 +420,7 @@ function drawMuscleChart(){
   legend+=`</div>`;
   let footer='';
   if(uncovered>0) footer=`<div class="text-xs text-mt mt-12" style="text-align:center">⚠ ${uncovered} ${uncovered===1?'ejercicio sin asignar':'ejercicios sin asignar'} a la biblioteca</div>`;
-  $("home-volume").innerHTML=svg+legend+footer;
+  $("home-volume").innerHTML=svg+groupBar+coverage+legend+footer;
 }
 
 // ══ MIGRATION v1 (legacy uids → canonical IDs) ══
