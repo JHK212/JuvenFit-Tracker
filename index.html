@@ -243,18 +243,18 @@ const DEFAULT_DAYS=[
 ];
 
 // ══ EXERCISE LIBRARY (v1) ══
-const MUSCLES=['pecho','dorsal','trapecio','lumbar','biceps','triceps','antebrazo','delt_ant','delt_lat','delt_post','cuadriceps','isquios','gluteo','gemelos','aductor','core'];
-const MUSCLE_LABELS={pecho:'Pecho',dorsal:'Dorsal',trapecio:'Trapecio',lumbar:'Lumbar',biceps:'Bíceps',triceps:'Tríceps',antebrazo:'Antebrazo',delt_ant:'Delt. anterior',delt_lat:'Delt. lateral',delt_post:'Delt. posterior',cuadriceps:'Cuádriceps',isquios:'Isquios',gluteo:'Glúteo',gemelos:'Gemelos',aductor:'Aductor',core:'Core'};
+const MUSCLES=['pecho_sup','pecho_med','pecho_inf','dorsal','trapecio','lumbar','biceps','triceps','antebrazo','delt_ant','delt_lat','delt_post','cuadriceps','isquios','gluteo','gemelos','aductor','core'];
+const MUSCLE_LABELS={pecho_sup:'Pecho superior',pecho_med:'Pecho medio',pecho_inf:'Pecho inferior',dorsal:'Dorsal',trapecio:'Trapecio',lumbar:'Lumbar',biceps:'Bíceps',triceps:'Tríceps',antebrazo:'Antebrazo',delt_ant:'Delt. anterior',delt_lat:'Delt. lateral',delt_post:'Delt. posterior',cuadriceps:'Cuádriceps',isquios:'Isquios',gluteo:'Glúteo',gemelos:'Gemelos',aductor:'Aductor',core:'Core'};
 const EXERCISE_LIBRARY=[
   {id:'sentadilla-barra',name:'Sentadilla con barra',aliases:['Squat','Sentadilla'],category:'compound',movement:'sentadilla',muscleActivation:{cuadriceps:60,gluteo:30,core:10},similar:['bulgaras','step-up'],cues:'Pies a la altura de hombros, rodillas hacia los pies, bajar controlado, espalda neutra'},
   {id:'peso-muerto',name:'Peso muerto',aliases:['Deadlift','PM'],category:'compound',movement:'bisagra',muscleActivation:{isquios:40,gluteo:35,lumbar:25},similar:['peso-muerto-rumano','peso-muerto-mancuernas'],cues:'Espalda neutra, barra pegada al cuerpo, empujar el piso, no rebotar'},
-  {id:'press-banca-plano',name:'Press banca plano',aliases:['Bench Press','Banca','Banco plano con barra'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho:60,triceps:25,delt_ant:15},similar:['press-banca-mancuernas','press-inclinado-barra','flexiones'],cues:'Escápulas juntas, arco lumbar natural, barra al esternón, no rebotar'},
-  {id:'press-inclinado-mancuernas',name:'Press inclinado mancuernas',aliases:['Incline DB Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho:50,delt_ant:30,triceps:20},similar:['press-inclinado-barra','press-banca-mancuernas'],cues:'Banco a 30°, control excéntrico, no rebotar'},
+  {id:'press-banca-plano',name:'Press banca plano',aliases:['Bench Press','Banca','Banco plano con barra'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho_med:36,pecho_sup:12,pecho_inf:12,triceps:25,delt_ant:15},similar:['press-banca-mancuernas','press-inclinado-barra','flexiones'],cues:'Escápulas juntas, arco lumbar natural, barra al esternón, no rebotar'},
+  {id:'press-inclinado-mancuernas',name:'Press inclinado mancuernas',aliases:['Incline DB Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho_sup:32,pecho_med:15,pecho_inf:3,delt_ant:30,triceps:20},similar:['press-inclinado-barra','press-banca-mancuernas'],cues:'Banco a 30°, control excéntrico, no rebotar'},
   {id:'press-militar',name:'Press militar',aliases:['Overhead Press','OHP','Press de hombros'],category:'compound',movement:'empuje_vertical',muscleActivation:{delt_ant:50,triceps:30,delt_lat:20},similar:['press-mancuernas-sentado'],cues:'Glúteos y core contraídos, no arquear lumbar, barra recta hacia arriba'},
   {id:'remo-barra',name:'Remo con barra',aliases:['Barbell Row'],category:'compound',movement:'traccion_horizontal',muscleActivation:{dorsal:50,trapecio:25,biceps:25},similar:['remo-mancuerna','remo-australiano'],cues:'Tronco a 45°, retraer escápulas, no tirar con brazos'},
   {id:'remo-mancuerna',name:'Remo con mancuerna',aliases:['DB Row','Remo a 1 brazo'],category:'compound',movement:'traccion_horizontal',muscleActivation:{dorsal:60,trapecio:20,biceps:20},similar:['remo-barra','remo-australiano'],cues:'Sin girar el torso, llevar mancuerna a la cadera'},
   {id:'dominadas',name:'Dominadas',aliases:['Pull-ups'],category:'compound',movement:'traccion_vertical',muscleActivation:{dorsal:60,biceps:25,trapecio:15},similar:['remo-australiano'],cues:'Pecho al frente, retraer escápulas, no colgarse de los brazos'},
-  {id:'fondos',name:'Fondos en paralelas',aliases:['Dips'],category:'compound',movement:'empuje_vertical',muscleActivation:{triceps:45,pecho:35,delt_ant:20},similar:['flexiones','press-banca-plano'],cues:'Tronco inclinado para enfatizar pecho, vertical para tríceps. Bajar a 90°'},
+  {id:'fondos',name:'Fondos en paralelas',aliases:['Dips'],category:'compound',movement:'empuje_vertical',muscleActivation:{triceps:45,pecho_inf:19,pecho_med:12,pecho_sup:4,delt_ant:20},similar:['flexiones','press-banca-plano'],cues:'Tronco inclinado para enfatizar pecho, vertical para tríceps. Bajar a 90°'},
   {id:'hip-thrust',name:'Hip thrust',aliases:['Empuje de cadera'],category:'compound',movement:'bisagra',muscleActivation:{gluteo:70,isquios:25,cuadriceps:5},similar:['peso-muerto','peso-muerto-rumano'],cues:'Empujar con talones, retroversión pélvica al final, glúteos arriba'},
   {id:'step-up',name:'Step up',aliases:['Subida al cajón'],category:'compound',movement:'zancada',muscleActivation:{cuadriceps:50,gluteo:40,isquios:10},similar:['bulgaras','sentadilla-barra'],cues:'Pie completo en el cajón, subir con la pierna de arriba, no impulsar con la otra'},
   {id:'peso-muerto-mancuernas',name:'Peso muerto mancuernas',aliases:['DB Deadlift','Peso muerto con mancuernas'],category:'compound',movement:'bisagra',muscleActivation:{isquios:45,gluteo:35,lumbar:20},similar:['peso-muerto','peso-muerto-rumano'],cues:'Cadera atrás, espalda neutra, mancuernas pegadas a las piernas'},
@@ -265,17 +265,17 @@ const EXERCISE_LIBRARY=[
   {id:'curl-martillo',name:'Curl martillo',aliases:['Hammer Curl'],category:'aislacion',movement:'aislacion',muscleActivation:{biceps:60,antebrazo:30,delt_ant:10},similar:['curl-mancuernas','curl-barra'],cues:'Pulgares arriba, codos pegados, sin balancear'},
   {id:'extension-triceps',name:'Extensión de tríceps',aliases:['Triceps Extension','Extension de triceps'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:90,antebrazo:10},similar:['rompecraneo','press-frances','patada-tricep'],cues:'Codos fijos, solo se mueve el antebrazo. Con mancuerna por encima de la cabeza'},
   {id:'rompecraneo',name:'Rompecráneo',aliases:['Skullcrusher','French Press'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:90,antebrazo:10},similar:['extension-triceps','press-frances'],cues:'Codos fijos hacia el techo, bajar a la frente, no abrir codos'},
-  {id:'aperturas-banco-plano',name:'Aperturas en banco plano',aliases:['Flyes','Aperturas','Aperturas banco plano'],category:'aislacion',movement:'aislacion',muscleActivation:{pecho:85,delt_ant:15},similar:['press-banca-mancuernas'],cues:'Codos ligeramente flexionados, abrir hasta la línea del hombro, no más'},
+  {id:'aperturas-banco-plano',name:'Aperturas en banco plano',aliases:['Flyes','Aperturas','Aperturas banco plano'],category:'aislacion',movement:'aislacion',muscleActivation:{pecho_med:51,pecho_sup:21,pecho_inf:13,delt_ant:15},similar:['press-banca-mancuernas'],cues:'Codos ligeramente flexionados, abrir hasta la línea del hombro, no más'},
   {id:'plancha',name:'Plancha',aliases:['Plank'],category:'aislacion',movement:'core',muscleActivation:{core:100},similar:['plancha-lateral','abdominales'],cues:'Cuerpo en línea, glúteos contraídos, no hundir la cadera'},
   {id:'plancha-lateral',name:'Plancha lateral',aliases:['Side Plank'],category:'aislacion',movement:'core',muscleActivation:{core:100},similar:['plancha'],cues:'Cadera arriba, codo bajo el hombro, cuerpo recto'},
   {id:'bulgaras',name:'Búlgaras',aliases:['Bulgarian Split Squat'],category:'compound',movement:'zancada',muscleActivation:{cuadriceps:50,gluteo:40,isquios:10},similar:['step-up','sentadilla-barra'],cues:'Pie de atrás en banco, bajar controlado, peso en el talón delantero'},
   {id:'gemelos-de-pie',name:'Gemelos de pie',aliases:['Calf Raise'],category:'aislacion',movement:'aislacion',muscleActivation:{gemelos:100},similar:[],cues:'Subir alto, bajar controlado, máximo rango'},
   {id:'peso-muerto-rumano',name:'Peso muerto rumano',aliases:['RDL','Romanian Deadlift'],category:'compound',movement:'bisagra',muscleActivation:{isquios:50,gluteo:35,lumbar:15},similar:['peso-muerto','peso-muerto-mancuernas'],cues:'Cadera atrás, rodillas semi-flexionadas, espalda neutra'},
-  {id:'press-banca-mancuernas',name:'Press banca mancuernas',aliases:['DB Bench Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho:60,triceps:25,delt_ant:15},similar:['press-banca-plano','press-inclinado-mancuernas'],cues:'Mismo arco que con barra, mayor rango, control excéntrico'},
-  {id:'press-inclinado-barra',name:'Press inclinado con barra',aliases:['Incline Bench Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho:50,delt_ant:30,triceps:20},similar:['press-inclinado-mancuernas','press-banca-plano'],cues:'Banco a 30°. Barra a la parte alta del pecho'},
+  {id:'press-banca-mancuernas',name:'Press banca mancuernas',aliases:['DB Bench Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho_med:36,pecho_sup:12,pecho_inf:12,triceps:25,delt_ant:15},similar:['press-banca-plano','press-inclinado-mancuernas'],cues:'Mismo arco que con barra, mayor rango, control excéntrico'},
+  {id:'press-inclinado-barra',name:'Press inclinado con barra',aliases:['Incline Bench Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho_sup:32,pecho_med:15,pecho_inf:3,delt_ant:30,triceps:20},similar:['press-inclinado-mancuernas','press-banca-plano'],cues:'Banco a 30°. Barra a la parte alta del pecho'},
   {id:'press-mancuernas-sentado',name:'Press mancuernas sentado',aliases:['Seated DB Press'],category:'compound',movement:'empuje_vertical',muscleActivation:{delt_ant:50,delt_lat:25,triceps:25},similar:['press-militar'],cues:'Espalda apoyada, mancuernas paralelas, no chocar arriba'},
   {id:'remo-australiano',name:'Remo australiano',aliases:['Inverted Row'],category:'compound',movement:'traccion_horizontal',muscleActivation:{dorsal:50,trapecio:25,biceps:25},similar:['remo-barra','dominadas'],cues:'Cuerpo recto, pecho a la barra, retraer escápulas'},
-  {id:'flexiones',name:'Flexiones',aliases:['Push-ups','Lagartijas'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho:55,triceps:30,delt_ant:15},similar:['press-banca-plano','fondos'],cues:'Cuerpo en línea, codos a 45°, bajar al pecho'},
+  {id:'flexiones',name:'Flexiones',aliases:['Push-ups','Lagartijas'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho_med:33,pecho_sup:11,pecho_inf:11,triceps:30,delt_ant:15},similar:['press-banca-plano','fondos'],cues:'Cuerpo en línea, codos a 45°, bajar al pecho'},
   {id:'encogimientos',name:'Encogimientos',aliases:['Shrugs'],category:'aislacion',movement:'aislacion',muscleActivation:{trapecio:90,antebrazo:10},similar:[],cues:'Subir hombros derechos hacia arriba, no rotar, sostener arriba'},
   {id:'curl-mancuernas',name:'Curl alternado mancuernas',aliases:['DB Curl'],category:'aislacion',movement:'aislacion',muscleActivation:{biceps:85,antebrazo:15},similar:['curl-barra','curl-martillo'],cues:'Codos pegados, alternar, supinar al subir'},
   {id:'press-frances',name:'Press francés',aliases:['French Press'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:90,antebrazo:10},similar:['rompecraneo','extension-triceps'],cues:'De pie o sentado, mancuerna detrás de la cabeza, codos quietos'},
@@ -357,14 +357,14 @@ function routineMuscleVolume(){
   return {totals,uncovered};
 }
 const MUSCLE_GROUPS={
-  Push:['pecho','triceps','delt_ant','delt_lat'],
+  Push:['pecho_sup','pecho_med','pecho_inf','triceps','delt_ant','delt_lat'],
   Pull:['dorsal','trapecio','biceps','delt_post','antebrazo'],
   Pierna:['cuadriceps','isquios','gluteo','gemelos','aductor'],
   Core:['lumbar','core']
 };
-// Pie chart agrupado por zona corporal (más legible que 16 slices individuales)
+// Pie chart agrupado por zona corporal (más legible que 18 slices individuales)
 const BODY_ZONES={
-  Pecho:{muscles:['pecho'],color:'#dc2626'},
+  Pecho:{muscles:['pecho_sup','pecho_med','pecho_inf'],color:'#dc2626'},
   Espalda:{muscles:['dorsal','trapecio','lumbar'],color:'#2563eb'},
   Hombros:{muscles:['delt_ant','delt_lat','delt_post'],color:'#7c3aed'},
   Brazos:{muscles:['biceps','triceps','antebrazo'],color:'#ea580c'},
@@ -500,22 +500,36 @@ function drawMuscleChart(){
     return;
   }
   sec.style.display='block';
-  // Pie chart sólido por zona corporal (clickable)
+  // Pie chart con slices por sub-músculo (tonos del color de la zona)
   const cx=110,cy=110,r=100;
   let cum=-Math.PI/2;
   let paths='';
+  // Preparar lista de slices preservando agrupación por zona
+  const slices=[];
   zoneVols.forEach(z=>{
-    const pct=z.v/total;
+    const subMs=BODY_ZONES[z.name].muscles
+      .map(m=>({m,v:totals[m]||0}))
+      .filter(x=>x.v>0)
+      .sort((a,b)=>b.v-a.v);
+    const subColors=subMuscleColors(z.name,subMs.length);
+    subMs.forEach((sm,i)=>{
+      slices.push({zoneName:z.name,muscle:sm.m,v:sm.v,color:subColors[i],isLastInZone:i===subMs.length-1});
+    });
+  });
+  slices.forEach(s=>{
+    const pct=s.v/total;
     const ang=pct*2*Math.PI;
     const sa=cum,ea=cum+ang;
     cum=ea;
     const x1=cx+r*Math.cos(sa),y1=cy+r*Math.sin(sa);
     const x2=cx+r*Math.cos(ea),y2=cy+r*Math.sin(ea);
     const large=ang>Math.PI?1:0;
-    const d=zoneVols.length===1
+    const d=slices.length===1
       ?`M ${cx} ${cy-r} A ${r} ${r} 0 1 1 ${cx} ${cy+r} A ${r} ${r} 0 1 1 ${cx} ${cy-r} Z`
       :`M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`;
-    paths+=`<path d="${d}" fill="${z.color}" stroke="var(--cd)" stroke-width="2" style="cursor:pointer" onclick="showZoneDetail('${z.name}')"/>`;
+    // Stroke más grueso al final de zona para marcar transición
+    const sw=s.isLastInZone?3:1;
+    paths+=`<path d="${d}" fill="${s.color}" stroke="var(--cd)" stroke-width="${sw}" style="cursor:pointer" onclick="showZoneDetail('${s.zoneName}')"/>`;
   });
   const svg=`<svg width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto">${paths}</svg>`;
   // Legend de zonas (6 grupos grandes, clickable)
