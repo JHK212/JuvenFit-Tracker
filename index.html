@@ -241,8 +241,112 @@ const DEFAULT_DAYS=[
   {id:1,name:"Día 1",sub:"Mi primer día",exercises:[]},
 ];
 
+// ══ EXERCISE LIBRARY (v1) ══
+const MUSCLES=['pecho','dorsal','trapecio','lumbar','biceps','triceps','antebrazo','delt_ant','delt_lat','delt_post','cuadriceps','isquios','gluteo','gemelos','aductor','core'];
+const MUSCLE_LABELS={pecho:'Pecho',dorsal:'Dorsal',trapecio:'Trapecio',lumbar:'Lumbar',biceps:'Bíceps',triceps:'Tríceps',antebrazo:'Antebrazo',delt_ant:'Delt. anterior',delt_lat:'Delt. lateral',delt_post:'Delt. posterior',cuadriceps:'Cuádriceps',isquios:'Isquios',gluteo:'Glúteo',gemelos:'Gemelos',aductor:'Aductor',core:'Core'};
+const EXERCISE_LIBRARY=[
+  {id:'sentadilla-barra',name:'Sentadilla con barra',aliases:['Squat','Sentadilla'],category:'compound',movement:'sentadilla',muscleActivation:{cuadriceps:60,gluteo:30,core:10},similar:['bulgaras','step-up'],cues:'Pies a la altura de hombros, rodillas hacia los pies, bajar controlado, espalda neutra'},
+  {id:'peso-muerto',name:'Peso muerto',aliases:['Deadlift','PM'],category:'compound',movement:'bisagra',muscleActivation:{isquios:40,gluteo:35,lumbar:25},similar:['peso-muerto-rumano','peso-muerto-mancuernas'],cues:'Espalda neutra, barra pegada al cuerpo, empujar el piso, no rebotar'},
+  {id:'press-banca-plano',name:'Press banca plano',aliases:['Bench Press','Banca','Banco plano con barra'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho:60,triceps:25,delt_ant:15},similar:['press-banca-mancuernas','press-inclinado-barra','flexiones'],cues:'Escápulas juntas, arco lumbar natural, barra al esternón, no rebotar'},
+  {id:'press-inclinado-mancuernas',name:'Press inclinado mancuernas',aliases:['Incline DB Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho:50,delt_ant:30,triceps:20},similar:['press-inclinado-barra','press-banca-mancuernas'],cues:'Banco a 30°, control excéntrico, no rebotar'},
+  {id:'press-militar',name:'Press militar',aliases:['Overhead Press','OHP','Press de hombros'],category:'compound',movement:'empuje_vertical',muscleActivation:{delt_ant:50,triceps:30,delt_lat:20},similar:['press-mancuernas-sentado'],cues:'Glúteos y core contraídos, no arquear lumbar, barra recta hacia arriba'},
+  {id:'remo-barra',name:'Remo con barra',aliases:['Barbell Row'],category:'compound',movement:'traccion_horizontal',muscleActivation:{dorsal:50,trapecio:25,biceps:25},similar:['remo-mancuerna','remo-australiano'],cues:'Tronco a 45°, retraer escápulas, no tirar con brazos'},
+  {id:'remo-mancuerna',name:'Remo con mancuerna',aliases:['DB Row','Remo a 1 brazo'],category:'compound',movement:'traccion_horizontal',muscleActivation:{dorsal:60,trapecio:20,biceps:20},similar:['remo-barra','remo-australiano'],cues:'Sin girar el torso, llevar mancuerna a la cadera'},
+  {id:'dominadas',name:'Dominadas',aliases:['Pull-ups'],category:'compound',movement:'traccion_vertical',muscleActivation:{dorsal:60,biceps:25,trapecio:15},similar:['remo-australiano'],cues:'Pecho al frente, retraer escápulas, no colgarse de los brazos'},
+  {id:'fondos',name:'Fondos en paralelas',aliases:['Dips'],category:'compound',movement:'empuje_vertical',muscleActivation:{triceps:45,pecho:35,delt_ant:20},similar:['flexiones','press-banca-plano'],cues:'Tronco inclinado para enfatizar pecho, vertical para tríceps. Bajar a 90°'},
+  {id:'hip-thrust',name:'Hip thrust',aliases:['Empuje de cadera'],category:'compound',movement:'bisagra',muscleActivation:{gluteo:70,isquios:25,cuadriceps:5},similar:['peso-muerto','peso-muerto-rumano'],cues:'Empujar con talones, retroversión pélvica al final, glúteos arriba'},
+  {id:'step-up',name:'Step up',aliases:['Subida al cajón'],category:'compound',movement:'zancada',muscleActivation:{cuadriceps:50,gluteo:40,isquios:10},similar:['bulgaras','sentadilla-barra'],cues:'Pie completo en el cajón, subir con la pierna de arriba, no impulsar con la otra'},
+  {id:'peso-muerto-mancuernas',name:'Peso muerto mancuernas',aliases:['DB Deadlift','Peso muerto con mancuernas'],category:'compound',movement:'bisagra',muscleActivation:{isquios:45,gluteo:35,lumbar:20},similar:['peso-muerto','peso-muerto-rumano'],cues:'Cadera atrás, espalda neutra, mancuernas pegadas a las piernas'},
+  {id:'elevaciones-laterales',name:'Elevaciones laterales',aliases:['Lateral Raises','Laterales'],category:'aislacion',movement:'aislacion',muscleActivation:{delt_lat:80,delt_ant:10,trapecio:10},similar:['elevaciones-frontales'],cues:'Brazos ligeramente flexionados, subir hasta la altura del hombro, no balancear'},
+  {id:'face-pull',name:'Face pull (banda)',aliases:['Face Pull','Tirones a la cara'],category:'aislacion',movement:'traccion_horizontal',muscleActivation:{delt_post:55,trapecio:30,dorsal:15},similar:['pajaros'],cues:'Codos altos, abrir manos al final, retraer escápulas. Con banda elástica'},
+  {id:'pajaros',name:'Pájaros',aliases:['Elevaciones posteriores','Reverse Flyes'],category:'aislacion',movement:'aislacion',muscleActivation:{delt_post:75,trapecio:25},similar:['face-pull'],cues:'Tronco a 45°, brazos ligeramente flexionados, abrir hacia los lados'},
+  {id:'curl-barra',name:'Curl con barra',aliases:['Barbell Curl','Curl barra'],category:'aislacion',movement:'aislacion',muscleActivation:{biceps:90,antebrazo:10},similar:['curl-mancuernas','curl-martillo'],cues:'Codos pegados al cuerpo, no balancear, control en la bajada'},
+  {id:'curl-martillo',name:'Curl martillo',aliases:['Hammer Curl'],category:'aislacion',movement:'aislacion',muscleActivation:{biceps:60,antebrazo:30,delt_ant:10},similar:['curl-mancuernas','curl-barra'],cues:'Pulgares arriba, codos pegados, sin balancear'},
+  {id:'extension-triceps',name:'Extensión de tríceps',aliases:['Triceps Extension','Extension de triceps'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:90,antebrazo:10},similar:['rompecraneo','press-frances','patada-tricep'],cues:'Codos fijos, solo se mueve el antebrazo. Con mancuerna por encima de la cabeza'},
+  {id:'rompecraneo',name:'Rompecráneo',aliases:['Skullcrusher','French Press'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:90,antebrazo:10},similar:['extension-triceps','press-frances'],cues:'Codos fijos hacia el techo, bajar a la frente, no abrir codos'},
+  {id:'aperturas-banco-plano',name:'Aperturas en banco plano',aliases:['Flyes','Aperturas','Aperturas banco plano'],category:'aislacion',movement:'aislacion',muscleActivation:{pecho:85,delt_ant:15},similar:['press-banca-mancuernas'],cues:'Codos ligeramente flexionados, abrir hasta la línea del hombro, no más'},
+  {id:'plancha',name:'Plancha',aliases:['Plank'],category:'aislacion',movement:'core',muscleActivation:{core:100},similar:['plancha-lateral','abdominales'],cues:'Cuerpo en línea, glúteos contraídos, no hundir la cadera'},
+  {id:'plancha-lateral',name:'Plancha lateral',aliases:['Side Plank'],category:'aislacion',movement:'core',muscleActivation:{core:100},similar:['plancha'],cues:'Cadera arriba, codo bajo el hombro, cuerpo recto'},
+  {id:'bulgaras',name:'Búlgaras',aliases:['Bulgarian Split Squat'],category:'compound',movement:'zancada',muscleActivation:{cuadriceps:50,gluteo:40,isquios:10},similar:['step-up','sentadilla-barra'],cues:'Pie de atrás en banco, bajar controlado, peso en el talón delantero'},
+  {id:'gemelos-de-pie',name:'Gemelos de pie',aliases:['Calf Raise'],category:'aislacion',movement:'aislacion',muscleActivation:{gemelos:100},similar:[],cues:'Subir alto, bajar controlado, máximo rango'},
+  {id:'peso-muerto-rumano',name:'Peso muerto rumano',aliases:['RDL','Romanian Deadlift'],category:'compound',movement:'bisagra',muscleActivation:{isquios:50,gluteo:35,lumbar:15},similar:['peso-muerto','peso-muerto-mancuernas'],cues:'Cadera atrás, rodillas semi-flexionadas, espalda neutra'},
+  {id:'press-banca-mancuernas',name:'Press banca mancuernas',aliases:['DB Bench Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho:60,triceps:25,delt_ant:15},similar:['press-banca-plano','press-inclinado-mancuernas'],cues:'Mismo arco que con barra, mayor rango, control excéntrico'},
+  {id:'press-inclinado-barra',name:'Press inclinado con barra',aliases:['Incline Bench Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho:50,delt_ant:30,triceps:20},similar:['press-inclinado-mancuernas','press-banca-plano'],cues:'Banco a 30°. Barra a la parte alta del pecho'},
+  {id:'press-mancuernas-sentado',name:'Press mancuernas sentado',aliases:['Seated DB Press'],category:'compound',movement:'empuje_vertical',muscleActivation:{delt_ant:50,delt_lat:25,triceps:25},similar:['press-militar'],cues:'Espalda apoyada, mancuernas paralelas, no chocar arriba'},
+  {id:'remo-australiano',name:'Remo australiano',aliases:['Inverted Row'],category:'compound',movement:'traccion_horizontal',muscleActivation:{dorsal:50,trapecio:25,biceps:25},similar:['remo-barra','dominadas'],cues:'Cuerpo recto, pecho a la barra, retraer escápulas'},
+  {id:'flexiones',name:'Flexiones',aliases:['Push-ups','Lagartijas'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho:55,triceps:30,delt_ant:15},similar:['press-banca-plano','fondos'],cues:'Cuerpo en línea, codos a 45°, bajar al pecho'},
+  {id:'encogimientos',name:'Encogimientos',aliases:['Shrugs'],category:'aislacion',movement:'aislacion',muscleActivation:{trapecio:90,antebrazo:10},similar:[],cues:'Subir hombros derechos hacia arriba, no rotar, sostener arriba'},
+  {id:'curl-mancuernas',name:'Curl alternado mancuernas',aliases:['DB Curl'],category:'aislacion',movement:'aislacion',muscleActivation:{biceps:85,antebrazo:15},similar:['curl-barra','curl-martillo'],cues:'Codos pegados, alternar, supinar al subir'},
+  {id:'press-frances',name:'Press francés',aliases:['French Press'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:90,antebrazo:10},similar:['rompecraneo','extension-triceps'],cues:'De pie o sentado, mancuerna detrás de la cabeza, codos quietos'},
+  {id:'patada-tricep',name:'Patada de tríceps',aliases:['Kickback'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:85,delt_post:15},similar:['extension-triceps','rompecraneo'],cues:'Tronco a 45°, codo arriba pegado al torso, extender solo el antebrazo'},
+  {id:'elevaciones-frontales',name:'Elevaciones frontales',aliases:['Front Raises'],category:'aislacion',movement:'aislacion',muscleActivation:{delt_ant:80,delt_lat:10,pecho:10},similar:['elevaciones-laterales'],cues:'Brazos ligeramente flexionados, subir hasta la línea del hombro'},
+  {id:'abdominales',name:'Abdominales',aliases:['Crunch','Crunches'],category:'aislacion',movement:'core',muscleActivation:{core:100},similar:['leg-raises','plancha'],cues:'Mentón al pecho, despegar solo los omóplatos, no estirar el cuello'},
+  {id:'leg-raises',name:'Elevaciones de piernas',aliases:['Leg Raises'],category:'aislacion',movement:'core',muscleActivation:{core:100},similar:['abdominales','plancha'],cues:'Lumbar pegada al piso, controlar la bajada, no balancear'}
+];
+
+function normalizeText(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();}
+function getCustomLib(){return load("gym-ex-custom",[]);}
+function getExerciseLib(){return EXERCISE_LIBRARY.concat(getCustomLib());}
+function getExercise(id){return getExerciseLib().find(e=>e.id===id);}
+function getExerciseName(id,fallback){const ex=getExercise(id);return ex?ex.name:(fallback||id||'?');}
+function findExerciseByName(name){
+  if(!name) return null;
+  const norm=normalizeText(name);
+  const lib=getExerciseLib();
+  for(const ex of lib){
+    if(normalizeText(ex.name)===norm) return ex.id;
+    if(ex.aliases&&ex.aliases.some(a=>normalizeText(a)===norm)) return ex.id;
+  }
+  // Fallback: substring match
+  for(const ex of lib){
+    const exNorm=normalizeText(ex.name);
+    if(exNorm.includes(norm)||norm.includes(exNorm)) return ex.id;
+  }
+  return null;
+}
+function sessionCountFor(eid){let n=0;for(const s of (sessions||[])){if(s.exercises&&s.exercises.some(e=>e.eid===eid)) n++;}return n;}
+function getActiveRoutine(){return routineStore&&routineStore.list&&(routineStore.list.find(r=>r.id===routineStore.active)||routineStore.list[0]);}
+function saveRoutine(){save("gym-r",routineStore);}
+
+// ══ MIGRATION v1 (legacy uids → canonical IDs) ══
+function migrateLibV1(){
+  if(load("gym-lib-v1-done",false)) return;
+  const oldR=load("gym-r",null);
+  const oldS=load("gym-s",[]);
+  if(oldR) save("gym-r-backup-pre-lib",oldR);
+  if(oldS&&oldS.length) save("gym-s-backup-pre-lib",oldS);
+  // Already in new format? Mark done.
+  if(oldR&&oldR.list&&oldR.active){save("gym-lib-v1-done",true);return;}
+  const oldDays=(oldR&&oldR.days)?oldR.days:null;
+  if(!oldDays){save("gym-lib-v1-done",true);return;}
+  const eidMap={};
+  oldDays.forEach(d=>{
+    (d.exercises||[]).forEach(ex=>{
+      if(ex.type==='compound'||!ex.type){
+        const canonical=findExerciseByName(ex.name);
+        eidMap[ex.id]=canonical||ex.id;
+        ex.exerciseId=eidMap[ex.id];
+      } else {
+        (ex.items||[]).forEach(it=>{
+          const canonical=findExerciseByName(it.name);
+          if(canonical) it.exerciseId=canonical;
+        });
+      }
+    });
+  });
+  const newR={active:'mi-rutina',list:[{id:'mi-rutina',name:'Mi Rutina',createdAt:td(),days:oldDays}]};
+  oldS.forEach(s=>{
+    (s.exercises||[]).forEach(ex=>{
+      if(eidMap[ex.eid]) ex.eid=eidMap[ex.eid];
+    });
+  });
+  save("gym-r",newR);
+  save("gym-s",oldS);
+  save("gym-lib-v1-done",true);
+}
+
 // ══ STATE ══
-let routine,sessions,config,curSess,curDayId,curExI,timerRef,timerTotal,timerLeft,editDayId,editExId;
+let routine,routineStore,sessions,config,curSess,curDayId,curExI,timerRef,timerTotal,timerLeft,editDayId,editExId;
 let calYear,calMonth;
 let selectedDel=new Set();
 
@@ -263,7 +367,14 @@ function getAccessories(day){return day.exercises.filter(e=>!isCompound(e));}
 
 // ══ INIT ══
 function init(){
-  routine=load("gym-r",{days:DEFAULT_DAYS});
+  migrateLibV1();
+  routineStore=load("gym-r",{active:'mi-rutina',list:[{id:'mi-rutina',name:'Mi Rutina',createdAt:td(),days:JSON.parse(JSON.stringify(DEFAULT_DAYS))}]});
+  // Safety: if storage came back malformed, re-wrap
+  if(!routineStore||!routineStore.list||!routineStore.list.length){
+    routineStore={active:'mi-rutina',list:[{id:'mi-rutina',name:'Mi Rutina',createdAt:td(),days:JSON.parse(JSON.stringify(DEFAULT_DAYS))}]};
+  }
+  routine=getActiveRoutine();
+  if(!routine){routine=routineStore.list[0];routineStore.active=routine.id;}
   sessions=load("gym-s",[]);
   config=load("gym-cfg",{daysPerWeek:3});
   const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();
@@ -300,6 +411,7 @@ function streak(){
   let c=0;for(const[wk,n] of Object.entries(w).sort((a,b)=>b[0].localeCompare(a[0]))){if(wk===twk&&n<dpw) continue;if(n>=dpw)c++;else break;}return c;
 }
 function thisWeekSessions(){const now=new Date();const day=now.getDay();const start=new Date(now);start.setDate(start.getDate()-day);start.setHours(0,0,0,0);return sessions.filter(s=>new Date(s.date+"T12:00:00")>=start).length;}
+function eidOf(ex){return ex.exerciseId||ex.id;}
 function lastW(eid){for(let i=sessions.length-1;i>=0;i--){const e=sessions[i].exercises?.find(x=>x.eid===eid);if(e?.sets?.length){const s=e.sets.find(s=>s.w>0);if(s)return s.w;}}return 0;}
 function prW(eid){let m=0;sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid)e.sets?.forEach(st=>{if(st.w>m)m=st.w;});}));return m;}
 function hist(eid){const d=[];sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid&&e.sets?.length)d.push({date:fd(s.date),time:s.time||'',peso:Math.max(...e.sets.map(x=>x.w||0)),sets:e.sets,note:e.note||''});}));return d;}
@@ -423,7 +535,7 @@ function exerciseRec(exData,target,beforeKey){
       const prior=priorSession(eid,beforeKey);
       if(prior){
         const priorW=sessionWeight(prior.ex.sets);
-        const def=allCompounds().find(e=>e.id===eid);
+        const def=allCompounds().find(e=>eidOf(e)===eid);
         const priorAvg=def?avgScore(prior.ex.sets,def.reps):null;
         if(priorW===w&&priorAvg!=null&&priorAvg>=0) key='up_streak';
       }
@@ -440,7 +552,7 @@ function exerciseRec(exData,target,beforeKey){
 function lastSessionRec(eid){
   const prior=priorSession(eid);
   if(!prior) return null;
-  const def=allCompounds().find(e=>e.id===eid);
+  const def=allCompounds().find(e=>eidOf(e)===eid);
   if(!def) return null;
   // beforeKey = sesión actual prior, así el streak mira a la anterior a esa.
   return exerciseRec({sets:prior.ex.sets,eid},def.reps,prior.key);
@@ -476,9 +588,9 @@ function renderHome(){
   $("home-others").innerHTML=routine.days.filter(d=>d.id!==sg).map(d=>`<div class="card" onclick="startWorkout(${d.id})" style="cursor:pointer"><div class="row"><div><div style="font-size:16px;font-weight:700">${d.name}</div><div class="text-sm text-mt">${d.sub}</div></div><div style="font-size:20px;color:var(--mt)">→</div></div></div>`).join('');
   renderCalendar();
   const last=sessions.length?[...sessions].sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
-  if(last){$("home-last-sec").style.display="block";const dayDef=routine.days.find(d=>d.id===last.dayId);$("home-last").innerHTML=`<div class="row mb-8"><span class="text-sm text-mt">${fd(last.date)}${last.time?' · '+last.time:''} — ${dayDef?.name||''}</span><button class="btn-sm" onclick="editSession('${last.id}')" style="font-size:12px">✎ Editar</button></div><div>${(last.exercises||[]).map(ex=>{const def=allCompounds().find(e=>e.id===ex.eid);if(!def) return '';const mw=Math.max(...(ex.sets||[]).map(s=>s.w||0));return`<div class="row" style="padding:4px 0;font-size:14px"><span class="text-mt">${def.name}</span><span class="mono fw-700">${mw}kg</span></div>`;}).join('')}</div>`;}else{$("home-last-sec").style.display="none";}
-  const histItems=allCompounds().filter(ex=>hist(ex.id).length>0);
-  if(histItems.length){$("home-hist-sec").style.display="block";$("home-hist").innerHTML=histItems.map(ex=>{const h=hist(ex.id);return`<div class="card" onclick="showHist('${ex.id}')" style="cursor:pointer"><div class="row"><div><div style="font-size:15px;font-weight:700;color:var(--ac)">${ex.name}</div><div class="text-xs text-mt">${h.length} sesiones · PR: ${prW(ex.id)}kg</div></div><div style="font-size:18px;color:var(--mt)">→</div></div></div>`;}).join('');}else{$("home-hist-sec").style.display="none";}
+  if(last){$("home-last-sec").style.display="block";const dayDef=routine.days.find(d=>d.id===last.dayId);$("home-last").innerHTML=`<div class="row mb-8"><span class="text-sm text-mt">${fd(last.date)}${last.time?' · '+last.time:''} — ${dayDef?.name||''}</span><button class="btn-sm" onclick="editSession('${last.id}')" style="font-size:12px">✎ Editar</button></div><div>${(last.exercises||[]).map(ex=>{const name=getExerciseName(ex.eid,allCompounds().find(e=>eidOf(e)===ex.eid)?.name);if(!name) return '';const mw=Math.max(...(ex.sets||[]).map(s=>s.w||0));return`<div class="row" style="padding:4px 0;font-size:14px"><span class="text-mt">${name}</span><span class="mono fw-700">${mw}kg</span></div>`;}).join('')}</div>`;}else{$("home-last-sec").style.display="none";}
+  const histItems=allCompounds().filter(ex=>hist(eidOf(ex)).length>0);
+  if(histItems.length){$("home-hist-sec").style.display="block";$("home-hist").innerHTML=histItems.map(ex=>{const h=hist(eidOf(ex));return`<div class="card" onclick="showHist('${eidOf(ex)}')" style="cursor:pointer"><div class="row"><div><div style="font-size:15px;font-weight:700;color:var(--ac)">${ex.name}</div><div class="text-xs text-mt">${h.length} sesiones · PR: ${prW(eidOf(ex))}kg</div></div><div style="font-size:18px;color:var(--mt)">→</div></div></div>`;}).join('');}else{$("home-hist-sec").style.display="none";}
 }
 
 // ══ ROUTINE VIEW ══
@@ -507,7 +619,7 @@ function startWorkout(dayId,customDate){
   const day=routine.days.find(d=>d.id===dayId);curDayId=dayId;curExI=0;
   const compounds=getCompounds(day);const accessories=getAccessories(day);
   curSess={id:uid(),date:customDate||td(),time:customDate?null:nowTime(),dayId,
-    exercises:compounds.map(e=>({eid:e.id,sets:Array.from({length:e.sets},()=>({w:lastW(e.id)||0,r:e.reps,rpe:null,felt:null})),note:''})),
+    exercises:compounds.map(e=>({eid:eidOf(e),sets:Array.from({length:e.sets},()=>({w:lastW(eidOf(e))||0,r:e.reps,rpe:null,felt:null})),note:''})),
     accessories:accessories.reduce((o,a)=>{o[a.id]=false;return o;},{})
   };
   saveDraft();showPage('work');renderWork();
@@ -531,7 +643,7 @@ function renderWork(){
     // Compound exercise view
     const ex=compounds[curExI];const sets=curSess.exercises[curExI]?.sets||[];const sessNote=curSess.exercises[curExI]?.note||'';
     html+=`<div id="work-pr" class="pr-banner"><span style="font-size:24px">🔥</span><div><div class="text-sm fw-700 text-ac">Nuevo PR</div><div id="work-pr-name" class="text-xs text-mt"></div></div></div>`;
-    html+=`<div class="mb-20"><div class="row" style="margin-bottom:4px;align-items:flex-start"><div style="font-size:22px;font-weight:800;color:var(--ac)">${ex.name}</div><button class="icon-btn" onclick="showExHistoryModal('${ex.id}')" style="width:36px;height:36px;font-size:16px;flex-shrink:0">📈</button></div><div class="text-sm text-mt">${ex.sets}×${ex.reps} · Descanso: ${fmtTime(ex.rest)}${prW(ex.id)>0?' · 🏆 '+prW(ex.id)+'kg':''}</div>`;
+    html+=`<div class="mb-20"><div class="row" style="margin-bottom:4px;align-items:flex-start"><div style="font-size:22px;font-weight:800;color:var(--ac)">${ex.name}</div><button class="icon-btn" onclick="showExHistoryModal('${eidOf(ex)}')" style="width:36px;height:36px;font-size:16px;flex-shrink:0">📈</button></div><div class="text-sm text-mt">${ex.sets}×${ex.reps} · Descanso: ${fmtTime(ex.rest)}${prW(eidOf(ex))>0?' · 🏆 '+prW(eidOf(ex))+'kg':''}</div>`;
     if(ex.notes) html+=`<button class="tips-btn" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none">${ex.notes}</div>`;
     html+=`</div>`;
     const prevRec=lastSessionRec(ex.id);
@@ -553,7 +665,7 @@ function renderWork(){
     
     // Global rec when all sets evaluated
     const allEval=sets.length&&sets.every(s=>s.rpe&&(s.felt===true||s.felt===false));
-    if(allEval){const gr=exerciseRec({sets,eid:ex.id},ex.reps);if(gr) html+=`<div class="card card-accent mt-20" style="cursor:default"><div class="text-xs fw-700 text-ac mb-8">🎯 PARA LA PRÓXIMA SESIÓN</div><div style="font-size:15px;font-weight:600">${gr}</div></div>`;}
+    if(allEval){const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps);if(gr) html+=`<div class="card card-accent mt-20" style="cursor:default"><div class="text-xs fw-700 text-ac mb-8">🎯 PARA LA PRÓXIMA SESIÓN</div><div style="font-size:15px;font-weight:600">${gr}</div></div>`;}
     // Session note
     html+=`<textarea class="note-input" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${curExI}].note=this.value;saveDraft()" onblur="curSess.exercises[${curExI}].note=this.value;saveDraft()">${sessNote}</textarea>`;
     
@@ -623,7 +735,7 @@ function applyTypedVal(si,field){
 }
 function checkPR(si){
   const day=routine.days.find(d=>d.id===curDayId);const compounds=getCompounds(day);
-  const ex=compounds[curExI];const v=curSess.exercises[curExI].sets[si].w;const old=prW(ex.id);
+  const ex=compounds[curExI];const v=curSess.exercises[curExI].sets[si].w;const old=prW(eidOf(ex));
   if(v>old&&old>0){const pr=$("work-pr");if(pr){$("work-pr-name").textContent=ex.name;pr.classList.add('show');setTimeout(()=>pr.classList.remove('show'),3000);}}
 }
 function setRpe(si,v){curSess.exercises[curExI].sets[si].rpe=v;
@@ -699,8 +811,8 @@ function pickPastDate(ds){
 
 // ══ HISTORY ══
 function showHist(eid){
-  const ex=allCompounds().find(e=>e.id===eid);const data=hist(eid);const pr=prW(eid);
-  $("hist-title").textContent=ex?.name||'Ejercicio';$("hist-pr").textContent=pr;$("hist-count").textContent=data.length;
+  const ex=allCompounds().find(e=>eidOf(e)===eid);const data=hist(eid);const pr=prW(eid);
+  $("hist-title").textContent=ex?.name||getExerciseName(eid)||'Ejercicio';$("hist-pr").textContent=pr;$("hist-count").textContent=data.length;
   if(data.length>=2){$("hist-chart").style.display="block";drawChart(data);}else{$("hist-chart").style.display="none";}
   const rpeMap={liviano:{c:'var(--gn)',i:'🟢'},justo:{c:'var(--yw)',i:'🟡'},limite:{c:'var(--dn)',i:'🔴'}};
   $("hist-list").innerHTML=data.length?[...data].reverse().map(e=>`<div class="card" style="cursor:default"><div class="row mb-8"><span class="fw-700" style="font-size:14px">${e.date}${e.time?` <span class="text-xs text-mt fw-600">${e.time}</span>`:''}</span><span class="mono fw-800" style="font-size:18px;color:${e.peso>=pr?'var(--ac)':'var(--tx)'}">${e.peso}kg${e.peso>=pr?' 🔥':''}</span></div><div class="flex gap-8" style="flex-wrap:wrap">${e.sets.map(s=>{const r=rpeMap[s.rpe]||{c:'var(--mt)',i:''};return`<div class="badge" style="background:${r.c}18;color:${r.c}">${s.w}kg×${s.r} ${r.i}</div>`;}).join('')}</div>${e.note?`<div class="text-xs mt-8" style="color:var(--mt);font-style:italic">📝 ${e.note}</div>`:''}</div>`).join(''):'<div class="text-sm text-mt">Sin datos todavía.</div>';
@@ -720,11 +832,11 @@ function drawChart(data){
 
 // ══ EXERCISE HISTORY MODAL (from workout) ══
 function showExHistoryModal(eid){
-  const ex=allCompounds().find(e=>e.id===eid);
+  const ex=allCompounds().find(e=>eidOf(e)===eid);
   const data=hist(eid);
   const pr=prW(eid);
   const rpeMap={liviano:{c:'var(--gn)',i:'🟢'},justo:{c:'var(--yw)',i:'🟡'},limite:{c:'var(--dn)',i:'🔴'}};
-  let html=`<div style="font-size:18px;font-weight:800;margin-bottom:12px">${ex?.name||'Historial'}</div>`;
+  let html=`<div style="font-size:18px;font-weight:800;margin-bottom:12px">${ex?.name||getExerciseName(eid)||'Historial'}</div>`;
   if(!data.length){
     html+=`<div class="text-sm text-mt">Sin registros todavía.</div><button class="btn-out mt-20" onclick="closeModal()">Cerrar</button>`;
     $("modal-content").innerHTML=html;$("modal").classList.add('show');return;
@@ -753,8 +865,10 @@ function editSession(sessId){
   const dayDef=routine.days.find(d=>d.id===sess.dayId);
   let html=`<div class="text-sm text-mt mb-20">${fd(sess.date)} — ${dayDef?.name||'Día ?'}</div>`;
   (sess.exercises||[]).forEach((ex,ei)=>{
-    const def=allCompounds().find(e=>e.id===ex.eid);if(!def) return;
-    html+=`<div class="card" style="cursor:default"><div class="fw-700 mb-8">${def.name}</div>`;
+    const def=allCompounds().find(e=>eidOf(e)===ex.eid);
+    const name=def?.name||getExerciseName(ex.eid);
+    if(!name) return;
+    html+=`<div class="card" style="cursor:default"><div class="fw-700 mb-8">${name}</div>`;
     (ex.sets||[]).forEach((s,si)=>{
       html+=`<div class="row mb-8"><span class="text-xs text-mt">Serie ${si+1}</span><div class="flex gap-8" style="align-items:center"><input type="number" value="${s.w}" onchange="updateSessSet('${sessId}',${ei},${si},'w',this.value)" style="width:60px;text-align:center;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:6px;font-family:var(--fm);font-weight:700;font-size:14px;color:var(--tx)"><span class="text-xs text-mt">kg ×</span><input type="number" value="${s.r}" onchange="updateSessSet('${sessId}',${ei},${si},'r',this.value)" style="width:50px;text-align:center;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:6px;font-family:var(--fm);font-weight:700;font-size:14px;color:var(--tx)"></div></div>`;
     });
@@ -777,14 +891,14 @@ function addExToSess(sid){
   const s=sessions.find(x=>x.id===sid);if(!s)return;
   const dayDef=routine.days.find(d=>d.id===s.dayId);const compounds=getCompounds(dayDef);
   const existing=new Set(s.exercises.map(e=>e.eid));
-  const missing=compounds.filter(e=>!existing.has(e.id));
+  const missing=compounds.filter(e=>!existing.has(eidOf(e)));
   if(!missing.length){return;}
   let html='<div style="font-size:18px;font-weight:800;margin-bottom:16px">Agregar ejercicio</div>';
-  missing.forEach(ex=>{html+=`<div class="card" onclick="doAddExToSess('${sid}','${ex.id}');closeModal()" style="cursor:pointer"><div class="fw-700">${ex.name}</div><div class="text-xs text-mt">${ex.sets}×${ex.reps}</div></div>`;});
+  missing.forEach(ex=>{html+=`<div class="card" onclick="doAddExToSess('${sid}','${eidOf(ex)}');closeModal()" style="cursor:pointer"><div class="fw-700">${ex.name}</div><div class="text-xs text-mt">${ex.sets}×${ex.reps}</div></div>`;});
   html+='<button class="btn-out" onclick="closeModal()">Cancelar</button>';
   $("modal-content").innerHTML=html;$("modal").classList.add('show');
 }
-function doAddExToSess(sid,eid){const s=sessions.find(x=>x.id===sid);if(!s)return;const def=allCompounds().find(e=>e.id===eid);if(!def)return;s.exercises.push({eid,sets:Array.from({length:def.sets},()=>({w:0,r:def.reps,rpe:null})),note:''});save("gym-s",sessions);editSession(sid);}
+function doAddExToSess(sid,eid){const s=sessions.find(x=>x.id===sid);if(!s)return;const def=allCompounds().find(e=>eidOf(e)===eid);if(!def)return;s.exercises.push({eid,sets:Array.from({length:def.sets},()=>({w:0,r:def.reps,rpe:null})),note:''});save("gym-s",sessions);editSession(sid);}
 function deleteSess(sid){sessions=sessions.filter(s=>s.id!==sid);save("gym-s",sessions);showPage('home');}
 
 // ══ SETTINGS ══
@@ -792,24 +906,88 @@ function renderEditR(){
   const dpw=config.daysPerWeek||3;
   $("dpw-selector").innerHTML=[1,2,3,4,5,6].map(n=>`<button class="dpw-btn${n===dpw?' active':''}" onclick="setDPW(${n})">${n}</button>`).join('');
   $("editR-content").innerHTML=routine.days.map(d=>`<div class="sec"><div class="row mb-12"><div class="sec-title" style="margin-bottom:0">${d.name} — ${d.sub}</div><button class="icon-btn" style="width:32px;height:32px;font-size:13px" onclick="editDayPrompt(${d.id})">✎</button></div>
-    ${d.exercises.map(ex=>isCompound(ex)?`<div class="card" onclick="openEditEx(${d.id},'${ex.id}')" style="cursor:pointer"><div class="row"><div><div style="font-size:15px;font-weight:700">${ex.name}</div><div class="text-xs text-mt">${ex.sets}×${ex.reps} · ${fmtTime(ex.rest)}</div></div><div style="font-size:16px;color:var(--mt)">✎</div></div></div>`:`<div class="card" onclick="openEditEx(${d.id},'${ex.id}')" style="cursor:pointer"><div class="row"><div><div style="font-size:14px;font-weight:700">${ex.name}</div><div class="text-xs text-mt">${ex.type} · ${ex.sets} rondas</div></div><div style="font-size:16px;color:var(--mt)">✎</div></div></div>`).join('')}
+    ${d.exercises.map(ex=>{
+      if(isCompound(ex)){
+        const eid=ex.exerciseId||ex.id;
+        const count=sessionCountFor(eid);
+        const fromLib=!!ex.exerciseId&&!!getExercise(ex.exerciseId);
+        return `<div class="card" onclick="openEditEx(${d.id},'${ex.id}')" style="cursor:pointer"><div class="row"><div><div style="font-size:15px;font-weight:700">${ex.name}</div><div class="text-xs text-mt">${ex.sets}×${ex.reps} · ${fmtTime(ex.rest)}${fromLib?' · 📚':''}${count>0?` · 📊 ${count}`:''}</div></div><div style="font-size:16px;color:var(--mt)">✎</div></div></div>`;
+      } else {
+        return `<div class="card" onclick="openEditEx(${d.id},'${ex.id}')" style="cursor:pointer"><div class="row"><div><div style="font-size:14px;font-weight:700">${ex.name}</div><div class="text-xs text-mt">${ex.type} · ${ex.sets} rondas</div></div><div style="font-size:16px;color:var(--mt)">✎</div></div></div>`;
+      }
+    }).join('')}
     <div class="flex gap-8"><button class="btn-sm" style="flex:1" onclick="addEx(${d.id},'compound')">+ Ejercicio</button><button class="btn-sm" style="flex:1" onclick="addAccEx(${d.id})">+ Biserie/Tri</button>${routine.days.length>1?`<button class="btn-sm" style="color:var(--dn);border-color:rgba(239,68,68,0.2)" onclick="deleteDay(${d.id})">Eliminar</button>`:''}</div></div>`).join('')+`<div class="sec"><button class="btn-out" onclick="addDay()">+ Agregar día de entrenamiento</button></div>`;
 }
 function setDPW(n){config.daysPerWeek=n;save("gym-cfg",config);renderEditR();}
-function addEx(dayId,type){const d=routine.days.find(x=>x.id===dayId);d.exercises.push({id:uid(),name:"Nuevo ejercicio",sets:3,reps:10,rest:90,notes:"",type:"compound"});save("gym-r",routine);renderEditR();}
-function addAccEx(dayId){const d=routine.days.find(x=>x.id===dayId);d.exercises.push({id:uid(),name:"Nueva biserie",type:"biserie",sets:3,rest:60,notes:"",items:[{name:"Ejercicio A",reps:"12"},{name:"Ejercicio B",reps:"12"}]});save("gym-r",routine);renderEditR();}
-function addDay(){routine.days.push({id:Date.now(),name:"Día "+(routine.days.length+1),sub:"Nuevo día",exercises:[{id:uid(),name:"Nuevo ejercicio",sets:3,reps:10,rest:90,notes:"",type:"compound"}]});save("gym-r",routine);renderEditR();}
-function deleteDay(dayId){if(routine.days.length<=1)return;routine.days=routine.days.filter(d=>d.id!==dayId);save("gym-r",routine);renderEditR();}
+function addEx(dayId,type){openExercisePicker(dayId);}
+function addEx_custom(dayId){const d=routine.days.find(x=>x.id===dayId);d.exercises.push({id:uid(),name:"Nuevo ejercicio",sets:3,reps:10,rest:90,notes:"",type:"compound"});saveRoutine();closeModal();renderEditR();}
+
+// ══ EXERCISE PICKER (desde biblioteca) ══
+function openExercisePicker(dayId){
+  const day=routine.days.find(x=>x.id===dayId);
+  const usedIds=new Set((day?.exercises||[]).filter(e=>e.exerciseId).map(e=>e.exerciseId));
+  const lib=getExerciseLib();
+  // Ordenar: primero los que tienen historial, después por nombre
+  const sorted=[...lib].sort((a,b)=>{
+    const ca=sessionCountFor(a.id),cb=sessionCountFor(b.id);
+    if(ca!==cb) return cb-ca;
+    return a.name.localeCompare(b.name,'es');
+  });
+  const items=sorted.map(ex=>{
+    const muscles=Object.entries(ex.muscleActivation||{}).map(([m])=>MUSCLE_LABELS[m]||m).join(' · ');
+    const count=sessionCountFor(ex.id);
+    const used=usedIds.has(ex.id);
+    return `<div class="card pick-item" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" onclick="addExFromLib(${dayId},'${ex.id}')" style="cursor:pointer;${used?'opacity:0.5':''}">
+      <div class="row" style="align-items:flex-start"><div style="flex:1">
+        <div style="font-size:15px;font-weight:700">${ex.name}${used?' <span class="text-xs text-mt">· ya en este día</span>':''}</div>
+        <div class="text-xs text-mt mt-4">${muscles}</div>
+        ${count>0?`<div class="text-xs text-ac mt-4">📊 ${count} ${count===1?'sesión':'sesiones'}</div>`:''}
+      </div><div style="font-size:18px;color:var(--ac);align-self:center">+</div></div>
+    </div>`;
+  }).join('');
+  let html=`<div style="font-size:18px;font-weight:800;margin-bottom:12px">Agregar ejercicio</div>`;
+  html+=`<input id="picker-search" class="input mb-12" placeholder="🔍 Buscar..." oninput="filterPicker(this.value)" style="width:100%;box-sizing:border-box">`;
+  html+=`<div id="picker-list" style="max-height:55vh;overflow-y:auto;-webkit-overflow-scrolling:touch">${items}</div>`;
+  html+=`<button class="btn-out mt-12" onclick="addEx_custom(${dayId})">+ Crear ejercicio personalizado</button>`;
+  $("modal-content").innerHTML=html;
+  $("modal").classList.add('show');
+}
+function addExFromLib(dayId,exerciseId){
+  const ex=getExercise(exerciseId);
+  if(!ex){closeModal();return;}
+  const d=routine.days.find(x=>x.id===dayId);
+  if(!d){closeModal();return;}
+  // Defaults razonables según tipo
+  const defaultSets=ex.category==='aislacion'?3:4;
+  const defaultReps=ex.movement==='core'?12:(ex.category==='aislacion'?12:8);
+  const defaultRest=ex.category==='aislacion'?60:120;
+  d.exercises.push({id:uid(),exerciseId:exerciseId,name:ex.name,sets:defaultSets,reps:defaultReps,rest:defaultRest,notes:'',type:'compound'});
+  saveRoutine();
+  closeModal();
+  renderEditR();
+}
+function filterPicker(q){
+  const norm=normalizeText(q);
+  const list=$("picker-list");
+  if(!list) return;
+  list.querySelectorAll('.pick-item').forEach(el=>{
+    const data=el.getAttribute('data-name')||'';
+    el.style.display=data.includes(norm)?'':'none';
+  });
+}
+function addAccEx(dayId){const d=routine.days.find(x=>x.id===dayId);d.exercises.push({id:uid(),name:"Nueva biserie",type:"biserie",sets:3,rest:60,notes:"",items:[{name:"Ejercicio A",reps:"12"},{name:"Ejercicio B",reps:"12"}]});saveRoutine();renderEditR();}
+function addDay(){routine.days.push({id:Date.now(),name:"Día "+(routine.days.length+1),sub:"Nuevo día",exercises:[]});saveRoutine();renderEditR();}
+function deleteDay(dayId){if(routine.days.length<=1)return;routine.days=routine.days.filter(d=>d.id!==dayId);saveRoutine();renderEditR();}
 function editDayPrompt(dayId){
   const d=routine.days.find(x=>x.id===dayId);
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:16px">Editar día</div>`;
   html+=`<div class="mb-12"><label class="label">NOMBRE</label><input id="ed-name" class="input" value="${d.name}"></div>`;
   html+=`<div class="mb-18"><label class="label">SUBTÍTULO</label><input id="ed-sub" class="input" value="${d.sub}"></div>`;
-  html+=`<button class="btn" onclick="d=routine.days.find(x=>x.id===${dayId});d.name=$('ed-name').value||d.name;d.sub=$('ed-sub').value||d.sub;save('gym-r',routine);closeModal();renderEditR()">Guardar</button>`;
+  html+=`<button class="btn" onclick="d=routine.days.find(x=>x.id===${dayId});d.name=$('ed-name').value||d.name;d.sub=$('ed-sub').value||d.sub;saveRoutine();closeModal();renderEditR()">Guardar</button>`;
   html+=`<button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>`;
   $("modal-content").innerHTML=html;$("modal").classList.add('show');
 }
-function resetRoutine(){routine={days:JSON.parse(JSON.stringify(DEFAULT_DAYS))};save("gym-r",routine);renderEditR();}
+function resetRoutine(){routine.days=JSON.parse(JSON.stringify(DEFAULT_DAYS));saveRoutine();renderEditR();}
 
 // ══ EDIT EXERCISE ══
 function openEditEx(dayId,exId){
@@ -850,21 +1028,21 @@ function saveEditEx(){
     const items=[];for(let i=0;i<count;i++){const n=$("ef-item-n-"+i);const r=$("ef-item-r-"+i);if(n&&r) items.push({name:n.value,reps:r.value});}
     if(items.length) ex.items=items;
   }
-  save("gym-r",routine);showPage('editR');
+  saveRoutine();showPage('editR');
 }
-function deleteEx(){const d=routine.days.find(x=>x.id===editDayId);d.exercises=d.exercises.filter(e=>e.id!==editExId);save("gym-r",routine);showPage('editR');}
+function deleteEx(){const d=routine.days.find(x=>x.id===editDayId);d.exercises=d.exercises.filter(e=>e.id!==editExId);saveRoutine();showPage('editR');}
 function addEditItem(){
   const d=routine.days.find(x=>x.id===editDayId);const ex=d.exercises.find(e=>e.id===editExId);
   // Save current inputs first
   saveEditItemsTemp(ex);
   ex.items=ex.items||[];ex.items.push({name:"Nuevo ejercicio",reps:"12"});
-  save("gym-r",routine);openEditEx(editDayId,editExId);
+  saveRoutine();openEditEx(editDayId,editExId);
 }
 function removeEditItem(idx){
   const d=routine.days.find(x=>x.id===editDayId);const ex=d.exercises.find(e=>e.id===editExId);
   saveEditItemsTemp(ex);
   ex.items.splice(idx,1);
-  save("gym-r",routine);openEditEx(editDayId,editExId);
+  saveRoutine();openEditEx(editDayId,editExId);
 }
 function saveEditItemsTemp(ex){
   const countEl=$("ef-items-count");const count=countEl?parseInt(countEl.textContent):0;
@@ -887,7 +1065,7 @@ function deleteSelected(){sessions=sessions.filter(s=>!selectedDel.has(s.id));sa
 
 // ══ EXPORT / IMPORT ══
 function exportData(){
-  const data={version:2,exportDate:td(),routine,sessions,config};
+  const data={version:3,exportDate:td(),routine:routineStore,sessions,config,customLib:getCustomLib()};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='gym-tracker-backup-'+td()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
 }
@@ -906,7 +1084,17 @@ function importData(event){
 function doImport(mode){
   if(!_importData) return;const data=_importData;
   if(data.sessions){const ids=new Set(sessions.map(s=>s.id));sessions=[...sessions,...data.sessions.filter(s=>!ids.has(s.id))];}
-  if(mode==='all'){if(data.routine){routine=data.routine;save("gym-r",routine);}if(data.config){config=data.config;save("gym-cfg",config);}}
+  if(mode==='all'){
+    if(data.routine){
+      // Soporta import de formato viejo {days:[]} y nuevo {active,list:[]}
+      if(data.routine.list&&data.routine.active){routineStore=data.routine;}
+      else if(data.routine.days){routineStore={active:'mi-rutina',list:[{id:'mi-rutina',name:'Mi Rutina',createdAt:td(),days:data.routine.days}]};}
+      routine=getActiveRoutine();
+      saveRoutine();
+    }
+    if(data.config){config=data.config;save("gym-cfg",config);}
+    if(data.customLib&&Array.isArray(data.customLib)){save("gym-ex-custom",data.customLib);}
+  }
   save("gym-s",sessions);_importData=null;closeModal();showPage('home');
 }
 
