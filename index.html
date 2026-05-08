@@ -362,39 +362,57 @@ const MUSCLE_GROUPS={
   Pierna:['cuadriceps','isquios','gluteo','gemelos','aductor'],
   Core:['lumbar','core']
 };
+// Pie chart agrupado por zona corporal (más legible que 16 slices individuales)
+const BODY_ZONES={
+  Pecho:{muscles:['pecho'],color:'#dc2626'},
+  Espalda:{muscles:['dorsal','trapecio','lumbar'],color:'#2563eb'},
+  Hombros:{muscles:['delt_ant','delt_lat','delt_post'],color:'#7c3aed'},
+  Brazos:{muscles:['biceps','triceps','antebrazo'],color:'#ea580c'},
+  Piernas:{muscles:['cuadriceps','isquios','gluteo','gemelos','aductor'],color:'#16a34a'},
+  Core:{muscles:['core'],color:'#78716c'}
+};
 function drawMuscleChart(){
   const {totals,uncovered}=routineMuscleVolume();
-  const muscles=Object.entries(totals).filter(([_,v])=>v>0).sort((a,b)=>b[1]-a[1]);
-  const total=muscles.reduce((s,[_,v])=>s+v,0);
   const sec=$("home-volume-sec");
   if(!sec) return;
+  // Sumar por zona corporal
+  const zoneVols=Object.entries(BODY_ZONES).map(([name,def])=>{
+    const v=def.muscles.reduce((s,m)=>s+(totals[m]||0),0);
+    return {name,v,color:def.color};
+  }).filter(z=>z.v>0).sort((a,b)=>b.v-a.v);
+  const total=zoneVols.reduce((s,z)=>s+z.v,0);
   if(total===0){
     sec.style.display=uncovered>0?'block':'none';
     if(uncovered>0) $("home-volume").innerHTML=`<div class="text-sm text-mt">Tu rutina tiene ${uncovered} ${uncovered===1?'ejercicio sin asignar':'ejercicios sin asignar'} a la biblioteca. Editá esos ejercicios para ver el volumen.</div>`;
     return;
   }
   sec.style.display='block';
-  // Pie chart sólido (sin agujero)
+  // Pie chart sólido por zona corporal
   const cx=110,cy=110,r=100;
   let cum=-Math.PI/2;
   let paths='';
-  muscles.forEach(([m,v])=>{
-    const pct=v/total;
+  zoneVols.forEach(z=>{
+    const pct=z.v/total;
     const ang=pct*2*Math.PI;
     const sa=cum,ea=cum+ang;
     cum=ea;
     const x1=cx+r*Math.cos(sa),y1=cy+r*Math.sin(sa);
     const x2=cx+r*Math.cos(ea),y2=cy+r*Math.sin(ea);
     const large=ang>Math.PI?1:0;
-    const color=MUSCLE_COLORS[m]||'#888';
-    // Caso especial: un solo músculo cubre 100% → círculo entero
-    const d=muscles.length===1
+    const d=zoneVols.length===1
       ?`M ${cx} ${cy-r} A ${r} ${r} 0 1 1 ${cx} ${cy+r} A ${r} ${r} 0 1 1 ${cx} ${cy-r} Z`
       :`M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`;
-    paths+=`<path d="${d}" fill="${color}" stroke="var(--cd)" stroke-width="2"/>`;
+    paths+=`<path d="${d}" fill="${z.color}" stroke="var(--cd)" stroke-width="2"/>`;
   });
   const svg=`<svg width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto">${paths}</svg>`;
-  // Stats por categoría de movimiento
+  // Legend de zonas (6 grupos grandes)
+  let legend=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin-top:18px">`;
+  zoneVols.forEach(z=>{
+    const pct=(z.v/total*100).toFixed(0);
+    legend+=`<div style="display:flex;align-items:center;gap:8px;font-size:14px"><div style="width:12px;height:12px;border-radius:3px;background:${z.color};flex-shrink:0"></div><span class="text-mt" style="flex:1">${z.name}</span><span class="mono fw-700">${pct}%</span></div>`;
+  });
+  legend+=`</div>`;
+  // Stats por categoría de movimiento (Push/Pull/Pierna/Core)
   const groupVols={};
   Object.entries(MUSCLE_GROUPS).forEach(([g,ms])=>{
     groupVols[g]=ms.reduce((s,m)=>s+(totals[m]||0),0);
@@ -403,7 +421,8 @@ function drawMuscleChart(){
   const groupColors={Push:'#dc2626',Pull:'#2563eb',Pierna:'#16a34a',Core:'#78716c'};
   let groupBar='';
   if(groupTotal>0){
-    groupBar=`<div style="display:flex;border-radius:8px;overflow:hidden;height:8px;margin-top:18px;background:var(--bd)">`;
+    groupBar=`<div class="text-xs text-mt fw-600 mt-20" style="margin-bottom:8px">PATRÓN DE MOVIMIENTO</div>`;
+    groupBar+=`<div style="display:flex;border-radius:8px;overflow:hidden;height:8px;background:var(--bd)">`;
     Object.entries(groupVols).forEach(([g,v])=>{
       const pct=v/groupTotal*100;
       if(pct>0) groupBar+=`<div style="width:${pct}%;background:${groupColors[g]}"></div>`;
@@ -416,24 +435,16 @@ function drawMuscleChart(){
     });
     groupBar+=`</div>`;
   }
-  // Cobertura
+  // Cobertura (sigue usando los 16 individuales para detectar huecos finos)
   const covered=MUSCLES.filter(m=>(totals[m]||0)>0).length;
   const totalMuscles=MUSCLES.length;
-  const missing=MUSCLES.filter(m=>!(totals[m]||0)>0).map(m=>MUSCLE_LABELS[m]||m);
+  const missing=MUSCLES.filter(m=>(totals[m]||0)===0).map(m=>MUSCLE_LABELS[m]||m);
   const coverageColor=covered===totalMuscles?'var(--gn)':covered>=totalMuscles-3?'var(--ac)':'var(--yw)';
-  let coverage=`<div class="row mt-16" style="padding-top:14px;border-top:1px solid var(--bd)"><span class="text-sm text-mt">Cobertura</span><span class="fw-800 mono" style="color:${coverageColor}">${covered} / ${totalMuscles}</span></div>`;
+  let coverage=`<div class="row mt-20" style="padding-top:14px;border-top:1px solid var(--bd)"><span class="text-sm text-mt">Cobertura</span><span class="fw-800 mono" style="color:${coverageColor}">${covered} / ${totalMuscles}</span></div>`;
   if(missing.length&&missing.length<=4) coverage+=`<div class="text-xs text-mt mt-4">Sin entrenar: ${missing.join(', ')}</div>`;
-  // Legend detallado
-  let legend=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:16px;padding-top:14px;border-top:1px solid var(--bd)">`;
-  muscles.forEach(([m,v])=>{
-    const pct=(v/total*100).toFixed(0);
-    const color=MUSCLE_COLORS[m]||'#888';
-    legend+=`<div style="display:flex;align-items:center;gap:6px;font-size:13px"><div style="width:10px;height:10px;border-radius:3px;background:${color};flex-shrink:0"></div><span class="text-mt" style="flex:1">${MUSCLE_LABELS[m]||m}</span><span class="mono fw-700">${pct}%</span></div>`;
-  });
-  legend+=`</div>`;
   let footer='';
   if(uncovered>0) footer=`<div class="text-xs text-mt mt-12" style="text-align:center">⚠ ${uncovered} ${uncovered===1?'ejercicio sin asignar':'ejercicios sin asignar'} a la biblioteca</div>`;
-  $("home-volume").innerHTML=svg+groupBar+coverage+legend+footer;
+  $("home-volume").innerHTML=svg+legend+groupBar+coverage+footer;
 }
 
 // ══ MIGRATION v1 (legacy uids → canonical IDs) ══
