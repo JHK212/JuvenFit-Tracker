@@ -134,6 +134,7 @@ input:focus,textarea:focus{border-color:rgba(90,26,26,0.5)!important;}
     </div>
     <div id="home-last-sec" class="sec" style="display:none"><div class="sec-title">Última sesión</div><div id="home-last" class="card" style="cursor:default"></div></div>
     <div id="home-hist-sec" class="sec" style="display:none"><div class="sec-title">Historial por ejercicio</div><div id="home-hist"></div></div>
+    <div id="home-volume-sec" class="sec" style="display:none"><div class="sec-title">Volumen muscular</div><div id="home-volume" class="card" style="cursor:default"></div></div>
   </div>
 </div>
 
@@ -307,6 +308,82 @@ function findExerciseByName(name){
 function sessionCountFor(eid){let n=0;for(const s of (sessions||[])){if(s.exercises&&s.exercises.some(e=>e.eid===eid)) n++;}return n;}
 function getActiveRoutine(){return routineStore&&routineStore.list&&(routineStore.list.find(r=>r.id===routineStore.active)||routineStore.list[0]);}
 function saveRoutine(){save("gym-r",routineStore);}
+
+// ══ MUSCLE VOLUME ══
+const MUSCLE_COLORS={pecho:'#dc2626',dorsal:'#2563eb',trapecio:'#7c3aed',lumbar:'#92400e',biceps:'#ea580c',triceps:'#e11d48',antebrazo:'#ca8a04',delt_ant:'#db2777',delt_lat:'#0891b2',delt_post:'#0d9488',cuadriceps:'#3b82f6',isquios:'#16a34a',gluteo:'#9333ea',gemelos:'#84a829',aductor:'#a855f7',core:'#78716c'};
+function routineMuscleVolume(){
+  if(!routine||!routine.days) return {totals:{},uncovered:0};
+  const totals={};
+  let uncovered=0;
+  routine.days.forEach(d=>{
+    (d.exercises||[]).forEach(ex=>{
+      if(ex.type==='compound'||!ex.type){
+        const eid=ex.exerciseId;
+        const lib=eid?getExercise(eid):null;
+        if(!lib||!lib.muscleActivation){uncovered++;return;}
+        const sets=ex.sets||0,reps=ex.reps||0;
+        const vol=sets*reps;
+        Object.entries(lib.muscleActivation).forEach(([m,pct])=>{
+          totals[m]=(totals[m]||0)+vol*pct/100;
+        });
+      } else {
+        const sets=ex.sets||0;
+        (ex.items||[]).forEach(it=>{
+          const eid=it.exerciseId;
+          const lib=eid?getExercise(eid):null;
+          if(!lib||!lib.muscleActivation){uncovered++;return;}
+          const reps=parseFloat(it.reps)||0;
+          const vol=sets*reps;
+          Object.entries(lib.muscleActivation).forEach(([m,pct])=>{
+            totals[m]=(totals[m]||0)+vol*pct/100;
+          });
+        });
+      }
+    });
+  });
+  return {totals,uncovered};
+}
+function drawMuscleChart(){
+  const {totals,uncovered}=routineMuscleVolume();
+  const muscles=Object.entries(totals).filter(([_,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const total=muscles.reduce((s,[_,v])=>s+v,0);
+  const sec=$("home-volume-sec");
+  if(!sec) return;
+  if(total===0){
+    sec.style.display=uncovered>0?'block':'none';
+    if(uncovered>0) $("home-volume").innerHTML=`<div class="text-sm text-mt">Tu rutina tiene ${uncovered} ${uncovered===1?'ejercicio sin asignar':'ejercicios sin asignar'} a la biblioteca. Editá esos ejercicios para ver el volumen.</div>`;
+    return;
+  }
+  sec.style.display='block';
+  const cx=110,cy=110,r=92,ir=58;
+  let cum=-Math.PI/2;
+  let paths='';
+  muscles.forEach(([m,v])=>{
+    const pct=v/total;
+    const ang=pct*2*Math.PI;
+    const sa=cum,ea=cum+ang;
+    cum=ea;
+    const x1=cx+r*Math.cos(sa),y1=cy+r*Math.sin(sa);
+    const x2=cx+r*Math.cos(ea),y2=cy+r*Math.sin(ea);
+    const x3=cx+ir*Math.cos(ea),y3=cy+ir*Math.sin(ea);
+    const x4=cx+ir*Math.cos(sa),y4=cy+ir*Math.sin(sa);
+    const large=ang>Math.PI?1:0;
+    const color=MUSCLE_COLORS[m]||'#888';
+    const d=`M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} L ${x3.toFixed(2)} ${y3.toFixed(2)} A ${ir} ${ir} 0 ${large} 0 ${x4.toFixed(2)} ${y4.toFixed(2)} Z`;
+    paths+=`<path d="${d}" fill="${color}" stroke="var(--cd)" stroke-width="2"/>`;
+  });
+  let svg=`<svg width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto">${paths}<text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="11" fill="var(--mt)" style="font-family:var(--fs)">reps/semana</text><text x="${cx}" y="${cy+18}" text-anchor="middle" font-size="22" font-weight="800" fill="var(--tx)" style="font-family:var(--fm)">${Math.round(total)}</text></svg>`;
+  let legend=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin-top:16px">`;
+  muscles.forEach(([m,v])=>{
+    const pct=(v/total*100).toFixed(0);
+    const color=MUSCLE_COLORS[m]||'#888';
+    legend+=`<div style="display:flex;align-items:center;gap:6px;font-size:13px"><div style="width:10px;height:10px;border-radius:3px;background:${color};flex-shrink:0"></div><span class="text-mt" style="flex:1">${MUSCLE_LABELS[m]||m}</span><span class="mono fw-700">${pct}%</span></div>`;
+  });
+  legend+=`</div>`;
+  let footer='';
+  if(uncovered>0) footer=`<div class="text-xs text-mt mt-12" style="text-align:center">⚠ ${uncovered} ${uncovered===1?'ejercicio sin asignar':'ejercicios sin asignar'} a la biblioteca</div>`;
+  $("home-volume").innerHTML=svg+legend+footer;
+}
 
 // ══ MIGRATION v1 (legacy uids → canonical IDs) ══
 function migrateLibV1(){
@@ -591,6 +668,7 @@ function renderHome(){
   if(last){$("home-last-sec").style.display="block";const dayDef=routine.days.find(d=>d.id===last.dayId);$("home-last").innerHTML=`<div class="row mb-8"><span class="text-sm text-mt">${fd(last.date)}${last.time?' · '+last.time:''} — ${dayDef?.name||''}</span><button class="btn-sm" onclick="editSession('${last.id}')" style="font-size:12px">✎ Editar</button></div><div>${(last.exercises||[]).map(ex=>{const name=getExerciseName(ex.eid,allCompounds().find(e=>eidOf(e)===ex.eid)?.name);if(!name) return '';const mw=Math.max(...(ex.sets||[]).map(s=>s.w||0));return`<div class="row" style="padding:4px 0;font-size:14px"><span class="text-mt">${name}</span><span class="mono fw-700">${mw}kg</span></div>`;}).join('')}</div>`;}else{$("home-last-sec").style.display="none";}
   const histItems=allCompounds().filter(ex=>hist(eidOf(ex)).length>0);
   if(histItems.length){$("home-hist-sec").style.display="block";$("home-hist").innerHTML=histItems.map(ex=>{const h=hist(eidOf(ex));return`<div class="card" onclick="showHist('${eidOf(ex)}')" style="cursor:pointer"><div class="row"><div><div style="font-size:15px;font-weight:700;color:var(--ac)">${ex.name}</div><div class="text-xs text-mt">${h.length} sesiones · PR: ${prW(eidOf(ex))}kg</div></div><div style="font-size:18px;color:var(--mt)">→</div></div></div>`;}).join('');}else{$("home-hist-sec").style.display="none";}
+  drawMuscleChart();
 }
 
 // ══ ROUTINE VIEW ══
