@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#F5F2ED">
 <title>Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;color:inherit;}
@@ -210,7 +211,9 @@ body.modal-open .page{overflow:hidden;}
   <div class="sec" style="padding-top:0">
     <div class="sec-title">Datos</div>
     <button class="btn-out" onclick="exportData()" style="margin-bottom:12px">📤 Exportar mis datos</button>
-    <label class="btn-out" style="display:block;text-align:center;cursor:pointer">📥 Importar datos<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    <label class="btn-out" style="display:block;text-align:center;cursor:pointer;margin-bottom:12px">📥 Importar datos<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
+    <button class="btn-out" onclick="manualSyncLibrary(this)" style="margin-bottom:8px">🔄 Sincronizar biblioteca</button>
+    <div id="sync-status" class="text-xs text-mt" style="text-align:center"></div>
   </div>
   <div class="sec" style="padding-top:0"><button class="btn-danger" onclick="resetRoutine()">Borrar toda la rutina</button></div>
 </div>
@@ -289,7 +292,62 @@ const EXERCISE_LIBRARY=[
 
 function normalizeText(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();}
 function getCustomLib(){return load("gym-ex-custom",[]);}
-function getExerciseLib(){return EXERCISE_LIBRARY.concat(getCustomLib());}
+// Si hay biblioteca sincronizada de Supabase (online), usar esa. Sino, fallback a embebida.
+function getOfficialLib(){
+  const synced=load("gym-ex-synced",null);
+  return (Array.isArray(synced)&&synced.length)?synced:EXERCISE_LIBRARY;
+}
+function getExerciseLib(){return getOfficialLib().concat(getCustomLib());}
+
+// ══ SUPABASE SYNC ══
+const SUPABASE_URL='https://erwatvliyfcusfghonzg.supabase.co';
+const SUPABASE_ANON='sb_publishable_8HKIn2Pw_afJvdq-FTKO4Q_samO09Fj';
+let _sb=null;
+function getSupabase(){
+  if(_sb) return _sb;
+  if(!window.supabase) return null;
+  try{_sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);return _sb;}
+  catch(e){return null;}
+}
+async function syncLibrary(){
+  if(!navigator.onLine) return {ok:false,reason:'offline'};
+  const sb=getSupabase();
+  if(!sb) return {ok:false,reason:'sdk-not-loaded'};
+  try{
+    const {data,error}=await sb.from('exercises').select('id,name,aliases,category,movement,muscle_activation,similar_ids,cues').eq('scope','official');
+    if(error) return {ok:false,reason:error.message};
+    if(!Array.isArray(data)||!data.length) return {ok:false,reason:'empty'};
+    // Mapear formato DB → formato cliente (snake_case → camelCase)
+    const mapped=data.map(r=>({
+      id:r.id,
+      name:r.name,
+      aliases:r.aliases||[],
+      category:r.category,
+      movement:r.movement,
+      muscleActivation:r.muscle_activation||{},
+      similar:r.similar_ids||[],
+      cues:r.cues||''
+    }));
+    save("gym-ex-synced",mapped);
+    save("gym-ex-synced-at",Date.now());
+    return {ok:true,count:mapped.length};
+  }catch(e){return {ok:false,reason:String(e&&e.message||e)};}
+}
+// Sync manual con feedback visual desde el botón en settings
+async function manualSyncLibrary(btn){
+  const status=$("sync-status");
+  if(btn) btn.disabled=true;
+  if(status) status.innerHTML='Sincronizando...';
+  const r=await syncLibrary();
+  if(r.ok){
+    if(status) status.innerHTML=`<span style="color:var(--gn)">✓ ${r.count} ejercicios actualizados</span>`;
+    renderHome();
+  } else {
+    const msgs={offline:'Sin conexión a internet',sdk:'SDK no cargado','sdk-not-loaded':'SDK no cargado',empty:'No hay ejercicios en la nube'};
+    if(status) status.innerHTML=`<span style="color:var(--dn)">✗ ${msgs[r.reason]||r.reason||'Error desconocido'}</span>`;
+  }
+  if(btn) btn.disabled=false;
+}
 function getExercise(id){return getExerciseLib().find(e=>e.id===id);}
 function getExerciseName(id,fallback){const ex=getExercise(id);return ex?ex.name:(fallback||id||'?');}
 function findExerciseByName(name){
@@ -663,6 +721,10 @@ function init(){
   const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();
   resumeTimer();
   renderHome();
+  // Sync silencioso de la biblioteca oficial desde Supabase (offline-first: no bloquea)
+  syncLibrary().then(r=>{
+    if(r.ok) renderHome();  // re-render para tomar nuevas activaciones si cambiaron
+  });
 }
 
 function showPage(id){
