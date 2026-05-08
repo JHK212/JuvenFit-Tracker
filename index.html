@@ -1127,7 +1127,22 @@ function resumeTimer(){
 }
 function updateTimerDisplay(){const m=Math.floor(Math.max(0,timerLeft)/60);const s=Math.max(0,timerLeft)%60;$("timer-num").textContent=m+":"+String(s).padStart(2,"0");$("timer-fill").style.width=((timerTotal-timerLeft)/timerTotal*100)+"%";}
 function stopTimer(){if(timerRef){clearInterval(timerRef);timerRef=null;}$("timer").classList.remove('show');save("gym-timer",null);}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){const t=load("gym-timer",null);if(t&&!timerRef) resumeTimer();if(t&&timerRef) timerTick();}});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden) return;
+  const t=load("gym-timer",null);
+  if(t&&!timerRef) resumeTimer();
+  if(t&&timerRef) timerTick();
+  // Auto-sync biblioteca al volver a foreground si pasó >5 min desde el último
+  const lastSync=load("gym-ex-synced-at",0);
+  if(Date.now()-lastSync>5*60*1000){
+    syncLibrary().then(r=>{if(r.ok) renderHome();});
+  }
+});
+// Sync periódico cada 10 min mientras la app está abierta
+setInterval(()=>{
+  if(document.hidden) return;
+  syncLibrary().then(r=>{if(r.ok) renderHome();});
+},10*60*1000);
 function tapTimerNum(){
   let html='<div style="font-size:18px;font-weight:800;margin-bottom:16px">Cambiar descanso</div>';
   html+='<div class="flex gap-8" style="flex-wrap:wrap;justify-content:center">';
