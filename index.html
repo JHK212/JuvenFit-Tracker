@@ -305,60 +305,145 @@ function prW(eid){let m=0;sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid=
 function hist(eid){const d=[];sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid&&e.sets?.length)d.push({date:fd(s.date),time:s.time||'',peso:Math.max(...e.sets.map(x=>x.w||0)),sets:e.sets,note:e.note||''});}));return d;}
 function allCompounds(){return routine.days.flatMap(d=>getCompounds(d));}
 
-// ══ FEEDBACK ENGINE ══
+// ══ FEEDBACK ENGINE v3 ══
+// Score-based: cada set aporta -2..+2 según rango × completed × RPE.
+// Global = promedio + memoria (streak entre sesiones al mismo peso).
 function getRange(t){if(!t||t<=6) return 'bajo'; if(t<=10) return 'medio'; return 'alto';}
+// Score numérico de un set (-2 a +2). null si falta data.
+function setScore(rpe,r,target,felt){
+  if(!rpe||target==null) return null;
+  if(r<target) return -2;
+  const range=getRange(target);
+  if(rpe==='liviano'){return range==='bajo'?2:range==='medio'?1:0.5;}
+  if(rpe==='justo') return 0;
+  // limite
+  return range==='bajo'?-1:range==='medio'?-0.5:0.5;
+}
+// Frase descriptiva por set (NO decide nada — solo da contexto al usuario).
 function setRecData(rpe,r,target,felt){
   if(!rpe) return null;
   const range=getRange(target);
   const completed=r>=target;
-  let phrase,direction;
+  let phrase;
   if(!completed){
-    if(range==='bajo'){phrase="🔻 Muy pesado → bajá peso";direction='down';}
-    else if(range==='medio'){phrase="⚠️ No llegaste → ajustá peso o reps";direction='down';}
-    else{phrase="🔸 Quedaste corto → completá el rango primero";direction='same';}
+    if(range==='bajo') phrase="🔻 Muy pesado → bajá peso";
+    else if(range==='medio') phrase="⚠️ No llegaste → ajustá peso o reps";
+    else phrase="🔸 Quedaste corto → completá el rango primero";
   } else if(rpe==='liviano'){
-    if(range==='bajo'){phrase="🚀 Muy liviano → subí peso";direction='up';}
-    else if(range==='medio'){phrase="🔹 Subí un poco el peso";direction='up';}
-    else{phrase="🔹 Podés subir peso o sumar reps";direction='up';}
+    if(range==='bajo') phrase="🚀 Muy liviano para fuerza → subí peso";
+    else if(range==='medio') phrase="🔹 Hay margen → subí un toque";
+    else phrase="🔹 Liviano → sumá reps o peso";
   } else if(rpe==='justo'){
-    if(range==='bajo'){phrase="✅ Peso exacto. Mantené";direction='same';}
-    else if(range==='medio'){phrase="✅ Zona ideal. Mantené";direction='same';}
-    else{phrase="✅ Buen estímulo. Repetí";direction='same';}
-  } else {
-    if(range==='bajo'){phrase="⚠️ Muy exigente → bajá un poco";direction='down';}
-    else if(range==='medio'){phrase="🔸 Al límite → mantené o ajustá";direction='same';}
-    else{phrase="✔️ Bien de intensidad → mantené";direction='same';}
+    if(range==='bajo') phrase="✅ En zona de fuerza";
+    else if(range==='medio') phrase="✅ Zona ideal de hipertrofia";
+    else phrase="✅ Buen estímulo";
+  } else { // limite
+    if(range==='bajo') phrase="⚠️ Al límite → cuidá la técnica";
+    else if(range==='medio') phrase="🔸 Un toque pasado para hipertrofia";
+    else phrase="✔️ Así tiene que ser arriba";
   }
   const muscle=felt===false?"🔸 No sentiste el músculo → bajá peso y enfocá técnica":null;
-  return {phrase,muscle,direction};
+  return {phrase,muscle};
 }
-function exerciseRec(exData,target){
-  const sets=exData.sets||[];
-  if(!sets.length||!sets.every(s=>s.rpe)) return null;
-  const recs=sets.map(s=>setRecData(s.rpe,s.r,target,s.felt??null));
-  if(recs.some(r=>!r)) return null;
-  const ups=recs.filter(r=>r.direction==='up').length;
-  const anyDown=recs.some(r=>r.direction==='down');
-  const anyNoFelt=sets.some(s=>s.felt===false);
-  let p;
-  if(anyDown) p="🔻 Próxima: bajá el peso.";
-  else if(ups>=Math.ceil(recs.length/2)) p="🔹 Próxima: subí peso.";
-  else p="✅ Próxima: repetí el peso.";
-  if(anyNoFelt) p+="  🔸 Foco en técnica.";
-  return p;
+// Pools de frases globales (rotación determinista por nº de sesiones para variedad).
+const REC_PHRASES={
+  up:[
+    "🔹 Próxima: subí peso.",
+    "🚀 Te quedó margen → subí carga.",
+    "🔹 Estás listo para más peso.",
+    "🟢 Próxima sesión: subir."
+  ],
+  up_streak:[
+    "✅ Segunda sesión clavada → subí peso.",
+    "🚀 Ya consolidaste → más peso la próxima.",
+    "🎯 Dos sesiones en zona → a progresar.",
+    "🔹 Listo para subir — ya está consolidado."
+  ],
+  hold:[
+    "✅ Próxima: repetí el peso.",
+    "🟡 Mantené. Una más así y subimos.",
+    "✅ Zona buena → mismo peso.",
+    "🟡 Repetí — vamos consolidando."
+  ],
+  down:[
+    "🔻 Próxima: bajá peso.",
+    "⚠️ Demasiado → bajá la carga.",
+    "🔻 Ajustá hacia abajo.",
+    "🔻 Bajá un poco para volver a la zona."
+  ]
+};
+function pickRecPhrase(key){
+  const pool=REC_PHRASES[key];
+  const idx=(sessions?.length||0)%pool.length;
+  return pool[idx];
 }
-function lastSessionRec(eid){
-  const sorted=[...sessions].sort((a,b)=>b.date.localeCompare(a.date));
-  for(const sess of sorted){
-    const ex=sess.exercises?.find(e=>e.eid===eid);
-    if(ex&&ex.sets?.length){
-      const def=allCompounds().find(e=>e.id===eid);
-      if(!def) continue;
-      const r=exerciseRec(ex,def.reps);
-      if(r) return r;
-    }
+// "Peso de la sesión" = moda de pesos entre sets (el más usado).
+function sessionWeight(sets){
+  if(!sets||!sets.length) return null;
+  const counts={};
+  sets.forEach(s=>{if(s.w!=null) counts[s.w]=(counts[s.w]||0)+1;});
+  let best=null,n=0;
+  for(const w in counts){if(counts[w]>n){n=counts[w];best=parseFloat(w);}}
+  return best;
+}
+// Promedio de scores. null si falta evaluar alguno.
+function avgScore(sets,target){
+  if(!sets||!sets.length) return null;
+  const arr=sets.map(s=>setScore(s.rpe,s.r,target,s.felt??null));
+  if(arr.some(s=>s==null)) return null;
+  return arr.reduce((a,b)=>a+b,0)/arr.length;
+}
+// Sesión previa para un ejercicio. beforeKey opcional para excluir una sesión específica.
+function priorSession(eid,beforeKey){
+  const sorted=[...sessions].sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||'')));
+  for(const s of sorted){
+    const key=s.date+(s.time||'');
+    if(beforeKey&&key>=beforeKey) continue;
+    const ex=s.exercises?.find(e=>e.eid===eid);
+    if(ex&&ex.sets?.length) return {sess:s,ex,key};
   }
   return null;
+}
+// Rec global de un ejercicio. exData={sets, eid?}, beforeKey opcional.
+function exerciseRec(exData,target,beforeKey){
+  const sets=exData.sets||[];
+  const avg=avgScore(sets,target);
+  if(avg==null) return null;
+  const noFelt=sets.filter(s=>s.felt===false).length;
+  const feltMajority=noFelt>=Math.ceil(sets.length/2);
+  let key;
+  if(avg>=1) key='up';
+  else if(avg<=-1) key='down';
+  else if(avg>=0){
+    // zona [0, 1) → mirar sesión previa con mismo peso
+    const eid=exData.eid;
+    const w=sessionWeight(sets);
+    key='hold';
+    if(eid&&w!=null){
+      const prior=priorSession(eid,beforeKey);
+      if(prior){
+        const priorW=sessionWeight(prior.ex.sets);
+        const def=allCompounds().find(e=>e.id===eid);
+        const priorAvg=def?avgScore(prior.ex.sets,def.reps):null;
+        if(priorW===w&&priorAvg!=null&&priorAvg>=0) key='up_streak';
+      }
+    }
+  } else {
+    // (-1, 0)
+    key='hold';
+  }
+  let p=pickRecPhrase(key);
+  if(feltMajority) p+="  🔸 Foco en técnica.";
+  return p;
+}
+// Rec de la última sesión (para mostrar arriba del workout).
+function lastSessionRec(eid){
+  const prior=priorSession(eid);
+  if(!prior) return null;
+  const def=allCompounds().find(e=>e.id===eid);
+  if(!def) return null;
+  // beforeKey = sesión actual prior, así el streak mira a la anterior a esa.
+  return exerciseRec({sets:prior.ex.sets,eid},def.reps,prior.key);
 }
 
 // ══ CALENDAR ══
@@ -468,7 +553,7 @@ function renderWork(){
     
     // Global rec when all sets evaluated
     const allEval=sets.length&&sets.every(s=>s.rpe&&(s.felt===true||s.felt===false));
-    if(allEval){const gr=exerciseRec({sets},ex.reps);if(gr) html+=`<div class="card card-accent mt-20" style="cursor:default"><div class="text-xs fw-700 text-ac mb-8">🎯 PARA LA PRÓXIMA SESIÓN</div><div style="font-size:15px;font-weight:600">${gr}</div></div>`;}
+    if(allEval){const gr=exerciseRec({sets,eid:ex.id},ex.reps);if(gr) html+=`<div class="card card-accent mt-20" style="cursor:default"><div class="text-xs fw-700 text-ac mb-8">🎯 PARA LA PRÓXIMA SESIÓN</div><div style="font-size:15px;font-weight:600">${gr}</div></div>`;}
     // Session note
     html+=`<textarea class="note-input" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${curExI}].note=this.value;saveDraft()" onblur="curSess.exercises[${curExI}].note=this.value;saveDraft()">${sessNote}</textarea>`;
     
