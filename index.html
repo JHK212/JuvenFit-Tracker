@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Tracker">
@@ -59,7 +59,7 @@ input:focus,textarea:focus{border-color:rgba(90,26,26,0.5)!important;}
 .timer-fill{height:100%;background:var(--ac);border-radius:4px;transition:width 1s linear;}
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:100;display:none;align-items:flex-end;justify-content:center;}
 .modal-overlay.show{display:flex;}
-.modal{background:var(--sf);border-radius:24px 24px 0 0;padding:28px 20px 40px;padding-bottom:calc(40px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:85vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.modal{background:var(--sf);border-radius:24px 24px 0 0;padding:28px 20px 40px;padding-bottom:calc(40px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:85dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 body.modal-open{overflow:hidden;touch-action:none;}
 body.modal-open .page{overflow:hidden;}
 .pr-banner{background:rgba(90,26,26,0.08);border:1.5px solid rgba(90,26,26,0.25);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:none;align-items:center;gap:10px;}
@@ -1316,7 +1316,7 @@ function openExercisePicker(dayId){
   }).join('');
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:12px">Agregar ejercicio</div>`;
   html+=`<input id="picker-search" class="input mb-12" placeholder="🔍 Buscar..." oninput="filterPicker(this.value)" style="width:100%;box-sizing:border-box">`;
-  html+=`<div id="picker-list" style="max-height:55vh;overflow-y:auto;-webkit-overflow-scrolling:touch">${items}</div>`;
+  html+=`<div id="picker-list" style="max-height:55dvh;overflow-y:auto;-webkit-overflow-scrolling:touch">${items}</div>`;
   html+=`<button class="btn-out mt-12" onclick="addEx_custom(${dayId})">+ Crear ejercicio personalizado</button>`;
   $("modal-content").innerHTML=html;
   $("modal").classList.add('show');
