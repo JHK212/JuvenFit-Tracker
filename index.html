@@ -860,11 +860,21 @@ function formatDayPreview(day){
     }
     out+=ex.name||ex.customName||'?';
   });
-  // Resumen de supersets si hay más de uno
-  const groupIds=new Set();
-  compounds.forEach(ex=>{if(ex.groupId) groupIds.add(ex.groupId);});
-  if(groupIds.size>0){
-    out+=`  <span style="color:#a16207;font-weight:700">· ${groupIds.size} superset${groupIds.size===1?'':'s'}</span>`;
+  // Resumen: contar biseries vs triserías por separado
+  const sizes={};
+  compounds.forEach(ex=>{if(ex.groupId) sizes[ex.groupId]=(sizes[ex.groupId]||0)+1;});
+  const counts={2:0,3:0,more:0};
+  Object.values(sizes).forEach(s=>{
+    if(s===2) counts[2]++;
+    else if(s===3) counts[3]++;
+    else if(s>=4) counts.more++;
+  });
+  const parts=[];
+  if(counts[2]>0) parts.push(`${counts[2]} biserie${counts[2]===1?'':'s'}`);
+  if(counts[3]>0) parts.push(`${counts[3]} triserie${counts[3]===1?'':'s'}`);
+  if(counts.more>0) parts.push(`${counts.more} grupo${counts.more===1?'':'s'}`);
+  if(parts.length){
+    out+=`  <span style="color:#a16207;font-weight:700">· ${parts.join(' · ')}</span>`;
   }
   return out;
 }
@@ -1152,7 +1162,7 @@ function renderRoutineExCard(ex,gi){
   const name=ex.name||ex.customName||'Ejercicio';
   const inGroup=gi&&gi.groupId;
   const groupBorder=inGroup?'border-left:3px solid #eab308;':'';
-  const groupBadge=(inGroup&&gi.isFirst)?`<div style="font-size:10px;font-weight:800;color:#a16207;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${gi.groupSize===2?'Superset':gi.groupSize===3?'Triserie':'Grupo'} ×${gi.groupSize}</div>`:'';
+  const groupBadge=(inGroup&&gi.isFirst)?`<div style="font-size:10px;font-weight:800;color:#a16207;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${groupTerm(gi.groupSize)}</div>`:'';
   const groupCont=(inGroup&&!gi.isFirst)?` <span class="text-xs" style="color:#a16207;font-weight:700;margin-left:6px">+${gi.groupIndex+1}</span>`:'';
   return `<div class="card" style="cursor:default;${groupBorder}">${groupBadge}<div class="row mb-4"><span class="fw-700" style="color:var(--ac)">${name}${groupCont}</span><span class="text-xs text-mt mono">${ex.sets}×${ex.reps}</span></div><div class="text-xs text-mt">Descanso: ${fmtTime(restAsSeconds(ex.rest))}${ex.objective?' · '+ex.objective:''}</div>${ex.notes?`<div class="tips-box mt-8">${ex.notes}</div>`:''}</div>`;
 }
@@ -1276,11 +1286,11 @@ function renderWork(){
     html+=`<div class="mb-20"><div class="row" style="margin-bottom:4px;align-items:flex-start"><div style="font-size:22px;font-weight:800;color:var(--ac);flex:1;min-width:0">${blockTagHtml}${exDisplayName}</div><button class="icon-btn" onclick="showExHistoryModal('${eidOf(ex)}')" style="width:36px;height:36px;font-size:16px;flex-shrink:0">📈</button></div><div class="text-sm text-mt">${ex.sets}×${ex.reps} · Descanso: ${fmtTime(restAsSeconds(ex.rest))}${prW(eidOf(ex))>0?' · 🏆 '+prW(eidOf(ex))+'kg':''}${ex.objective?' · '+ex.objective:''}</div>`;
     if(ex.notes) html+=`<button class="tips-btn" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none">${ex.notes}</div>`;
     html+=`</div>`;
-    // Banner de superset si el ejercicio está agrupado
+    // Banner si el ejercicio forma parte de una biserie/triserie
     const grp=groupOfCompoundIdx(compounds,curExI);
     if(grp){
       const otherNames=grp.indexes.filter(i=>i!==curExI).map(i=>compounds[i].name||compounds[i].customName||'?').join(', ');
-      const groupLabel=grp.size===2?'Superset':grp.size===3?'Triserie':`Grupo ×${grp.size}`;
+      const groupLabel=groupTerm(grp.size);
       const restSec=restAsSeconds(ex.rest);
       const isLast=grp.position===grp.size-1;
       html+=`<div class="card mb-20" style="cursor:default;background:rgba(234,179,8,.1);border:1px solid #eab308;padding:14px 16px">
@@ -1967,10 +1977,10 @@ function renderBexRowHTML(ex,bi,ei,gi){
   const meta=metaParts.join(' · ');
   const exs=editingDayState.blocks[bi].exercises;
   const s=v=>(v!=null&&v!==undefined)?String(v):'';
-  // Visual de grupo (superset)
+  // Visual de grupo (biserie/triserie)
   const inGroup=gi&&gi.groupId;
   const groupBorder=inGroup?'border-left:3px solid #eab308;':'';
-  const groupBadge=(inGroup&&gi.isFirst)?`<div style="font-size:10px;font-weight:800;color:#a16207;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${gi.groupSize===2?'Superset':gi.groupSize===3?'Triserie':'Grupo'} ×${gi.groupSize}</div>`:'';
+  const groupBadge=(inGroup&&gi.isFirst)?`<div style="font-size:10px;font-weight:800;color:#a16207;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${groupTerm(gi.groupSize)}</div>`:'';
   const groupContinuation=(inGroup&&!gi.isFirst)?`<span class="text-xs" style="color:#a16207;font-weight:700;margin-left:6px">+${gi.groupIndex+1}</span>`:'';
   let html=`<div class="bex-row" style="${groupBorder}">
     ${groupBadge}
@@ -2026,22 +2036,43 @@ function renderBexRowHTML(ex,bi,ei,gi){
   return html;
 }
 
+// Nombre del grupo según tamaño
+function groupTerm(size){
+  if(size===2) return 'Biserie';
+  if(size===3) return 'Triserie';
+  if(size>=4) return 'Grupo ×'+size;
+  return 'Grupo';
+}
+
 function renderGroupActionHTMLBE(bi,ei,gi){
   const exs=editingDayState.blocks[bi].exercises;
   const inGroup=gi&&gi.groupId;
   const hasNext=ei<exs.length-1;
-  if(inGroup){
-    return `<div class="mt-12" style="padding-top:10px;border-top:1px dashed var(--bd)">
-      <button class="btn-sm" onclick="ungroupExerciseBE(${bi},${ei})" style="width:100%;font-size:12px;color:#a16207;border:1px solid #eab308;background:transparent">🔗 Sacar del superset</button>
-    </div>`;
+  const nextEx=hasNext?exs[ei+1]:null;
+  const nextInSameGroup=inGroup&&nextEx&&nextEx.groupId===gi.groupId;
+  let html=`<div class="mt-12" style="padding-top:10px;border-top:1px dashed var(--bd);display:flex;flex-direction:column;gap:8px">`;
+  let renderedAny=false;
+  if(hasNext&&!nextInSameGroup){
+    const nextLib=nextEx.exerciseId?getExercise(nextEx.exerciseId):null;
+    const nextName=nextLib?nextLib.name:(nextEx.customName||'siguiente');
+    let label;
+    if(!inGroup){
+      label=`🔗 Hacer biserie con: ${nextName}`;
+    } else if(gi.groupSize===2){
+      label=`🔗 Sumar a triserie: ${nextName}`;
+    } else {
+      label=`🔗 Sumar al grupo: ${nextName}`;
+    }
+    html+=`<button class="btn-sm" onclick="groupWithNextBE(${bi},${ei})" style="width:100%;font-size:12px">${label}</button>`;
+    renderedAny=true;
   }
-  if(!hasNext) return '';
-  const nextEx=exs[ei+1];
-  const nextLib=nextEx.exerciseId?getExercise(nextEx.exerciseId):null;
-  const nextName=nextLib?nextLib.name:(nextEx.customName||'siguiente');
-  return `<div class="mt-12" style="padding-top:10px;border-top:1px dashed var(--bd)">
-    <button class="btn-sm" onclick="groupWithNextBE(${bi},${ei})" style="width:100%;font-size:12px">🔗 Hacer superset con: ${nextName}</button>
-  </div>`;
+  if(inGroup){
+    const term=gi.groupSize===2?'biserie':gi.groupSize===3?'triserie':'grupo';
+    html+=`<button class="btn-sm" onclick="ungroupExerciseBE(${bi},${ei})" style="width:100%;font-size:12px;color:#a16207;border:1px solid #eab308;background:transparent">🔗 Sacar de la ${term}</button>`;
+    renderedAny=true;
+  }
+  html+=`</div>`;
+  return renderedAny?html:'';
 }
 
 function groupWithNextBE(bi,ei){
