@@ -101,7 +101,20 @@ body.modal-open .page{overflow:hidden;}
 <!-- ══ HOME ══ -->
 <div id="home" class="page active">
   <div class="header">
-    <div style="display:flex;align-items:center;gap:10px"><img src="./shield.png" alt="JuvenFIT" style="height:44px;width:auto;mix-blend-mode:multiply"><div class="logo">TRACKER</div></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="icon-btn" onclick="openImportRoutine()" title="Importar rutina del coach" aria-label="Importar rutina del coach" style="display:inline-flex;align-items:center;justify-content:center;color:var(--ac)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+          <rect x="14" y="14" width="3" height="3"/>
+          <rect x="18" y="18" width="3" height="3"/>
+          <rect x="14" y="19" width="3" height="2"/>
+        </svg>
+      </button>
+      <img src="./shield.png" alt="JuvenFIT" style="height:44px;width:auto;mix-blend-mode:multiply">
+      <div class="logo">TRACKER</div>
+    </div>
     <div class="flex gap-8">
       <button class="icon-btn" onclick="showPage('routine')" style="font-size:14px">📋</button>
       <button class="icon-btn" onclick="showPage('editR')">⚙</button>
