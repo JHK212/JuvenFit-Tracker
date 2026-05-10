@@ -847,6 +847,16 @@ function blockOfExercise(day,exId){
 // (La movilidad no se trackea con peso/reps/RPE — va en su propio tab "MOV".)
 function getCompounds(day){return getNonMobilityExs(day).filter(e=>isCompound(e));}
 function getAccessories(day){return getNonMobilityExs(day).filter(e=>!isCompound(e));}
+// Dado el array compounds (orden de tabs del workout) y un índice, devuelve info del grupo si es superset
+function groupOfCompoundIdx(compounds,idx){
+  const cur=compounds[idx];
+  if(!cur||!cur.groupId) return null;
+  const gid=cur.groupId;
+  const indexes=[];
+  for(let i=0;i<compounds.length;i++){if(compounds[i].groupId===gid) indexes.push(i);}
+  if(indexes.length<2) return null;
+  return {groupId:gid,indexes,size:indexes.length,isFirst:idx===indexes[0],isLast:idx===indexes[indexes.length-1],position:indexes.indexOf(idx)};
+}
 
 // ══ INIT ══
 function init(){
@@ -1188,7 +1198,9 @@ function renderWork(){
   }
   tabsHtml+=compounds.map((e,i)=>{
     const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
-    return`<button class="ex-tab${i===curExI?' active':''}" onclick="curExI=${i};renderWork()">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}${i+1}</button>`;
+    const grp=groupOfCompoundIdx(compounds,i);
+    const grpStyle=grp?'box-shadow:inset 0 -3px 0 #eab308;':'';
+    return`<button class="ex-tab${i===curExI?' active':''}" onclick="curExI=${i};renderWork()" style="${grpStyle}">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}${i+1}</button>`;
   }).join('');
   if(accessories.length) tabsHtml+=`<button class="ex-tab${curExI===compounds.length?' active':''}" onclick="curExI=${compounds.length};renderWork()">ACC</button>`;
 
@@ -1231,6 +1243,24 @@ function renderWork(){
     html+=`<div class="mb-20"><div class="row" style="margin-bottom:4px;align-items:flex-start"><div style="font-size:22px;font-weight:800;color:var(--ac);flex:1;min-width:0">${blockTagHtml}${exDisplayName}</div><button class="icon-btn" onclick="showExHistoryModal('${eidOf(ex)}')" style="width:36px;height:36px;font-size:16px;flex-shrink:0">📈</button></div><div class="text-sm text-mt">${ex.sets}×${ex.reps} · Descanso: ${fmtTime(restAsSeconds(ex.rest))}${prW(eidOf(ex))>0?' · 🏆 '+prW(eidOf(ex))+'kg':''}${ex.objective?' · '+ex.objective:''}</div>`;
     if(ex.notes) html+=`<button class="tips-btn" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none">${ex.notes}</div>`;
     html+=`</div>`;
+    // Banner de superset si el ejercicio está agrupado
+    const grp=groupOfCompoundIdx(compounds,curExI);
+    if(grp){
+      const otherNames=grp.indexes.filter(i=>i!==curExI).map(i=>compounds[i].name||compounds[i].customName||'?').join(', ');
+      const groupLabel=grp.size===2?'Superset':grp.size===3?'Triserie':`Grupo ×${grp.size}`;
+      const restSec=restAsSeconds(ex.rest);
+      const isLast=grp.position===grp.size-1;
+      html+=`<div class="card mb-20" style="cursor:default;background:rgba(234,179,8,.1);border:1px solid #eab308;padding:14px 16px">
+        <div class="row mb-8" style="align-items:center;gap:8px">
+          <span style="font-size:11px;font-weight:800;color:#a16207;letter-spacing:.5px;text-transform:uppercase">🔗 ${groupLabel} (${grp.position+1}/${grp.size})</span>
+          <span style="flex:1"></span>
+          ${grp.size>1?`<button class="btn-sm" onclick="jumpInSuperset(${grp.position+1<grp.size?grp.indexes[grp.position+1]:grp.indexes[0]})" style="font-size:11px;padding:4px 10px;background:#eab308;color:#fff;font-weight:700">${isLast?'↻ Volver al 1°':'→ Siguiente'}</button>`:''}
+        </div>
+        <div class="text-sm" style="color:#78580a;line-height:1.4">Hacés <strong>1 set</strong> de cada uno sin descanso. Cuando terminás la vuelta, tap <strong>⏱ Descansar</strong>.</div>
+        ${otherNames?`<div class="text-xs mt-4" style="color:#78580a"><strong>Con:</strong> ${otherNames}</div>`:''}
+        <button class="btn mt-12" onclick="startTimer(${restSec})" style="background:#eab308;color:#fff;padding:10px;font-size:14px">⏱ Descansar (terminé la vuelta)</button>
+      </div>`;
+    }
     const prevRec=lastSessionRec(eidOf(ex));
     if(prevRec) html+=`<div class="card card-accent mb-20" style="cursor:default;display:flex;align-items:flex-start;gap:10px;padding:14px 16px"><span style="font-size:18px">💡</span><div><div class="text-xs fw-700 text-ac mb-4">ÚLTIMA SESIÓN</div><div class="text-sm">${prevRec}</div></div></div>`;
     
@@ -1334,9 +1364,21 @@ function checkPR(si){
   if(v>old&&old>0){const pr=$("work-pr");if(pr){$("work-pr-name").textContent=ex.name;pr.classList.add('show');setTimeout(()=>pr.classList.remove('show'),3000);}}
 }
 function setRpe(si,v){curSess.exercises[curExI].sets[si].rpe=v;
-  const day=routine.days.find(d=>d.id===curDayId);const ex=getCompounds(day)[curExI];
-  if(!timerRef) startTimer(restAsSeconds(ex.rest));
+  const day=routine.days.find(d=>d.id===curDayId);
+  const compounds=getCompounds(day);
+  const ex=compounds[curExI];
+  const grp=groupOfCompoundIdx(compounds,curExI);
+  // En supersets/triseries el timer se arranca manualmente al terminar la vuelta
+  if(!timerRef&&!grp) startTimer(restAsSeconds(ex.rest));
   renderWork();
+}
+
+// Saltar al siguiente ejercicio del superset (sin disparar el descanso)
+function jumpInSuperset(targetIdx){
+  curExI=targetIdx;
+  // No tocamos el timer — el alumno decide cuándo descansar
+  renderWork();
+  window.scrollTo(0,0);
 }
 function finishWorkout(){sessions.push(curSess);save("gym-s",sessions);clearDraft();stopTimer();closeExitModal();showPage('home');}
 function discardWorkout(){curSess=null;clearDraft();stopTimer();closeExitModal();showPage('home');}
@@ -1824,6 +1866,29 @@ function renderDayBlocksContainer(){
   }
 }
 
+// Calcula info de grupos del bloque (igual que en coach): por índice ei devuelve {groupId, groupSize, isFirst, isLast, groupIndex}
+function computeBlockGroups(exs){
+  const result=(exs||[]).map(()=>({groupId:null,groupSize:1,isFirst:false,isLast:false,groupIndex:0}));
+  if(!exs||!exs.length) return result;
+  let i=0;
+  while(i<exs.length){
+    const gid=exs[i].groupId;
+    if(!gid){i++;continue;}
+    let j=i;const indexes=[];
+    while(j<exs.length&&exs[j].groupId===gid){indexes.push(j);j++;}
+    if(indexes.length<2){result[i].groupId=null;i++;continue;}
+    indexes.forEach((idx,k)=>{
+      result[idx].groupId=gid;
+      result[idx].groupSize=indexes.length;
+      result[idx].isFirst=(k===0);
+      result[idx].isLast=(k===indexes.length-1);
+      result[idx].groupIndex=k;
+    });
+    i=j;
+  }
+  return result;
+}
+
 function renderBlockHTML(b,bi){
   const bt=BLOCK_TYPES[b.type]||BLOCK_TYPES.custom;
   const color=bt.color;
@@ -1831,6 +1896,7 @@ function renderBlockHTML(b,bi){
   const blocks=editingDayState.blocks;
   const exs=b.exercises||[];
   const isCustom=b.type==='custom';
+  const groupInfo=computeBlockGroups(exs);
   let html=`<div class="block-wrap">
     <div class="block-hd">
       <span class="block-tag" style="background:${color};${isCustom?'cursor:pointer':''}" ${isCustom?`onclick="renameBlockLabel(${bi})" title="Tap para renombrar"`:''}>${label}${isCustom?' ✎':''}</span>
@@ -1840,7 +1906,7 @@ function renderBlockHTML(b,bi){
       <button class="micro-btn" style="color:var(--dn)" onclick="removeBlock(${bi})">✕</button>
     </div>`;
   if(exs.length){
-    html+=exs.map((ex,ei)=>renderBexRowHTML(ex,bi,ei)).join('');
+    html+=exs.map((ex,ei)=>renderBexRowHTML(ex,bi,ei,groupInfo[ei])).join('');
   } else {
     html+=`<div class="text-xs text-mt center" style="padding:8px 0">Sin ejercicios</div>`;
   }
@@ -1849,7 +1915,7 @@ function renderBlockHTML(b,bi){
   return html;
 }
 
-function renderBexRowHTML(ex,bi,ei){
+function renderBexRowHTML(ex,bi,ei,gi){
   const lib=ex.exerciseId?getExercise(ex.exerciseId):null;
   const isCustom=!ex.exerciseId&&!!ex.customName;
   const isLegacyAcc=ex.type&&ex.type!=='compound'; // biserie/triserie heredada
@@ -1868,9 +1934,15 @@ function renderBexRowHTML(ex,bi,ei){
   const meta=metaParts.join(' · ');
   const exs=editingDayState.blocks[bi].exercises;
   const s=v=>(v!=null&&v!==undefined)?String(v):'';
-  let html=`<div class="bex-row">
+  // Visual de grupo (superset)
+  const inGroup=gi&&gi.groupId;
+  const groupBorder=inGroup?'border-left:3px solid #eab308;':'';
+  const groupBadge=(inGroup&&gi.isFirst)?`<div style="font-size:10px;font-weight:800;color:#a16207;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${gi.groupSize===2?'Superset':gi.groupSize===3?'Triserie':'Grupo'} ×${gi.groupSize}</div>`:'';
+  const groupContinuation=(inGroup&&!gi.isFirst)?`<span class="text-xs" style="color:#a16207;font-weight:700;margin-left:6px">+${gi.groupIndex+1}</span>`:'';
+  let html=`<div class="bex-row" style="${groupBorder}">
+    ${groupBadge}
     <div class="bex-top">
-      <span class="bex-name" id="bex-name-${bi}-${ei}" onclick="toggleExExpand(${bi},${ei})">${name}${isCustom?' <span class="badge badge-custom" style="margin-left:6px">custom</span>':''}${isLegacyAcc?` <span class="badge badge-custom" style="margin-left:6px">${ex.type}</span>`:''}</span>
+      <span class="bex-name" id="bex-name-${bi}-${ei}" onclick="toggleExExpand(${bi},${ei})">${name}${groupContinuation}${isCustom?' <span class="badge badge-custom" style="margin-left:6px">custom</span>':''}${isLegacyAcc?` <span class="badge badge-custom" style="margin-left:6px">${ex.type}</span>`:''}</span>
       ${ei>0?`<button class="micro-btn" onclick="moveExercise(${bi},${ei},-1)">↑</button>`:''}
       ${ei<exs.length-1?`<button class="micro-btn" onclick="moveExercise(${bi},${ei},1)">↓</button>`:''}
       <button class="micro-btn" style="color:var(--dn)" onclick="removeExerciseFromBlock(${bi},${ei})">✕</button>
@@ -1912,12 +1984,70 @@ function renderBexRowHTML(ex,bi,ei){
         <span class="xfl-lbl" style="padding-top:8px">Notas</span>
         <textarea class="xfl-inp" rows="2" placeholder="Cues, variantes..." oninput="upExBE(${bi},${ei},'notes',this.value)">${s(ex.notes)}</textarea>
       </div>
+      ${renderGroupActionHTMLBE(bi,ei,gi)}
     </div>`;
   } else if(isExp&&isLegacyAcc){
     html+=`<div class="bex-expand"><div class="text-xs text-mt">Esta es una biserie/triserie en formato antiguo. Para editarla, abrí el editor estándar desde Configuración.</div></div>`;
   }
   html+=`</div>`;
   return html;
+}
+
+function renderGroupActionHTMLBE(bi,ei,gi){
+  const exs=editingDayState.blocks[bi].exercises;
+  const inGroup=gi&&gi.groupId;
+  const hasNext=ei<exs.length-1;
+  if(inGroup){
+    return `<div class="mt-12" style="padding-top:10px;border-top:1px dashed var(--bd)">
+      <button class="btn-sm" onclick="ungroupExerciseBE(${bi},${ei})" style="width:100%;font-size:12px;color:#a16207;border:1px solid #eab308;background:transparent">🔗 Sacar del superset</button>
+    </div>`;
+  }
+  if(!hasNext) return '';
+  const nextEx=exs[ei+1];
+  const nextLib=nextEx.exerciseId?getExercise(nextEx.exerciseId):null;
+  const nextName=nextLib?nextLib.name:(nextEx.customName||'siguiente');
+  return `<div class="mt-12" style="padding-top:10px;border-top:1px dashed var(--bd)">
+    <button class="btn-sm" onclick="groupWithNextBE(${bi},${ei})" style="width:100%;font-size:12px">🔗 Hacer superset con: ${nextName}</button>
+  </div>`;
+}
+
+function groupWithNextBE(bi,ei){
+  const exs=editingDayState.blocks[bi].exercises;
+  if(ei>=exs.length-1) return;
+  const cur=exs[ei], nxt=exs[ei+1];
+  const gid=nxt.groupId||cur.groupId||('g'+uid());
+  cur.groupId=gid;
+  nxt.groupId=gid;
+  cleanupSingletonGroupsBE(bi);
+  renderDayBlocksContainer();
+}
+
+function ungroupExerciseBE(bi,ei){
+  delete editingDayState.blocks[bi].exercises[ei].groupId;
+  cleanupSingletonGroupsBE(bi);
+  renderDayBlocksContainer();
+}
+
+function cleanupSingletonGroupsBE(bi){
+  const exs=editingDayState.blocks[bi].exercises;
+  const counts={};
+  exs.forEach(ex=>{if(ex.groupId) counts[ex.groupId]=(counts[ex.groupId]||0)+1;});
+  exs.forEach(ex=>{if(ex.groupId&&counts[ex.groupId]<2) delete ex.groupId;});
+  // Validación de contigüidad: si hay duplicados no-contiguos, los desagrupamos
+  let i=0;
+  while(i<exs.length){
+    const gid=exs[i].groupId;
+    if(!gid){i++;continue;}
+    let j=i;
+    while(j<exs.length&&exs[j].groupId===gid) j++;
+    for(let k=j;k<exs.length;k++){
+      if(exs[k].groupId===gid) delete exs[k].groupId;
+    }
+    i=j;
+  }
+  const counts2={};
+  exs.forEach(ex=>{if(ex.groupId) counts2[ex.groupId]=(counts2[ex.groupId]||0)+1;});
+  exs.forEach(ex=>{if(ex.groupId&&counts2[ex.groupId]<2) delete ex.groupId;});
 }
 
 function toggleExExpand(bi,ei){
