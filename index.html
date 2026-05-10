@@ -404,7 +404,7 @@ function routineMuscleVolume(){
   const totals={};
   let uncovered=0;
   routine.days.forEach(d=>{
-    getDayExercises(d).forEach(ex=>{
+    getNonMobilityExs(d).forEach(ex=>{
       if(ex.type==='compound'||!ex.type){
         const eid=ex.exerciseId;
         const lib=eid?getExercise(eid):null;
@@ -466,7 +466,7 @@ function exerciseContributionsToZone(zoneName){
   const contribs=[];
   if(!routine||!routine.days) return contribs;
   routine.days.forEach(d=>{
-    getDayExercises(d).forEach(ex=>{
+    getNonMobilityExs(d).forEach(ex=>{
       if(ex.type==='compound'||!ex.type){
         const lib=ex.exerciseId?getExercise(ex.exerciseId):null;
         if(!lib||!lib.muscleActivation) return;
@@ -739,8 +739,18 @@ function fmtTime(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
 function $(id){return document.getElementById(id);}
 function isCompound(ex){return ex.type==="compound"||!ex.type;}
 // ── Block helpers ──
+function isMobilityBlock(b){return b&&b.type==='movilidad';}
 function getDayExercises(day){
   if(day.blocks&&day.blocks.length) return day.blocks.flatMap(b=>b.exercises||[]);
+  return day.exercises||[];
+}
+function getMobilityExs(day){
+  return (day.blocks||[]).filter(isMobilityBlock).flatMap(b=>b.exercises||[]);
+}
+function getNonMobilityExs(day){
+  if(day.blocks&&day.blocks.length){
+    return day.blocks.filter(b=>!isMobilityBlock(b)).flatMap(b=>b.exercises||[]);
+  }
   return day.exercises||[];
 }
 function getOrCreatePrincipalBlock(day){
@@ -763,8 +773,10 @@ function blockOfExercise(day,exId){
   }
   return null;
 }
-function getCompounds(day){return getDayExercises(day).filter(e=>isCompound(e));}
-function getAccessories(day){return getDayExercises(day).filter(e=>!isCompound(e));}
+// Compounds y accessories ahora excluyen ejercicios de bloques movilidad.
+// (La movilidad no se trackea con peso/reps/RPE — va en su propio tab "MOV".)
+function getCompounds(day){return getNonMobilityExs(day).filter(e=>isCompound(e));}
+function getAccessories(day){return getNonMobilityExs(day).filter(e=>!isCompound(e));}
 
 // ══ INIT ══
 function init(){
@@ -1074,30 +1086,62 @@ function renderRoutine(){
 
 // ══ WORKOUT ══
 function startWorkout(dayId,customDate){
-  const day=routine.days.find(d=>d.id===dayId);curDayId=dayId;curExI=0;
+  const day=routine.days.find(d=>d.id===dayId);curDayId=dayId;
   const compounds=getCompounds(day);const accessories=getAccessories(day);
+  // Si hay movilidad, arrancar en el tab MOV (curExI=-1); si no, primer compound
+  curExI=getMobilityExs(day).length?-1:0;
+  const mobility=getMobilityExs(day);
   curSess={id:uid(),date:customDate||td(),time:customDate?null:nowTime(),dayId,
     exercises:compounds.map(e=>({eid:eidOf(e),sets:Array.from({length:parseInt(e.sets)||1},()=>({w:lastW(eidOf(e))||0,r:repsAsNumber(e.reps)||10,rpe:null,felt:null})),note:''})),
-    accessories:accessories.reduce((o,a)=>{o[a.id]=false;return o;},{})
+    accessories:accessories.reduce((o,a)=>{o[a.id]=false;return o;},{}),
+    mobility:mobility.reduce((o,m)=>{o[m.id]=false;return o;},{})
   };
   saveDraft();showPage('work');renderWork();
 }
 
 function renderWork(){
   const day=routine.days.find(d=>d.id===curDayId);
-  const compounds=getCompounds(day);const accessories=getAccessories(day);
+  const compounds=getCompounds(day);const accessories=getAccessories(day);const mobility=getMobilityExs(day);
   $("work-day").textContent=day.name;$("work-sub").textContent=day.sub;
-  
-  // Tabs: compounds + accessories tab
-  let tabsHtml=compounds.map((e,i)=>{
+
+  // Tabs: [MOV] + compounds + [ACC]
+  let tabsHtml='';
+  if(mobility.length){
+    const movDone=mobility.every(m=>curSess.mobility&&curSess.mobility[m.id]);
+    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="${curExI===-1?'background:#78716c;color:#fff':'color:#78716c;border-color:#78716c'}">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}🟤</button>`;
+  }
+  tabsHtml+=compounds.map((e,i)=>{
     const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
     return`<button class="ex-tab${i===curExI?' active':''}" onclick="curExI=${i};renderWork()">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}${i+1}</button>`;
   }).join('');
   if(accessories.length) tabsHtml+=`<button class="ex-tab${curExI===compounds.length?' active':''}" onclick="curExI=${compounds.length};renderWork()">ACC</button>`;
-  
+
   let html=`<div class="ex-tabs">${tabsHtml}</div><div class="sec">`;
-  
-  if(curExI<compounds.length){
+
+  if(curExI===-1){
+    // ── Mobility view ──
+    html+=`<div style="font-size:22px;font-weight:800;margin-bottom:6px;color:#78716c">🟤 Movilidad</div>`;
+    html+=`<div class="text-sm text-mt mb-18">Entrada en calor — marcá cada ejercicio cuando lo completes.</div>`;
+    mobility.forEach(m=>{
+      const done=curSess.mobility&&curSess.mobility[m.id];
+      const lib=m.exerciseId?getExercise(m.exerciseId):null;
+      const cues=(lib&&lib.cues)||m.notes||'';
+      const restSec=restAsSeconds(m.rest);
+      const repsLbl=m.reps||'';
+      const setsLbl=m.sets&&m.sets>1?`${m.sets}× `:'';
+      html+=`<div class="acc-group${done?' done':''}" style="cursor:pointer">
+        <div class="flex gap-12" style="align-items:flex-start">
+          <div class="acc-check${done?' done':''}" onclick="toggleMobility('${m.id}',${restSec})">${done?'✓':''}</div>
+          <div style="flex:1" onclick="toggleMobility('${m.id}',${restSec})">
+            <div class="row mb-4"><span class="fw-700">${m.name||m.customName||'Ejercicio'}</span></div>
+            ${repsLbl?`<div class="text-sm text-mt">${setsLbl}${repsLbl}${m.rest?` · ${fmtTime(restSec)} desc.`:''}</div>`:''}
+            ${cues?`<button class="tips-btn mt-4" style="font-size:11px;padding:4px 8px" onclick="event.stopPropagation();const tip=this.nextElementSibling;tip.style.display=tip.style.display==='none'?'block':'none';this.textContent=tip.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none;font-size:13px">${cues}</div>`:''}
+          </div>
+          ${m.rest?`<button class="icon-btn" onclick="event.stopPropagation();startTimer(${restSec})" style="width:32px;height:32px;font-size:14px;flex-shrink:0">⏱</button>`:''}
+        </div>
+      </div>`;
+    });
+  } else if(curExI<compounds.length){
     // Compound exercise view
     const ex=compounds[curExI];const sets=curSess.exercises[curExI]?.sets||[];const sessNote=curSess.exercises[curExI]?.note||'';
     html+=`<div id="work-pr" class="pr-banner"><span style="font-size:24px">🔥</span><div><div class="text-sm fw-700 text-ac">Nuevo PR</div><div id="work-pr-name" class="text-xs text-mt"></div></div></div>`;
@@ -1145,11 +1189,12 @@ function renderWork(){
     });
   }
   
-  // Nav
-  const totalTabs=compounds.length+(accessories.length?1:0);
+  // Nav. Índices: -1 = MOV (si hay), 0..n-1 = compounds, n = ACC.
+  const startIdx=mobility.length?-1:0;
+  const lastIdx=compounds.length-1+(accessories.length?1:0);
   html+=`<div class="flex gap-10 mt-20">`;
-  if(curExI>0) html+=`<button class="btn-out" onclick="curExI--;stopTimer();renderWork()">← Anterior</button>`;
-  if(curExI<totalTabs-1) html+=`<button class="btn" onclick="curExI++;stopTimer();renderWork()">Siguiente →</button>`;
+  if(curExI>startIdx) html+=`<button class="btn-out" onclick="curExI--;stopTimer();renderWork()">← Anterior</button>`;
+  if(curExI<lastIdx) html+=`<button class="btn" onclick="curExI++;stopTimer();renderWork()">Siguiente →</button>`;
   else html+=`<button class="btn" onclick="finishWorkout()">✓ Terminar</button>`;
   html+=`</div></div>`;
   
@@ -1169,6 +1214,14 @@ function removeWorkSet(){
 function toggleAcc(accId,rest){
   curSess.accessories[accId]=!curSess.accessories[accId];
   if(curSess.accessories[accId]&&rest&&!timerRef) startTimer(rest);
+  renderWork();
+}
+function toggleMobility(exId,restSec){
+  if(!curSess.mobility) curSess.mobility={};
+  const wasOff=!curSess.mobility[exId];
+  curSess.mobility[exId]=!curSess.mobility[exId];
+  saveDraft();
+  if(wasOff&&restSec&&!timerRef) startTimer(restSec);
   renderWork();
 }
 
@@ -1211,7 +1264,16 @@ function setRpe(si,v){curSess.exercises[curExI].sets[si].rpe=v;
 }
 function finishWorkout(){sessions.push(curSess);save("gym-s",sessions);clearDraft();stopTimer();closeExitModal();showPage('home');}
 function discardWorkout(){curSess=null;clearDraft();stopTimer();closeExitModal();showPage('home');}
-function resumeDraft(){const d=load("gym-draft",null);if(!d)return;curSess=d;curDayId=d.dayId;curExI=0;showPage('work');renderWork();}
+function resumeDraft(){
+  const d=load("gym-draft",null);if(!d)return;
+  curSess=d;curDayId=d.dayId;
+  // Si la sesión tiene movilidad y aún quedan ejercicios sin marcar, arrancar en MOV
+  const day=routine.days.find(x=>x.id===d.dayId);
+  const movs=day?getMobilityExs(day):[];
+  const movPending=movs.length&&movs.some(m=>!d.mobility||!d.mobility[m.id]);
+  curExI=movPending?-1:0;
+  showPage('work');renderWork();
+}
 function discardDraft(){clearDraft();renderHome();}
 function confirmExit(){$("exit-modal").classList.add('show');}
 function closeExitModal(){$("exit-modal").classList.remove('show');}
