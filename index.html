@@ -101,7 +101,8 @@ body.modal-open .page{overflow:hidden;}
 <!-- ══ HOME ══ -->
 <div id="home" class="page active">
   <div class="header">
-    <div style="display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:10px"><img src="./shield.png" alt="JuvenFIT" style="height:44px;width:auto;mix-blend-mode:multiply"><div class="logo">TRACKER</div></div>
+    <div class="flex gap-8">
       <button class="icon-btn" onclick="openImportRoutine()" title="Importar rutina del coach" aria-label="Importar rutina del coach" style="display:inline-flex;align-items:center;justify-content:center;color:var(--ac)">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
           <rect x="3" y="3" width="7" height="7"/>
@@ -112,31 +113,36 @@ body.modal-open .page{overflow:hidden;}
           <rect x="14" y="19" width="3" height="2"/>
         </svg>
       </button>
-      <img src="./shield.png" alt="JuvenFIT" style="height:44px;width:auto;mix-blend-mode:multiply">
-      <div class="logo">TRACKER</div>
-    </div>
-    <div class="flex gap-8">
       <button class="icon-btn" onclick="showPage('routine')" style="font-size:14px">📋</button>
       <button class="icon-btn" onclick="showPage('editR')">⚙</button>
     </div>
   </div>
   <div id="home-welcome" style="display:none">
-    <div class="sec" style="padding-top:40px">
-      <div style="text-align:center;margin-bottom:32px">
+    <div class="sec" style="padding-top:32px">
+      <div style="text-align:center;margin-bottom:28px">
         <div style="font-size:56px;margin-bottom:16px">💪</div>
-        <div style="font-size:24px;font-weight:800;margin-bottom:8px">Armá tu rutina</div>
-        <div class="text-sm text-mt" style="line-height:1.6;max-width:300px;margin:0 auto">Configurá tus días de entrenamiento y ejercicios para empezar a trackear tu progreso.</div>
+        <div style="font-size:24px;font-weight:800;margin-bottom:8px">¡Bienvenido!</div>
+        <div class="text-sm text-mt" style="line-height:1.6;max-width:320px;margin:0 auto">¿Cómo querés empezar?</div>
       </div>
-      <div class="card" style="cursor:default">
-        <div class="text-sm" style="color:var(--mt);line-height:1.8">
-          <strong style="color:var(--tx)">1.</strong> Tocá <strong style="color:var(--ac)">⚙</strong> arriba a la derecha<br>
-          <strong style="color:var(--tx)">2.</strong> Agregá tus días (ej: Día 1, Día 2...)<br>
-          <strong style="color:var(--tx)">3.</strong> En cada día, sumá tus <strong style="color:var(--ac)">ejercicios compuestos</strong> (peso, series, reps) para trackear progreso<br>
-          <strong style="color:var(--tx)">4.</strong> Sumá <strong style="color:#a78bfa">biseries/triseries</strong> para los accesorios (solo check ✓)
+
+      <div class="card card-accent" style="cursor:default">
+        <div class="row mb-8" style="align-items:center;gap:10px">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" style="color:var(--ac);flex-shrink:0">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/><rect x="14" y="19" width="3" height="2"/>
+          </svg>
+          <div class="fw-800" style="font-size:16px;color:var(--ac)">Tu coach te pasó una rutina</div>
         </div>
+        <div class="text-sm text-mt mb-12" style="line-height:1.5">Tocá el botón <strong style="color:var(--ac)">QR</strong> arriba a la derecha (o el botón de abajo) para escanearla, o pegá el código de 8 caracteres que te mandó por WhatsApp.</div>
+        <button class="btn" onclick="openImportRoutine()">📷 Escanear o pegar código</button>
       </div>
-      <button class="btn mt-12" onclick="showPage('editR')">Configurar mi rutina →</button>
-      <button class="btn-out mt-12" onclick="openImportRoutine()">📥 Importar rutina del coach</button>
+
+      <div class="text-xs text-mt center mt-20 mb-12" style="letter-spacing:.5px">— O —</div>
+
+      <div class="card" style="cursor:default">
+        <div class="fw-800 mb-8" style="font-size:16px">Armá tu propia rutina</div>
+        <div class="text-sm text-mt mb-12" style="line-height:1.5">Sumá tus días, agregá ejercicios de la biblioteca y empezá a trackear tu progreso. Organizás el entrenamiento por bloques: <strong>Movilidad</strong>, <strong>Principal</strong>, <strong>Complementario</strong> y <strong>Finisher</strong>.</div>
+        <button class="btn-out" onclick="showPage('editR')">⚙ Configurar mi rutina →</button>
+      </div>
     </div>
   </div>
   <div id="home-main">
@@ -152,7 +158,6 @@ body.modal-open .page{overflow:hidden;}
       <div class="sec-title">Hoy te toca</div><div id="home-suggested" class="card card-accent"></div>
       <div class="sec-title mt-24">Otros días</div><div id="home-others"></div>
       <button class="btn-out mt-12" onclick="showPastWorkout()" style="font-size:14px">📅 Registrar entreno anterior</button>
-      <button class="btn-out mt-8" onclick="openImportRoutine()" style="font-size:14px">📥 Importar rutina del coach</button>
     </div>
     <div id="home-last-sec" class="sec" style="display:none"><div class="sec-title">Última sesión</div><div id="home-last" class="card" style="cursor:default"></div></div>
     <div id="home-hist-sec" class="sec" style="display:none"><div class="sec-title">Historial por ejercicio</div><div id="home-hist"></div></div>
@@ -235,9 +240,8 @@ body.modal-open .page{overflow:hidden;}
     <div id="sync-status" class="text-xs text-mt" style="text-align:center"></div>
   </div>
   <div class="sec" style="padding-top:0">
-    <div class="sec-title">📥 Importar / Cambiar rutina</div>
+    <div class="sec-title">Cambiar rutina</div>
     <div id="debug-routine-info" class="text-xs text-mt mb-8"></div>
-    <button class="btn-out" onclick="openImportRoutine()" style="margin-bottom:8px">📥 Importar rutina del coach</button>
     <button class="btn-out" id="btn-switch-routine" onclick="openRoutineSwitcher()" style="margin-bottom:8px">⇄ Cambiar rutina activa</button>
     <button class="btn-out" onclick="loadDemoRoutine()" style="margin-bottom:8px;font-size:12px;color:var(--mt)">🧪 Cargar rutina demo (debug)</button>
   </div>
