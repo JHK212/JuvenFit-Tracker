@@ -847,6 +847,28 @@ function blockOfExercise(day,exId){
 // (La movilidad no se trackea con peso/reps/RPE — va en su propio tab "MOV".)
 function getCompounds(day){return getNonMobilityExs(day).filter(e=>isCompound(e));}
 function getAccessories(day){return getNonMobilityExs(day).filter(e=>!isCompound(e));}
+// Preview compacto del día con indicador 🔗 entre ejercicios agrupados
+function formatDayPreview(day){
+  const compounds=getCompounds(day);
+  if(!compounds.length) return '';
+  let out='';
+  compounds.forEach((ex,i)=>{
+    if(i>0){
+      const prev=compounds[i-1];
+      const linked=prev.groupId&&prev.groupId===ex.groupId;
+      out+=linked?' 🔗 ':' · ';
+    }
+    out+=ex.name||ex.customName||'?';
+  });
+  // Resumen de supersets si hay más de uno
+  const groupIds=new Set();
+  compounds.forEach(ex=>{if(ex.groupId) groupIds.add(ex.groupId);});
+  if(groupIds.size>0){
+    out+=`  <span style="color:#a16207;font-weight:700">· ${groupIds.size} superset${groupIds.size===1?'':'s'}</span>`;
+  }
+  return out;
+}
+
 // Dado el array compounds (orden de tabs del workout) y un índice, devuelve info del grupo si es superset
 function groupOfCompoundIdx(compounds,idx){
   const cur=compounds[idx];
@@ -1114,7 +1136,7 @@ function renderHome(){
   const sg=sugDay();const sgD=routine.days.find(d=>d.id===sg);const st=streak();const tw=thisWeekSessions();const dpw=config.daysPerWeek||3;
   $("home-streak").textContent=st;$("home-fire").style.display=st>0?"inline":"none";$("home-sessions").textContent=sessions.length;
   $("home-streak-detail").innerHTML=`Esta semana: <strong style="color:${tw>=dpw?'var(--gn)':'var(--ac)'}">${tw}/${dpw}</strong>${tw>=dpw?' ✓':''}`;
-  $("home-suggested").innerHTML=`<div class="row" onclick="startWorkout(${sg})" style="cursor:pointer"><div><div style="font-size:20px;font-weight:800;margin-bottom:4px;color:var(--ac)">${sgD.name}</div><div class="text-sm text-mt">${sgD.sub}</div><div class="text-xs text-mt mt-8">${getCompounds(sgD).map(e=>e.name).join(' · ')}</div></div><div style="font-size:32px;color:var(--ac)">→</div></div>`;
+  $("home-suggested").innerHTML=`<div class="row" onclick="startWorkout(${sg})" style="cursor:pointer"><div><div style="font-size:20px;font-weight:800;margin-bottom:4px;color:var(--ac)">${sgD.name}</div><div class="text-sm text-mt">${sgD.sub}</div><div class="text-xs text-mt mt-8">${formatDayPreview(sgD)}</div></div><div style="font-size:32px;color:var(--ac)">→</div></div>`;
   $("home-others").innerHTML=routine.days.filter(d=>d.id!==sg).map(d=>`<div class="card" onclick="startWorkout(${d.id})" style="cursor:pointer"><div class="row"><div><div style="font-size:16px;font-weight:700">${d.name}</div><div class="text-sm text-mt">${d.sub}</div></div><div style="font-size:20px;color:var(--mt)">→</div></div></div>`).join('');
   renderCalendar();
   const last=sessions.length?[...sessions].sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
@@ -1125,6 +1147,16 @@ function renderHome(){
 }
 
 // ══ ROUTINE VIEW ══
+// Render compound con visual de superset si corresponde
+function renderRoutineExCard(ex,gi){
+  const name=ex.name||ex.customName||'Ejercicio';
+  const inGroup=gi&&gi.groupId;
+  const groupBorder=inGroup?'border-left:3px solid #eab308;':'';
+  const groupBadge=(inGroup&&gi.isFirst)?`<div style="font-size:10px;font-weight:800;color:#a16207;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${gi.groupSize===2?'Superset':gi.groupSize===3?'Triserie':'Grupo'} ×${gi.groupSize}</div>`:'';
+  const groupCont=(inGroup&&!gi.isFirst)?` <span class="text-xs" style="color:#a16207;font-weight:700;margin-left:6px">+${gi.groupIndex+1}</span>`:'';
+  return `<div class="card" style="cursor:default;${groupBorder}">${groupBadge}<div class="row mb-4"><span class="fw-700" style="color:var(--ac)">${name}${groupCont}</span><span class="text-xs text-mt mono">${ex.sets}×${ex.reps}</span></div><div class="text-xs text-mt">Descanso: ${fmtTime(restAsSeconds(ex.rest))}${ex.objective?' · '+ex.objective:''}</div>${ex.notes?`<div class="tips-box mt-8">${ex.notes}</div>`:''}</div>`;
+}
+
 function renderRoutine(){
   let html='';
   routine.days.forEach(d=>{
@@ -1136,10 +1168,10 @@ function renderRoutine(){
         const bt=BLOCK_TYPES[b.type]||BLOCK_TYPES.custom;
         const lbl=b.type==='custom'&&b.label?b.label:bt.label;
         html+=`<div class="row mb-8 mt-12" style="align-items:center;gap:8px"><span class="badge" style="background:${bt.color};color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px">${lbl}</span><span style="flex:1;height:1px;background:var(--bd)"></span></div>`;
-        (b.exercises||[]).forEach(ex=>{
+        const groupInfo=computeBlockGroups(b.exercises||[]);
+        (b.exercises||[]).forEach((ex,exIdx)=>{
           if(isCompound(ex)){
-            const name=ex.name||ex.customName||'Ejercicio';
-            html+=`<div class="card" style="cursor:default"><div class="row mb-4"><span class="fw-700" style="color:var(--ac)">${name}</span><span class="text-xs text-mt mono">${ex.sets}×${ex.reps}</span></div><div class="text-xs text-mt">Descanso: ${fmtTime(restAsSeconds(ex.rest))}${ex.objective?' · '+ex.objective:''}</div>${ex.notes?`<div class="tips-box mt-8">${ex.notes}</div>`:''}</div>`;
+            html+=renderRoutineExCard(ex,groupInfo[exIdx]);
           } else {
             const tag=ex.type==='triserie'?'<span class="acc-tag acc-tag-tri">Triserie</span>':'<span class="acc-tag acc-tag-bi">Biserie</span>';
             html+=`<div class="card" style="cursor:default"><div class="row mb-8"><span class="fw-700">${ex.name}</span>${tag}</div><div style="margin-bottom:8px">${(ex.items||[]).map(it=>`<div class="text-sm" style="padding:2px 0;color:var(--mt)">• ${it.name} — <span class="mono">${it.reps}</span></div>`).join('')}</div><div class="text-xs text-mt">${ex.sets}×${fmtTime(restAsSeconds(ex.rest))} desc. ${ex.notes?'· '+ex.notes:''}</div></div>`;
@@ -1148,9 +1180,10 @@ function renderRoutine(){
       });
     } else {
       // Modo legacy: compounds + accessories como secciones separadas
-      getCompounds(d).forEach(ex=>{
-        const name=ex.name||ex.customName||'Ejercicio';
-        html+=`<div class="card" style="cursor:default"><div class="row mb-4"><span class="fw-700" style="color:var(--ac)">${name}</span><span class="text-xs text-mt mono">${ex.sets}×${ex.reps}</span></div><div class="text-xs text-mt">Descanso: ${fmtTime(restAsSeconds(ex.rest))}</div>${ex.notes?`<div class="tips-box mt-8">${ex.notes}</div>`:''}</div>`;
+      const compounds=getCompounds(d);
+      const compoundGroups=computeBlockGroups(compounds);
+      compounds.forEach((ex,i)=>{
+        html+=renderRoutineExCard(ex,compoundGroups[i]);
       });
       const accs=getAccessories(d);
       if(accs.length){
