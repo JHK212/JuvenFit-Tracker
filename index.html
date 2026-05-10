@@ -56,6 +56,27 @@ input:focus,textarea:focus{border-color:rgba(90,26,26,0.5)!important;}
 .qchip{display:inline-block;padding:4px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:14px;font-size:12px;font-weight:600;color:var(--mt);cursor:pointer;font-family:var(--fm);}
 .qchip:hover,.qchip:active{border-color:var(--ac);color:var(--ac);}
 .qchip-row{display:flex;flex-wrap:wrap;gap:5px;}
+/* ── Block editor (A3) ── */
+.micro-btn{font-size:15px;color:var(--mt);cursor:pointer;padding:4px 3px;line-height:1;flex-shrink:0;background:none;border:none;}
+.micro-btn:hover{color:var(--ac);}
+.block-wrap{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:12px;}
+.block-hd{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
+.block-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:0.5px;color:#fff;text-transform:uppercase;flex-shrink:0;}
+.bex-row{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:11px 12px;margin-bottom:6px;}
+.bex-top{display:flex;align-items:center;gap:6px;}
+.bex-name{font-weight:700;font-size:14px;flex:1;cursor:pointer;transition:color .15s;}
+.bex-name:hover{color:var(--ac);}
+.bex-meta{font-size:12px;color:var(--mt);margin-top:3px;}
+.bex-expand{margin-top:10px;padding-top:10px;border-top:1px solid var(--bd);}
+.xfl{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;}
+.xfl:last-child{margin-bottom:0;}
+.xfl-lbl{font-size:11px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:0.4px;min-width:64px;padding-top:6px;flex-shrink:0;}
+.xfl-inp{flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font-size:15px;color:var(--tx);outline:none;font-family:var(--fs);box-sizing:border-box;}
+.xfl-inp:focus{border-color:var(--ac);}
+textarea.xfl-inp{resize:none;min-height:48px;font-size:14px;}
+.badge{font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;letter-spacing:0.4px;display:inline-block;}
+.badge-custom{background:var(--sf);color:var(--mt);}
+.editor-header-be{position:sticky;top:0;background:var(--bg);padding:16px 0 12px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--bd);margin-bottom:20px;}
 .timer-bar{position:fixed;bottom:0;left:0;right:0;background:var(--sf);border-top:1px solid var(--bd);padding:16px 20px;padding-bottom:calc(16px + env(safe-area-inset-bottom));z-index:90;display:none;align-items:center;gap:12px;max-width:480px;margin:0 auto;}
 .timer-bar.show{display:flex;}
 .timer-num{font-family:var(--fm);font-size:30px;font-weight:800;color:var(--ac);min-width:70px;text-align:right;cursor:pointer;}
@@ -246,6 +267,23 @@ body.modal-open .page{overflow:hidden;}
     <button class="btn-out" onclick="loadDemoRoutine()" style="margin-bottom:8px;font-size:12px;color:var(--mt)">🧪 Cargar rutina demo (debug)</button>
   </div>
   <div class="sec" style="padding-top:0"><button class="btn-danger" onclick="resetRoutine()">Borrar toda la rutina</button></div>
+</div>
+
+<!-- ══ EDIT DAY (BLOQUES) ══ -->
+<div id="editD" class="page">
+  <div class="header"><button class="icon-btn" onclick="closeDayBlockEditor()">←</button><div id="editD-title" class="fw-700" style="font-size:16px;text-align:center;flex:1">Editar día</div><button class="btn-sm" onclick="saveDayBlockEditor()" style="background:var(--ac);color:#fff;font-weight:700">Listo</button></div>
+  <div class="sec">
+    <div class="mb-16">
+      <label class="label">Nombre del día</label>
+      <input id="editD-name" class="input" placeholder="Ej: Día 1 — Empuje">
+    </div>
+    <div class="mb-16">
+      <label class="label">Subtítulo (opcional)</label>
+      <input id="editD-sub" class="input" placeholder="Ej: Pecho, hombros, tríceps">
+    </div>
+    <div id="editD-blocks"></div>
+    <button class="btn-out mt-12" onclick="openAddBlockPicker()">+ Agregar bloque</button>
+  </div>
 </div>
 
 <!-- ══ EDIT EXERCISE ══ -->
@@ -1515,7 +1553,8 @@ function renderEditR(){
     }
     return `<div class="sec"><div class="row mb-12"><div class="sec-title" style="margin-bottom:0">${d.name} — ${d.sub}</div><button class="icon-btn" style="width:32px;height:32px;font-size:13px" onclick="editDayPrompt(${d.id})">✎</button></div>
       ${blocksHtml}
-      <div class="flex gap-8"><button class="btn-sm" style="flex:1" onclick="addEx(${d.id},'compound')">+ Ejercicio</button><button class="btn-sm" style="flex:1" onclick="addAccEx(${d.id})">+ Biserie/Tri</button>${routine.days.length>1?`<button class="btn-sm" style="color:var(--dn);border-color:rgba(239,68,68,0.2)" onclick="deleteDay(${d.id})">Eliminar</button>`:''}</div></div>`;
+      <button class="btn-sm mb-8" style="width:100%;background:var(--ac);color:#fff;font-weight:700" onclick="openDayBlockEditor(${d.id})">🧱 Editar bloques del día</button>
+      <div class="flex gap-8"><button class="btn-sm" style="flex:1" onclick="addEx(${d.id},'compound')">+ Ejercicio rápido</button><button class="btn-sm" style="flex:1" onclick="addAccEx(${d.id})">+ Biserie/Tri</button>${routine.days.length>1?`<button class="btn-sm" style="color:var(--dn);border-color:rgba(239,68,68,0.2)" onclick="deleteDay(${d.id})">Eliminar</button>`:''}</div></div>`;
   }).join('')+`<div class="sec"><button class="btn-out" onclick="addDay()">+ Agregar día de entrenamiento</button></div>`;
 }
 function renderEditExCard(dayId,ex){
@@ -1727,6 +1766,318 @@ function deleteRoutineFromStore(id){
   renderEditR();
   renderHome();
 }
+// ══ DAY BLOCKS EDITOR (A3) ══
+let editingDayState=null;
+let expandedExBE=null; // {bi, ei}
+let _dayChartTimerBE=null;
+
+function openDayBlockEditor(dayId){
+  const d=routine.days.find(x=>x.id===dayId);
+  if(!d){toast('Día no encontrado','error');return;}
+  editDayId=dayId;
+  // Copia profunda del día — la edición es no destructiva hasta tap "Listo"
+  editingDayState=JSON.parse(JSON.stringify(d));
+  if(!editingDayState.blocks||!editingDayState.blocks.length){
+    // Si está vacío o tiene formato legacy, asegurar al menos un bloque principal
+    const exs=editingDayState.exercises||[];
+    editingDayState.blocks=[{id:uid(),type:'principal',label:'',exercises:exs}];
+    delete editingDayState.exercises;
+  }
+  expandedExBE=null;
+  $("editD-title").textContent=editingDayState.name||'Editar día';
+  $("editD-name").value=editingDayState.name||'';
+  $("editD-sub").value=editingDayState.sub||'';
+  $("editD-name").oninput=e=>{editingDayState.name=e.target.value;$("editD-title").textContent=e.target.value||'Editar día';};
+  $("editD-sub").oninput=e=>{editingDayState.sub=e.target.value;};
+  renderDayBlocksContainer();
+  showPage('editD');
+}
+
+function closeDayBlockEditor(){
+  editingDayState=null;expandedExBE=null;
+  showPage('editR');
+}
+
+function saveDayBlockEditor(){
+  if(!editingDayState) return;
+  const idx=routine.days.findIndex(d=>d.id===editDayId);
+  if(idx>=0){
+    const orig=routine.days[idx];
+    orig.name=editingDayState.name||orig.name;
+    orig.sub=editingDayState.sub||'';
+    orig.blocks=editingDayState.blocks||[];
+    delete orig.exercises;
+  }
+  saveRoutine();
+  toast('Día guardado','success');
+  closeDayBlockEditor();
+  renderEditR();
+}
+
+function renderDayBlocksContainer(){
+  const blocks=editingDayState.blocks||[];
+  const c=$("editD-blocks");
+  if(!blocks.length){
+    c.innerHTML='<div class="text-xs text-mt center" style="padding:20px 0">Sin bloques. Tap + para agregar.</div>';
+  } else {
+    c.innerHTML=blocks.map((b,bi)=>renderBlockHTML(b,bi)).join('');
+  }
+}
+
+function renderBlockHTML(b,bi){
+  const bt=BLOCK_TYPES[b.type]||BLOCK_TYPES.custom;
+  const color=bt.color;
+  const label=b.type==='custom'&&b.label?b.label:bt.label;
+  const blocks=editingDayState.blocks;
+  const exs=b.exercises||[];
+  const isCustom=b.type==='custom';
+  let html=`<div class="block-wrap">
+    <div class="block-hd">
+      <span class="block-tag" style="background:${color};${isCustom?'cursor:pointer':''}" ${isCustom?`onclick="renameBlockLabel(${bi})" title="Tap para renombrar"`:''}>${label}${isCustom?' ✎':''}</span>
+      <span style="flex:1"></span>
+      ${bi>0?`<button class="micro-btn" onclick="moveBlock(${bi},-1)">↑</button>`:''}
+      ${bi<blocks.length-1?`<button class="micro-btn" onclick="moveBlock(${bi},1)">↓</button>`:''}
+      <button class="micro-btn" style="color:var(--dn)" onclick="removeBlock(${bi})">✕</button>
+    </div>`;
+  if(exs.length){
+    html+=exs.map((ex,ei)=>renderBexRowHTML(ex,bi,ei)).join('');
+  } else {
+    html+=`<div class="text-xs text-mt center" style="padding:8px 0">Sin ejercicios</div>`;
+  }
+  html+=`<button class="btn-out mt-8" style="font-size:13px;padding:9px" onclick="openExPickerForBlock(${bi})">+ Ejercicio</button>`;
+  html+=`</div>`;
+  return html;
+}
+
+function renderBexRowHTML(ex,bi,ei){
+  const lib=ex.exerciseId?getExercise(ex.exerciseId):null;
+  const isCustom=!ex.exerciseId&&!!ex.customName;
+  const isLegacyAcc=ex.type&&ex.type!=='compound'; // biserie/triserie heredada
+  const name=lib?lib.name:(ex.customName||ex.name||ex.exerciseId||'Ejercicio');
+  const isExp=expandedExBE&&expandedExBE.bi===bi&&expandedExBE.ei===ei;
+  const metaParts=[];
+  if(isLegacyAcc){
+    metaParts.push(ex.type==='triserie'?'Triserie':'Biserie');
+    if(ex.sets) metaParts.push(`${ex.sets} rondas`);
+  } else {
+    if(ex.sets&&ex.reps) metaParts.push(`${ex.sets}×${ex.reps}`);
+    else if(ex.sets) metaParts.push(`${ex.sets} series`);
+    else if(ex.reps) metaParts.push(ex.reps);
+  }
+  if(ex.rest) metaParts.push(`${ex.rest} desc`);
+  const meta=metaParts.join(' · ');
+  const exs=editingDayState.blocks[bi].exercises;
+  const s=v=>(v!=null&&v!==undefined)?String(v):'';
+  let html=`<div class="bex-row">
+    <div class="bex-top">
+      <span class="bex-name" id="bex-name-${bi}-${ei}" onclick="toggleExExpand(${bi},${ei})">${name}${isCustom?' <span class="badge badge-custom" style="margin-left:6px">custom</span>':''}${isLegacyAcc?` <span class="badge badge-custom" style="margin-left:6px">${ex.type}</span>`:''}</span>
+      ${ei>0?`<button class="micro-btn" onclick="moveExercise(${bi},${ei},-1)">↑</button>`:''}
+      ${ei<exs.length-1?`<button class="micro-btn" onclick="moveExercise(${bi},${ei},1)">↓</button>`:''}
+      <button class="micro-btn" style="color:var(--dn)" onclick="removeExerciseFromBlock(${bi},${ei})">✕</button>
+    </div>
+    ${meta?`<div class="bex-meta">${meta}</div>`:''}`;
+  if(isExp&&!isLegacyAcc){
+    html+=`<div class="bex-expand">
+      ${isCustom?`<div class="xfl">
+        <span class="xfl-lbl">Nombre</span>
+        <input type="text" class="xfl-inp" value="${s(ex.customName)}" placeholder="Ej: Curl con polea baja" oninput="upExBE(${bi},${ei},'customName',this.value)">
+      </div>`:''}
+      <div class="xfl">
+        <span class="xfl-lbl">Series</span>
+        <input type="number" class="xfl-inp" min="1" max="20" inputmode="numeric" value="${s(ex.sets)}" placeholder="4" oninput="upExBE(${bi},${ei},'sets',this.value)" style="max-width:80px;flex:none">
+      </div>
+      <div class="xfl" style="align-items:flex-start">
+        <span class="xfl-lbl" style="padding-top:6px">Reps</span>
+        <div style="flex:1">
+          <input id="reps-be-${bi}-${ei}" type="text" class="xfl-inp" value="${s(ex.reps)}" placeholder="8-10 / AMRAP / 30 segs" oninput="upExBE(${bi},${ei},'reps',this.value)">
+          <div class="qchip-row">
+            ${['6-8','8-10','10-12','12-15','AMRAP','30 segs','45 segs','1 min'].map(v=>`<span class="qchip" onclick="setQuickFieldBE('reps-be-${bi}-${ei}',${bi},${ei},'reps','${v}')">${v}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="xfl" style="align-items:flex-start">
+        <span class="xfl-lbl" style="padding-top:6px">Descanso</span>
+        <div style="flex:1">
+          <input id="rest-be-${bi}-${ei}" type="text" class="xfl-inp" value="${s(ex.rest)}" placeholder="90 segs / 2 min" oninput="upExBE(${bi},${ei},'rest',this.value)">
+          <div class="qchip-row">
+            ${['30 segs','45 segs','60 segs','90 segs','2 min','3 min'].map(v=>`<span class="qchip" onclick="setQuickFieldBE('rest-be-${bi}-${ei}',${bi},${ei},'rest','${v}')">${v}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="xfl">
+        <span class="xfl-lbl">Objetivo</span>
+        <input type="text" class="xfl-inp" value="${s(ex.objective)}" placeholder="hipertrofia, fuerza..." oninput="upExBE(${bi},${ei},'objective',this.value)">
+      </div>
+      <div class="xfl" style="align-items:flex-start">
+        <span class="xfl-lbl" style="padding-top:8px">Notas</span>
+        <textarea class="xfl-inp" rows="2" placeholder="Cues, variantes..." oninput="upExBE(${bi},${ei},'notes',this.value)">${s(ex.notes)}</textarea>
+      </div>
+    </div>`;
+  } else if(isExp&&isLegacyAcc){
+    html+=`<div class="bex-expand"><div class="text-xs text-mt">Esta es una biserie/triserie en formato antiguo. Para editarla, abrí el editor estándar desde Configuración.</div></div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
+function toggleExExpand(bi,ei){
+  expandedExBE=(expandedExBE&&expandedExBE.bi===bi&&expandedExBE.ei===ei)?null:{bi,ei};
+  renderDayBlocksContainer();
+}
+
+function upExBE(bi,ei,field,val){
+  const ex=editingDayState.blocks[bi].exercises[ei];
+  ex[field]=field==='sets'?(parseInt(val)||null):val;
+  if(field==='customName'){
+    const sp=$("bex-name-"+bi+"-"+ei);
+    if(sp) sp.innerHTML=(val||'Ejercicio')+' <span class="badge badge-custom" style="margin-left:6px">custom</span>';
+  }
+}
+
+function setQuickFieldBE(inputId,bi,ei,field,val){
+  const inp=$(inputId);
+  if(inp) inp.value=val;
+  upExBE(bi,ei,field,val);
+}
+
+function moveBlock(bi,dir){
+  const blocks=editingDayState.blocks;
+  const to=bi+dir;
+  if(to<0||to>=blocks.length) return;
+  [blocks[bi],blocks[to]]=[blocks[to],blocks[bi]];
+  if(expandedExBE){
+    if(expandedExBE.bi===bi) expandedExBE.bi=to;
+    else if(expandedExBE.bi===to) expandedExBE.bi=bi;
+  }
+  renderDayBlocksContainer();
+}
+
+function removeBlock(bi){
+  if(!confirm('¿Eliminar este bloque y todos sus ejercicios?')) return;
+  editingDayState.blocks.splice(bi,1);
+  if(expandedExBE&&expandedExBE.bi===bi) expandedExBE=null;
+  renderDayBlocksContainer();
+}
+
+function moveExercise(bi,ei,dir){
+  const exs=editingDayState.blocks[bi].exercises;
+  const to=ei+dir;
+  if(to<0||to>=exs.length) return;
+  [exs[ei],exs[to]]=[exs[to],exs[ei]];
+  if(expandedExBE&&expandedExBE.bi===bi){
+    if(expandedExBE.ei===ei) expandedExBE.ei=to;
+    else if(expandedExBE.ei===to) expandedExBE.ei=ei;
+  }
+  renderDayBlocksContainer();
+}
+
+function removeExerciseFromBlock(bi,ei){
+  editingDayState.blocks[bi].exercises.splice(ei,1);
+  if(expandedExBE&&expandedExBE.bi===bi&&expandedExBE.ei===ei) expandedExBE=null;
+  renderDayBlocksContainer();
+}
+
+function openAddBlockPicker(){
+  const descs={movilidad:'Entrada en calor, movilidad articular',principal:'Ejercicios compuestos principales',complementario:'Ejercicios accesorios y de aislación',finisher:'Cierre de entrenamiento',custom:'Nombre personalizado'};
+  let html=`<div class="fw-800 mb-12" style="font-size:18px">Agregar bloque</div>`;
+  Object.entries(BLOCK_TYPES).forEach(([type,bt])=>{
+    html+=`<div class="card" onclick="addBlock('${type}')" style="cursor:pointer;margin-bottom:8px">
+      <span class="block-tag" style="background:${bt.color}">${bt.label}</span>
+      <div class="text-xs text-mt mt-4">${descs[type]}</div>
+    </div>`;
+  });
+  html+=`<button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>`;
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
+}
+
+function addBlock(type){
+  let label='';
+  if(type==='custom'){label=prompt('Nombre del bloque personalizado:','');if(label===null)return;label=label.trim();}
+  if(!editingDayState.blocks) editingDayState.blocks=[];
+  editingDayState.blocks.push({id:uid(),type,label,exercises:[]});
+  closeModal();
+  renderDayBlocksContainer();
+}
+
+function renameBlockLabel(bi){
+  const b=editingDayState.blocks[bi];
+  if(!b||b.type!=='custom') return;
+  const v=prompt('Nombre del bloque:',b.label||'');
+  if(v===null) return;
+  b.label=v.trim();
+  renderDayBlocksContainer();
+}
+
+function openExPickerForBlock(bi){
+  const blockType=editingDayState&&editingDayState.blocks[bi]?editingDayState.blocks[bi].type:null;
+  const lib=getExerciseLib();
+  const sorted=[...lib].sort((a,b)=>{
+    if(blockType==='movilidad'){
+      const am=a.category==='movilidad'?0:1, bm=b.category==='movilidad'?0:1;
+      if(am!==bm) return am-bm;
+    } else if(blockType==='principal'){
+      const ac=a.category==='compound'?0:1, bc=b.category==='compound'?0:1;
+      if(ac!==bc) return ac-bc;
+    }
+    const ca=sessionCountFor(a.id),cb=sessionCountFor(b.id);
+    if(ca!==cb) return cb-ca;
+    return a.name.localeCompare(b.name,'es');
+  });
+  let html=`<div class="fw-800 mb-12" style="font-size:18px">Agregar ejercicio</div>`;
+  html+=`<input class="search-input" placeholder="🔍 Buscar..." oninput="filterPickerListBE(this.value)" autofocus style="width:100%;background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:12px 16px;font-size:16px;outline:none;margin-bottom:12px;box-sizing:border-box">`;
+  html+=`<div class="picker-item" style="border-style:dashed;border-color:var(--ac);color:var(--ac);background:var(--cd);border-width:1px;border-style:dashed;border-radius:12px;padding:14px;margin-bottom:8px;cursor:pointer" onclick="addCustomExerciseToBlockBE(${bi})"><div class="fw-700 text-sm">+ Ejercicio personalizado</div><div class="text-xs text-mt">No entra a la biblioteca · útil para biseries / triseries</div></div>`;
+  html+=`<div style="max-height:48dvh;overflow-y:auto;margin-top:8px">`;
+  if(sorted.length){
+    sorted.forEach(ex=>{
+      const muscles=ex.category==='movilidad'?'movilidad':Object.keys(ex.muscleActivation||{}).slice(0,2).map(m=>MUSCLE_LABELS[m]||m).join(' · ');
+      html+=`<div class="card pick-item-be" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" onclick="addExerciseToBlockBE(${bi},'${ex.id}')" style="cursor:pointer;margin-bottom:6px;padding:11px 14px">
+        <div class="fw-700 text-sm">${ex.name}</div><div class="text-xs text-mt">${muscles}</div>
+      </div>`;
+    });
+  } else {
+    html+=`<div class="text-sm text-mt center" style="padding:30px 0">Biblioteca vacía</div>`;
+  }
+  html+=`</div><button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>`;
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
+}
+
+function filterPickerListBE(q){
+  const norm=normalizeText(q);
+  document.querySelectorAll('.pick-item-be').forEach(el=>{
+    const n=el.dataset.name||'';
+    el.style.display=n.includes(norm)?'':'none';
+  });
+}
+
+function addExerciseToBlockBE(bi,exId){
+  const b=editingDayState.blocks[bi];
+  if(!b.exercises) b.exercises=[];
+  // Defaults razonables según categoría
+  const lib=getExercise(exId);
+  const defaultSets=lib&&lib.category==='aislacion'?3:(lib&&lib.category==='movilidad'?1:4);
+  const defaultReps=lib&&lib.category==='movilidad'?'30 segs':(lib&&lib.category==='aislacion'?'12':'8-10');
+  const defaultRest=lib&&lib.category==='movilidad'?'30 segs':(lib&&lib.category==='aislacion'?'60 segs':'90 segs');
+  const ei=b.exercises.length;
+  b.exercises.push({id:uid(),exerciseId:exId,sets:defaultSets,reps:defaultReps,rest:defaultRest,objective:'',notes:'',type:'compound'});
+  closeModal();
+  expandedExBE={bi,ei};
+  renderDayBlocksContainer();
+}
+
+function addCustomExerciseToBlockBE(bi){
+  const name=prompt('Nombre del ejercicio personalizado:','');
+  if(name===null) return;
+  const trimmed=name.trim();
+  if(!trimmed){toast('Nombre vacío','error');return;}
+  const b=editingDayState.blocks[bi];
+  if(!b.exercises) b.exercises=[];
+  const ei=b.exercises.length;
+  b.exercises.push({id:uid(),exerciseId:null,customName:trimmed,sets:null,reps:'',rest:'',objective:'',notes:'',type:'compound'});
+  closeModal();
+  expandedExBE={bi,ei};
+  renderDayBlocksContainer();
+}
+
 // ══ IMPORT ROUTINE FROM COACH (4.6) ══
 let _qrScanRef=null,_qrStream=null;
 let _pendingImport=null;
