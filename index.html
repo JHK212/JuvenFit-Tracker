@@ -129,7 +129,7 @@ body.modal-open .page{overflow:hidden;}
     <div class="sec">
       <div class="flex gap-12">
         <div class="card flex-1" style="cursor:default"><div class="text-xs text-mt fw-600 mb-8">RACHA</div><div class="flex gap-8" style="align-items:baseline"><span id="home-streak" class="accent-num">0</span><span class="text-sm text-mt">sem</span><span id="home-fire" style="font-size:22px;display:none">🔥</span></div><div id="home-streak-detail" class="text-xs text-mt mt-8"></div></div>
-        <div class="card flex-1" style="cursor:default"><div class="row mb-8"><span class="text-xs text-mt fw-600">SESIONES</span><button class="icon-btn" onclick="showPage('delHist')" style="width:26px;height:26px;font-size:12px">✎</button></div><span id="home-sessions" class="big-num">0</span></div>
+        <div class="card flex-1" style="cursor:default"><div class="row mb-8"><span class="text-xs text-mt fw-600">SESIONES</span><button class="icon-btn" onclick="window._delHistFrom='home';showPage('delHist')" style="width:26px;height:26px;font-size:12px">✎</button></div><span id="home-sessions" class="big-num">0</span></div>
       </div>
     </div>
     <div class="sec" style="padding-top:0"><div class="card" style="cursor:default"><div id="home-calendar"></div></div></div>
@@ -181,7 +181,7 @@ body.modal-open .page{overflow:hidden;}
   <div class="sec">
     <div class="flex gap-12 mb-20">
       <div class="card flex-1" style="cursor:default"><div class="text-xs text-mt fw-600 mb-4">RECORD</div><div class="flex gap-8" style="align-items:baseline"><span id="hist-pr" class="accent-num">0</span><span class="text-sm text-mt">kg</span></div></div>
-      <div class="card flex-1" style="cursor:default"><div class="row mb-4"><span class="text-xs text-mt fw-600">SESIONES</span><button class="icon-btn" onclick="showPage('delHist')" style="width:26px;height:26px;font-size:12px">✎</button></div><span id="hist-count" class="big-num">0</span></div>
+      <div class="card flex-1" style="cursor:default"><div class="row mb-4"><span class="text-xs text-mt fw-600">SESIONES</span><button class="icon-btn" onclick="window._delHistFrom='hist';showPage('delHist')" style="width:26px;height:26px;font-size:12px">✎</button></div><span id="hist-count" class="big-num">0</span></div>
     </div>
     <div id="hist-chart" class="card mb-20" style="cursor:default;display:none;padding:18px 10px 10px"><div class="text-xs text-mt fw-600 mb-12" style="padding-left:8px">PROGRESIÓN</div><svg id="hist-svg" class="chart-svg"></svg></div>
     <div class="sec-title">Historial</div><div id="hist-list"></div>
@@ -209,7 +209,7 @@ body.modal-open .page{overflow:hidden;}
   <div id="editR-content"></div>
   <div class="sec">
     <div class="sec-title">Historial</div>
-    <button class="btn-out" onclick="showPage('delHist')" style="margin-bottom:12px">Borrar sesiones del historial</button>
+    <button class="btn-out" onclick="window._delHistFrom='editR';showPage('delHist')" style="margin-bottom:12px">Borrar sesiones del historial</button>
   </div>
   <div class="sec" style="padding-top:0">
     <div class="sec-title">Datos</div>
@@ -241,7 +241,7 @@ body.modal-open .page{overflow:hidden;}
 
 <!-- ══ DELETE HISTORY ══ -->
 <div id="delHist" class="page">
-  <div class="header"><button class="icon-btn" onclick="showPage('editR')">←</button><div class="fw-700" style="font-size:16px;text-align:center;flex:1">Borrar Sesiones</div><div style="width:44px"></div></div>
+  <div class="header"><button class="icon-btn" onclick="showPage(window._delHistFrom||'editR')">←</button><div class="fw-700" style="font-size:16px;text-align:center;flex:1">Borrar Sesiones</div><div style="width:44px"></div></div>
   <div class="sec"><div class="text-sm text-mt mb-12">Tocá las sesiones que querés eliminar</div><div id="del-list"></div><button id="del-btn" class="btn-danger mt-20" onclick="deleteSelected()" style="display:none">Eliminar</button><button class="btn-out mt-12" onclick="selectAllSessions()">Seleccionar todas</button></div>
 </div>
 
@@ -1123,7 +1123,7 @@ function renderWork(){
   if(mobility.length){
     const movDone=mobility.every(m=>curSess.mobility&&curSess.mobility[m.id]);
     const movActive=curSess.mobility&&Object.values(curSess.mobility).some(Boolean);
-    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="${curExI===-1?'background:#78716c;color:#fff;border-color:#78716c':'color:#78716c;border-color:#78716c;font-weight:800'}">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:#16a34a">✓</span>':(movActive?'<span style="position:absolute;top:-4px;right:-4px;font-size:9px;color:#78716c">·</span>':'')}M</button>`;
+    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="${curExI===-1?'background:#78716c;color:#fff;border-color:#78716c':'border-color:#78716c'};font-size:18px">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:#16a34a;background:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">✓</span>':(movActive?'<span style="position:absolute;top:-4px;right:-4px;font-size:9px;color:#78716c">·</span>':'')}🤸</button>`;
   }
   tabsHtml+=compounds.map((e,i)=>{
     const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
@@ -1135,7 +1135,7 @@ function renderWork(){
 
   if(curExI===-1){
     // ── Mobility view ──
-    html+=`<div class="row mb-4" style="align-items:center;gap:10px"><span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:#78716c;color:#fff;font-weight:800;font-size:16px">M</span><span style="font-size:22px;font-weight:800;color:#78716c">Movilidad</span></div>`;
+    html+=`<div class="row mb-4" style="align-items:center;gap:10px"><span style="font-size:28px">🤸</span><span style="font-size:22px;font-weight:800;color:#78716c">Movilidad</span></div>`;
     html+=`<div class="text-sm text-mt mb-18">Entrada en calor — marcá cada ejercicio cuando lo completes.</div>`;
     mobility.forEach(m=>{
       const done=curSess.mobility&&curSess.mobility[m.id];
@@ -1510,7 +1510,7 @@ function setDPW(n){config.daysPerWeek=n;save("gym-cfg",config);renderEditR();}
 function addEx(dayId,type){
   const day=routine.days.find(x=>x.id===dayId);
   if(!day) return;
-  const blocks=(day.blocks||[]).filter(b=>!isMobilityBlock(b));
+  const blocks=day.blocks||[];
   // Si solo hay un bloque (caso típico rutina propia) → ir directo al picker
   if(blocks.length<=1){openExercisePicker(dayId,blocks[0]?blocks[0].id:null);return;}
   // Si hay múltiples bloques (rutina del coach) → preguntar a cuál
@@ -1532,9 +1532,18 @@ function openExercisePicker(dayId,blockId){
   const day=routine.days.find(x=>x.id===dayId);
   const usedIds=new Set(getDayExercises(day||{}).filter(e=>e.exerciseId).map(e=>e.exerciseId));
   window._pickerBlockId=blockId||null;
+  const targetBlock=blockId&&day?(day.blocks||[]).find(b=>b.id===blockId):null;
+  const blockType=targetBlock?targetBlock.type:null;
   const lib=getExerciseLib();
-  // Ordenar: primero los que tienen historial, después por nombre
+  // Ordenar: si el bloque destino es movilidad, movilidades primero; si es principal, compounds primero. Después por uso histórico, después por nombre.
   const sorted=[...lib].sort((a,b)=>{
+    if(blockType==='movilidad'){
+      const am=a.category==='movilidad'?0:1, bm=b.category==='movilidad'?0:1;
+      if(am!==bm) return am-bm;
+    } else if(blockType==='principal'){
+      const ac=a.category==='compound'?0:1, bc=b.category==='compound'?0:1;
+      if(ac!==bc) return ac-bc;
+    }
     const ca=sessionCountFor(a.id),cb=sessionCountFor(b.id);
     if(ca!==cb) return cb-ca;
     return a.name.localeCompare(b.name,'es');
@@ -1784,9 +1793,9 @@ function saveEditItemsTemp(ex){
 
 // ══ DELETE HISTORY ══
 function renderDelHist(){
-  selectedDel=new Set();const sorted=[...sessions].sort((a,b)=>b.date.localeCompare(a.date));
+  selectedDel=new Set();const sorted=[...sessions].sort((a,b)=>{const ka=a.date+(a.time||'');const kb=b.date+(b.time||'');return kb.localeCompare(ka);});
   if(!sorted.length){$("del-list").innerHTML='<div class="text-sm text-mt">No hay sesiones.</div>';$("del-btn").style.display="none";return;}
-  $("del-list").innerHTML=sorted.map(s=>{const dayDef=routine.days.find(d=>d.id===s.dayId);return`<div class="card" onclick="toggleDel('${s.id}')" style="display:flex;align-items:flex-start;gap:14px;cursor:pointer"><div class="del-check" id="chk-${s.id}"></div><div style="flex:1"><div class="fw-700" style="font-size:14px">${fd(s.date)} — ${dayDef?.name||'?'}</div></div></div>`;}).join('');
+  $("del-list").innerHTML=sorted.map(s=>{const dayDef=routine.days.find(d=>d.id===s.dayId);const timeStr=s.time?` · ${s.time}`:'';return`<div class="card" onclick="toggleDel('${s.id}')" style="display:flex;align-items:flex-start;gap:14px;cursor:pointer"><div class="del-check" id="chk-${s.id}"></div><div style="flex:1"><div class="fw-700" style="font-size:14px">${fd(s.date)}${timeStr} — ${dayDef?.name||'?'}</div></div></div>`;}).join('');
   updateDelBtn();
 }
 function toggleDel(id){if(selectedDel.has(id)){selectedDel.delete(id);$("chk-"+id).classList.remove('checked');$("chk-"+id).innerHTML='';}else{selectedDel.add(id);$("chk-"+id).classList.add('checked');$("chk-"+id).innerHTML='✕';}updateDelBtn();}
