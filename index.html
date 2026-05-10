@@ -52,6 +52,9 @@ input:focus,textarea:focus{border-color:rgba(90,26,26,0.5)!important;}
 .set-card{background:var(--cd);border-radius:14px;border:1px solid var(--bd);padding:16px;margin-bottom:10px;}
 .tips-box{background:rgba(90,26,26,0.06);border:1px solid rgba(90,26,26,0.15);border-radius:12px;padding:12px 14px;margin-top:8px;font-size:13px;color:var(--ac);line-height:1.5;}
 .tips-btn{background:none;border:none;color:var(--ac);font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;padding:0;}
+.qchip{display:inline-block;padding:4px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:14px;font-size:12px;font-weight:600;color:var(--mt);cursor:pointer;font-family:var(--fm);}
+.qchip:hover,.qchip:active{border-color:var(--ac);color:var(--ac);}
+.qchip-row{display:flex;flex-wrap:wrap;gap:5px;}
 .timer-bar{position:fixed;bottom:0;left:0;right:0;background:var(--sf);border-top:1px solid var(--bd);padding:16px 20px;padding-bottom:calc(16px + env(safe-area-inset-bottom));z-index:90;display:none;align-items:center;gap:12px;max-width:480px;margin:0 auto;}
 .timer-bar.show{display:flex;}
 .timer-num{font-family:var(--fm);font-size:30px;font-weight:800;color:var(--ac);min-width:70px;text-align:right;cursor:pointer;}
@@ -400,16 +403,17 @@ function parseRepsValue(s){
   return num;
 }
 function routineMuscleVolume(){
-  if(!routine||!routine.days) return {totals:{},uncovered:0};
+  if(!routine||!routine.days) return {totals:{},uncovered:0,customCount:0};
   const totals={};
-  let uncovered=0;
+  let uncovered=0,customCount=0;
   routine.days.forEach(d=>{
     getNonMobilityExs(d).forEach(ex=>{
       if(ex.type==='compound'||!ex.type){
         const eid=ex.exerciseId;
+        if(!eid&&ex.customName){customCount++;return;} // ejercicio personalizado intencional
         const lib=eid?getExercise(eid):null;
         if(!lib||!lib.muscleActivation){uncovered++;return;}
-        const sets=ex.sets||0,reps=ex.reps||0;
+        const sets=ex.sets||0,reps=parseRepsValue(ex.reps);
         const vol=sets*reps;
         Object.entries(lib.muscleActivation).forEach(([m,pct])=>{
           totals[m]=(totals[m]||0)+vol*pct/100;
@@ -418,6 +422,7 @@ function routineMuscleVolume(){
         const sets=ex.sets||0;
         (ex.items||[]).forEach(it=>{
           const eid=it.exerciseId;
+          if(!eid&&it.name){customCount++;return;}
           const lib=eid?getExercise(eid):null;
           if(!lib||!lib.muscleActivation){uncovered++;return;}
           const reps=parseRepsValue(it.reps);
@@ -429,7 +434,7 @@ function routineMuscleVolume(){
       }
     });
   });
-  return {totals,uncovered};
+  return {totals,uncovered,customCount};
 }
 const MUSCLE_GROUPS={
   Push:['pecho_sup','pecho_med','pecho_inf','triceps','delt_ant','delt_lat'],
@@ -560,7 +565,7 @@ function showZoneDetail(zoneName){
   $("modal").classList.add('show');
 }
 function drawMuscleChart(){
-  const {totals,uncovered}=routineMuscleVolume();
+  const {totals,uncovered,customCount}=routineMuscleVolume();
   const sec=$("home-volume-sec");
   if(!sec) return;
   // Sumar por zona corporal
@@ -570,8 +575,14 @@ function drawMuscleChart(){
   }).filter(z=>z.v>0).sort((a,b)=>b.v-a.v);
   const total=zoneVols.reduce((s,z)=>s+z.v,0);
   if(total===0){
-    sec.style.display=uncovered>0?'block':'none';
-    if(uncovered>0) $("home-volume").innerHTML=`<div class="text-sm text-mt">Tu rutina tiene ${uncovered} ${uncovered===1?'ejercicio sin asignar':'ejercicios sin asignar'} a la biblioteca. Editá esos ejercicios para ver el volumen.</div>`;
+    // Sin datos para graficar. Solo avisamos si hay ejercicios huérfanos (con exerciseId no encontrado en biblioteca).
+    // Custom intencionales (sin exerciseId) no son un error → ocultar la sección.
+    if(uncovered>0){
+      sec.style.display='block';
+      $("home-volume").innerHTML=`<div class="text-sm text-mt">Tu rutina tiene ${uncovered} ${uncovered===1?'ejercicio sin asignar':'ejercicios sin asignar'} a la biblioteca. Editá esos ejercicios para ver el volumen.</div>`;
+    } else {
+      sec.style.display='none';
+    }
     return;
   }
   sec.style.display='block';
@@ -1091,7 +1102,10 @@ function startWorkout(dayId,customDate){
   // Si hay movilidad, arrancar en el tab MOV (curExI=-1); si no, primer compound
   curExI=getMobilityExs(day).length?-1:0;
   const mobility=getMobilityExs(day);
-  curSess={id:uid(),date:customDate||td(),time:customDate?null:nowTime(),dayId,
+  // time=null solo si la sesión es retroactiva (fecha pasada). Si es hoy, registrar la hora.
+  const sessDate=customDate||td();
+  const sessTime=sessDate===td()?nowTime():null;
+  curSess={id:uid(),date:sessDate,time:sessTime,dayId,
     exercises:compounds.map(e=>({eid:eidOf(e),sets:Array.from({length:parseInt(e.sets)||1},()=>({w:lastW(eidOf(e))||0,r:repsAsNumber(e.reps)||10,rpe:null,felt:null})),note:''})),
     accessories:accessories.reduce((o,a)=>{o[a.id]=false;return o;},{}),
     mobility:mobility.reduce((o,m)=>{o[m.id]=false;return o;},{})
@@ -1108,7 +1122,8 @@ function renderWork(){
   let tabsHtml='';
   if(mobility.length){
     const movDone=mobility.every(m=>curSess.mobility&&curSess.mobility[m.id]);
-    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="${curExI===-1?'background:#78716c;color:#fff':'color:#78716c;border-color:#78716c'}">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}🟤</button>`;
+    const movActive=curSess.mobility&&Object.values(curSess.mobility).some(Boolean);
+    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="${curExI===-1?'background:#78716c;color:#fff;border-color:#78716c':'color:#78716c;border-color:#78716c;font-weight:800'}">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:#16a34a">✓</span>':(movActive?'<span style="position:absolute;top:-4px;right:-4px;font-size:9px;color:#78716c">·</span>':'')}M</button>`;
   }
   tabsHtml+=compounds.map((e,i)=>{
     const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
@@ -1120,7 +1135,7 @@ function renderWork(){
 
   if(curExI===-1){
     // ── Mobility view ──
-    html+=`<div style="font-size:22px;font-weight:800;margin-bottom:6px;color:#78716c">🟤 Movilidad</div>`;
+    html+=`<div class="row mb-4" style="align-items:center;gap:10px"><span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:#78716c;color:#fff;font-weight:800;font-size:16px">M</span><span style="font-size:22px;font-weight:800;color:#78716c">Movilidad</span></div>`;
     html+=`<div class="text-sm text-mt mb-18">Entrada en calor — marcá cada ejercicio cuando lo completes.</div>`;
     mobility.forEach(m=>{
       const done=curSess.mobility&&curSess.mobility[m.id];
@@ -1155,7 +1170,7 @@ function renderWork(){
     html+=`<div class="mb-20"><div class="row" style="margin-bottom:4px;align-items:flex-start"><div style="font-size:22px;font-weight:800;color:var(--ac);flex:1;min-width:0">${blockTagHtml}${exDisplayName}</div><button class="icon-btn" onclick="showExHistoryModal('${eidOf(ex)}')" style="width:36px;height:36px;font-size:16px;flex-shrink:0">📈</button></div><div class="text-sm text-mt">${ex.sets}×${ex.reps} · Descanso: ${fmtTime(restAsSeconds(ex.rest))}${prW(eidOf(ex))>0?' · 🏆 '+prW(eidOf(ex))+'kg':''}${ex.objective?' · '+ex.objective:''}</div>`;
     if(ex.notes) html+=`<button class="tips-btn" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none">${ex.notes}</div>`;
     html+=`</div>`;
-    const prevRec=lastSessionRec(ex.id);
+    const prevRec=lastSessionRec(eidOf(ex));
     if(prevRec) html+=`<div class="card card-accent mb-20" style="cursor:default;display:flex;align-items:flex-start;gap:10px;padding:14px 16px"><span style="font-size:18px">💡</span><div><div class="text-xs fw-700 text-ac mb-4">ÚLTIMA SESIÓN</div><div class="text-sm">${prevRec}</div></div></div>`;
     
     sets.forEach((s,si)=>{
@@ -1492,12 +1507,31 @@ function renderEditExCard(dayId,ex){
   }
 }
 function setDPW(n){config.daysPerWeek=n;save("gym-cfg",config);renderEditR();}
-function addEx(dayId,type){openExercisePicker(dayId);}
+function addEx(dayId,type){
+  const day=routine.days.find(x=>x.id===dayId);
+  if(!day) return;
+  const blocks=(day.blocks||[]).filter(b=>!isMobilityBlock(b));
+  // Si solo hay un bloque (caso típico rutina propia) → ir directo al picker
+  if(blocks.length<=1){openExercisePicker(dayId,blocks[0]?blocks[0].id:null);return;}
+  // Si hay múltiples bloques (rutina del coach) → preguntar a cuál
+  let html='<div style="font-size:18px;font-weight:800;margin-bottom:14px">¿A qué bloque?</div>';
+  blocks.forEach(b=>{
+    const bt=BLOCK_TYPES[b.type]||BLOCK_TYPES.custom;
+    const lbl=b.type==='custom'&&b.label?b.label:bt.label;
+    const count=(b.exercises||[]).length;
+    html+=`<div class="card" onclick="closeModal();openExercisePicker(${dayId},'${b.id}')" style="cursor:pointer">
+      <div class="row"><div><span class="badge" style="background:${bt.color};color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px">${lbl}</span><div class="text-xs text-mt mt-4">${count} ejercicio${count===1?'':'s'}</div></div><div style="font-size:18px;color:var(--ac)">→</div></div>
+    </div>`;
+  });
+  html+='<button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>';
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
+}
 
 // ══ EXERCISE PICKER (desde biblioteca) ══
-function openExercisePicker(dayId){
+function openExercisePicker(dayId,blockId){
   const day=routine.days.find(x=>x.id===dayId);
   const usedIds=new Set(getDayExercises(day||{}).filter(e=>e.exerciseId).map(e=>e.exerciseId));
+  window._pickerBlockId=blockId||null;
   const lib=getExerciseLib();
   // Ordenar: primero los que tienen historial, después por nombre
   const sorted=[...lib].sort((a,b)=>{
@@ -1532,7 +1566,12 @@ function addExFromLib(dayId,exerciseId){
   const defaultSets=ex.category==='aislacion'?3:4;
   const defaultReps=ex.movement==='core'?12:(ex.category==='aislacion'?12:8);
   const defaultRest=ex.category==='aislacion'?60:120;
-  getOrCreatePrincipalBlock(d).exercises.push({id:uid(),exerciseId:exerciseId,name:ex.name,sets:defaultSets,reps:defaultReps,rest:defaultRest,notes:'',type:'compound'});
+  // Bloque destino: el indicado por window._pickerBlockId, o el principal por defecto
+  let target=null;
+  if(window._pickerBlockId) target=(d.blocks||[]).find(b=>b.id===window._pickerBlockId);
+  if(!target) target=getOrCreatePrincipalBlock(d);
+  target.exercises.push({id:uid(),exerciseId:exerciseId,name:ex.name,sets:defaultSets,reps:defaultReps,rest:defaultRest,notes:'',type:'compound'});
+  window._pickerBlockId=null;
   saveRoutine();
   closeModal();
   renderEditR();
@@ -1681,8 +1720,10 @@ function openEditEx(dayId,exId){
   let html=`<div class="mb-18"><label class="label">NOMBRE</label><input id="ef-name" style="${inp}" value="${ex.name}"></div>`;
   
   if(isCompound(ex)){
-    html+=`<div class="flex gap-12 mb-18"><div class="flex-1"><label class="label">SERIES</label><input id="ef-sets" type="number" style="${inpM}" value="${ex.sets}"></div><div class="flex-1"><label class="label">REPS</label><input id="ef-reps" type="text" inputmode="text" style="${inpM};font-size:14px" value="${ex.reps}" placeholder="10 / 8-10 / AMRAP"></div></div>`;
-    html+=`<div class="mb-18"><label class="label">DESCANSO (seg)</label><input id="ef-rest" type="number" style="${inpM}" value="${ex.rest}"></div>`;
+    html+=`<div class="flex gap-12 mb-12"><div class="flex-1"><label class="label">SERIES</label><input id="ef-sets" type="number" style="${inpM}" value="${ex.sets}"></div><div class="flex-1"><label class="label">REPS</label><input id="ef-reps" type="text" inputmode="text" style="${inpM};font-size:14px" value="${ex.reps}" placeholder="10 / 8-10 / AMRAP"></div></div>`;
+    html+=`<div class="qchip-row mb-18">${['6-8','8-10','10-12','12-15','AMRAP','30 segs','45 segs'].map(v=>`<span class="qchip" onclick="$('ef-reps').value='${v}'">${v}</span>`).join('')}</div>`;
+    html+=`<div class="mb-8"><label class="label">DESCANSO (seg)</label><input id="ef-rest" type="number" style="${inpM}" value="${typeof ex.rest==='number'?ex.rest:restAsSeconds(ex.rest)}"></div>`;
+    html+=`<div class="qchip-row mb-18">${[30,45,60,90,120,180].map(v=>`<span class="qchip" onclick="$('ef-rest').value='${v}'">${v<60?v+'s':Math.floor(v/60)+'min'+(v%60?' '+(v%60)+'s':'')}</span>`).join('')}</div>`;
   } else {
     html+=`<div class="flex gap-12 mb-18"><div class="flex-1"><label class="label">TIPO</label><select id="ef-type" style="${inp}"><option value="biserie"${ex.type==='biserie'?' selected':''}>Biserie</option><option value="triserie"${ex.type==='triserie'?' selected':''}>Triserie</option></select></div><div class="flex-1"><label class="label">RONDAS</label><input id="ef-sets" type="number" style="${inpM}" value="${ex.sets}"></div></div>`;
     html+=`<div class="mb-18"><label class="label">DESCANSO (seg)</label><input id="ef-rest" type="number" style="${inpM}" value="${ex.rest}"></div>`;
