@@ -1289,7 +1289,7 @@ function renderWork(){
         <div class="flex gap-12" style="align-items:flex-start">
           <div class="acc-check${done?' done':''}" onclick="toggleMobility('${m.id}',${restSec})">${done?'✓':''}</div>
           <div style="flex:1" onclick="toggleMobility('${m.id}',${restSec})">
-            <div class="row mb-4"><span class="fw-700">${m.name||m.customName||'Ejercicio'}</span></div>
+            <div class="row mb-4"><span class="fw-700">${getExName(m)}</span></div>
             ${repsLbl?`<div class="text-sm text-mt">${setsLbl}${repsLbl}${m.rest?` · ${fmtTime(restSec)} desc.`:''}</div>`:''}
             ${cues?`<button class="tips-btn mt-4" style="font-size:11px;padding:4px 8px" onclick="event.stopPropagation();const tip=this.nextElementSibling;tip.style.display=tip.style.display==='none'?'block':'none';this.textContent=tip.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none;font-size:13px">${cues}</div>`:''}
           </div>
@@ -1316,7 +1316,7 @@ function renderWork(){
     // Banner si el ejercicio forma parte de una biserie/triserie
     const grp=groupOfCompoundIdx(compounds,curExI);
     if(grp){
-      const otherNames=grp.indexes.filter(i=>i!==curExI).map(i=>compounds[i].name||compounds[i].customName||'?').join(', ');
+      const otherNames=grp.indexes.filter(i=>i!==curExI).map(i=>getExName(compounds[i])).join(', ');
       const groupLabel=groupTerm(grp.size);
       const restSec=restAsSeconds(ex.rest);
       const isLast=grp.position===grp.size-1;
@@ -1992,7 +1992,7 @@ function renderBexRowHTML(ex,bi,ei,gi){
   const lib=ex.exerciseId?getExercise(ex.exerciseId):null;
   const isCustom=!ex.exerciseId&&!!ex.customName;
   const isLegacyAcc=ex.type&&ex.type!=='compound'; // biserie/triserie heredada
-  const name=lib?lib.name:(ex.customName||ex.name||ex.exerciseId||'Ejercicio');
+  const name=getExName(ex);
   const isExp=expandedExBE&&expandedExBE.bi===bi&&expandedExBE.ei===ei;
   const metaParts=[];
   if(isLegacyAcc){
@@ -2502,6 +2502,15 @@ function applyImportedRoutine(mode){
   toast('✓ Rutina importada','success');
   renderHome();
   if(document.getElementById('editR')&&document.getElementById('editR').classList.contains('active')) renderEditR();
+  // La rutina del coach puede traer ejercicios (movilidades, custom) que la biblioteca local todavía no conoce.
+  // Forzamos un sync para resolver los nombres correctamente.
+  syncLibrary().then(r=>{
+    if(r.ok){
+      renderHome();
+      if(document.getElementById('editR')&&document.getElementById('editR').classList.contains('active')) renderEditR();
+      if(document.getElementById('routine')&&document.getElementById('routine').classList.contains('active')) renderRoutine();
+    }
+  });
 }
 
 // Auto-import si la URL trae ?import=TOKEN (cámara nativa abrió la URL)
