@@ -260,11 +260,10 @@ body.modal-open .page{overflow:hidden;}
     <button class="btn-out" onclick="manualSyncLibrary(this)" style="margin-bottom:8px">🔄 Sincronizar biblioteca</button>
     <div id="sync-status" class="text-xs text-mt" style="text-align:center"></div>
   </div>
-  <div class="sec" style="padding-top:0">
-    <div class="sec-title">Cambiar rutina</div>
-    <div id="debug-routine-info" class="text-xs text-mt mb-8"></div>
+  <div class="sec" style="padding-top:0" id="sec-routines">
+    <div class="sec-title">Mis rutinas</div>
+    <div id="routines-info" class="text-xs text-mt mb-8"></div>
     <button class="btn-out" id="btn-switch-routine" onclick="openRoutineSwitcher()" style="margin-bottom:8px">⇄ Cambiar rutina activa</button>
-    <button class="btn-out" onclick="loadDemoRoutine()" style="margin-bottom:8px;font-size:12px;color:var(--mt)">🧪 Cargar rutina demo (debug)</button>
   </div>
   <div class="sec" style="padding-top:0"><button class="btn-danger" onclick="resetRoutine()">Borrar toda la rutina</button></div>
 </div>
@@ -1636,12 +1635,12 @@ function deleteSess(sid){sessions=sessions.filter(s=>s.id!==sid);save("gym-s",se
 function renderEditR(){
   const dpw=config.daysPerWeek||3;
   $("dpw-selector").innerHTML=[1,2,3,4,5,6].map(n=>`<button class="dpw-btn${n===dpw?' active':''}" onclick="setDPW(${n})">${n}</button>`).join('');
-  // Debug info: cuántas rutinas hay y cuál está activa
-  const dInfo=$("debug-routine-info");
-  if(dInfo){
-    const total=(routineStore.list||[]).length;
-    const activeName=routine?.name||'?';
-    dInfo.innerHTML=`Activa: <strong>${activeName}</strong> · ${total} rutina${total===1?'':'s'} en el store`;
+  // Sección "Mis rutinas": solo visible si hay >1 (no hay nada que cambiar si solo tenés una)
+  const total=(routineStore.list||[]).length;
+  const sec=$("sec-routines"),info=$("routines-info");
+  if(sec){
+    sec.style.display=total>1?'block':'none';
+    if(info&&total>1) info.innerHTML=`Activa: <strong>${routine?.name||'?'}</strong> · Tenés ${total} rutinas`;
   }
   $("editR-content").innerHTML=routine.days.map(d=>{
     const blocks=d.blocks||[];
@@ -1785,8 +1784,8 @@ function editDayPrompt(dayId){
 }
 function resetRoutine(){routine.days=JSON.parse(JSON.stringify(DEFAULT_DAYS));saveRoutine();renderEditR();}
 
-// ══ DEBUG (provisional 4.8) ══
-// Cargar rutina demo con bloques para testear migración + render sin pisar la rutina del usuario.
+// ══ DIAGNÓSTICO (sin trigger UI — accesible solo desde consola del browser) ══
+// window.loadDemoRoutine() carga una rutina demo si querés inspeccionar el formato de bloques.
 function loadDemoRoutine(){
   if(!confirm('Esto agrega una rutina demo con bloques (movilidad, principal, finisher) al listado y la pone activa.\n\nTu rutina actual queda intacta — podés volver con "Cambiar rutina activa".\n\n¿Continuar?')) return;
   const demoId='demo-bloques-'+Date.now().toString(36);
