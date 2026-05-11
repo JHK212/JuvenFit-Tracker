@@ -2639,7 +2639,7 @@ async function fetchAndPreviewRoutine(token){
   $("modal-content").innerHTML=`<div class="center" style="padding:40px 0"><span class="spinner"></span><div class="text-sm text-mt mt-12">Buscando rutina...</div></div>`;
   const sb=getSupabase();
   if(!sb){toast('Sin conexión','error');closeModal();return;}
-  const {data,error}=await sb.from('routines').select('id,name,days,coach_notes,phase,coach_id,coaches(name)').eq('qr_token',token).gt('qr_expires_at',new Date().toISOString()).maybeSingle();
+  const {data,error}=await sb.from('routines').select('id,name,days,coach_notes,phase,coach_id,coach:coach_id(name)').eq('qr_token',token).gt('qr_expires_at',new Date().toISOString()).maybeSingle();
   if(error){
     let html=`<div class="fw-800 mb-4" style="font-size:18px">Error</div>`;
     html+=`<div class="text-sm text-mt mb-16">${error.message||'No se pudo conectar.'}</div>`;
@@ -2659,7 +2659,7 @@ async function fetchAndPreviewRoutine(token){
 function showImportPreview(remote){
   const dayCount=(remote.days||[]).length;
   const exCount=(remote.days||[]).reduce((s,d)=>s+((d.blocks||[]).reduce((a,b)=>a+((b.exercises||[]).length),0)),0);
-  const coachName=(remote.coaches&&remote.coaches.name)||'Tu coach';
+  const coachName=(remote.coach&&remote.coach.name)||'Tu coach';
   const existing=(routineStore.list||[]).find(r=>r.sourceRoutineId===remote.id);
   const currentActive=getActiveRoutine();
   const hasActive=currentActive&&(currentActive.days||[]).some(d=>(getDayExercises(d)||[]).length>0);
@@ -2690,7 +2690,7 @@ function applyImportedRoutine(mode){
   if(!remote){closeModal();return;}
   // Backup defensivo del store actual antes de cualquier cambio
   save("gym-r-backup-pre-import",routineStore);
-  const coachName=(remote.coaches&&remote.coaches.name)||'Coach';
+  const coachName=(remote.coach&&remote.coach.name)||'Coach';
   const localRoutine={
     id:'coach-'+(remote.id||'').slice(0,8)+'-'+uid(),
     name:remote.name,
