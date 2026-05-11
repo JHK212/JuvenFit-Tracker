@@ -366,6 +366,14 @@ const EXERCISE_LIBRARY=[
   {id:'leg-raises',name:'Elevaciones de piernas',aliases:['Leg Raises'],category:'aislacion',movement:'core',muscleActivation:{core:100},similar:['abdominales','plancha'],cues:'Lumbar pegada al piso, controlar la bajada, no balancear'}
 ];
 
+// Asignar track_mode a los bodyweight (resto queda 'weight' por default vía getTrackMode)
+['dominadas','fondos','flexiones','abdominales','leg-raises','encogimientos','remo-australiano'].forEach(id=>{
+  const ex=EXERCISE_LIBRARY.find(e=>e.id===id);if(ex) ex.track_mode='reps';
+});
+['plancha','plancha-lateral'].forEach(id=>{
+  const ex=EXERCISE_LIBRARY.find(e=>e.id===id);if(ex) ex.track_mode='time';
+});
+
 function normalizeText(s){return (s||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();}
 function getCustomLib(){return load("gym-ex-custom",[]);}
 // Si hay biblioteca sincronizada de Supabase (online), usar esa. Sino, fallback a embebida.
@@ -390,7 +398,7 @@ async function syncLibrary(){
   const sb=getSupabase();
   if(!sb) return {ok:false,reason:'sdk-not-loaded'};
   try{
-    const {data,error}=await sb.from('exercises').select('id,name,aliases,category,movement,muscle_activation,similar_ids,cues').eq('scope','official');
+    const {data,error}=await sb.from('exercises').select('id,name,aliases,category,movement,muscle_activation,similar_ids,cues,track_mode').eq('scope','official');
     if(error) return {ok:false,reason:error.message};
     if(!Array.isArray(data)||!data.length) return {ok:false,reason:'empty'};
     // Mapear formato DB → formato cliente (snake_case → camelCase)
@@ -402,7 +410,8 @@ async function syncLibrary(){
       movement:r.movement,
       muscleActivation:r.muscle_activation||{},
       similar:r.similar_ids||[],
-      cues:r.cues||''
+      cues:r.cues||'',
+      track_mode:r.track_mode||'weight'
     }));
     save("gym-ex-synced",mapped);
     save("gym-ex-synced-at",Date.now());
@@ -975,7 +984,65 @@ function thisWeekSessions(){const now=new Date();const day=now.getDay();const st
 function eidOf(ex){return ex.exerciseId||ex.id;}
 function lastW(eid){for(let i=sessions.length-1;i>=0;i--){const e=sessions[i].exercises?.find(x=>x.eid===eid);if(e?.sets?.length){const s=e.sets.find(s=>s.w>0);if(s)return s.w;}}return 0;}
 function prW(eid){let m=0;sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid)e.sets?.forEach(st=>{if(st.w>m)m=st.w;});}));return m;}
-function hist(eid){const d=[];sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid&&e.sets?.length)d.push({date:fd(s.date),time:s.time||'',peso:Math.max(...e.sets.map(x=>x.w||0)),sets:e.sets,note:e.note||''});}));return d;}
+// ── TRACK MODE helpers (track_mode: 'weight'|'reps'|'time') ──
+// Devuelve el modo aplicable a un ejercicio del bloque/sesión, con fallback robusto.
+function getTrackMode(ex){
+  if(!ex) return 'weight';
+  if(ex.track_mode) return ex.track_mode;
+  if(ex.exerciseId){
+    const lib=getExercise(ex.exerciseId);
+    if(lib&&lib.track_mode) return lib.track_mode;
+    if(lib&&lib.category==='movilidad') return 'time';
+  }
+  return 'weight';
+}
+// PR = mejor "valor principal" según modo. Para weight es peso máx; para reps es reps máx en cualquier set; para time es segs máx.
+function prOf(eid,mode){
+  let m=0;
+  sessions.forEach(s=>s.exercises?.forEach(e=>{
+    if(e.eid!==eid) return;
+    e.sets?.forEach(st=>{
+      const v=mode==='weight'?(st.w||0):(st.r||0);
+      if(v>m) m=v;
+    });
+  }));
+  return m;
+}
+// Último valor cargado (peso para weight, reps para reps, segs para time)
+function lastValueOf(eid,mode){
+  for(let i=sessions.length-1;i>=0;i--){
+    const e=sessions[i].exercises?.find(x=>x.eid===eid);
+    if(!e?.sets?.length) continue;
+    const f=e.sets.find(st=>(mode==='weight'?st.w:st.r)>0);
+    if(f) return mode==='weight'?f.w:f.r;
+  }
+  return 0;
+}
+// Display compacto del PR según modo
+function formatPR(value,mode){
+  if(!value) return '';
+  if(mode==='time'){return value+' segs';}
+  if(mode==='reps'){return value+' reps';}
+  return value+'kg';
+}
+function hist(eid){const d=[];sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid&&e.sets?.length){const peso=Math.max(...e.sets.map(x=>x.w||0));const peakR=Math.max(...e.sets.map(x=>x.r||0));d.push({date:fd(s.date),time:s.time||'',peso,peakR,sets:e.sets,note:e.note||''});}}));return d;}
+// Resuelve el modo de un eid buscándolo en la biblioteca o las rutinas activas
+function modeOfEid(eid){
+  const lib=getExercise(eid);
+  if(lib&&lib.track_mode) return lib.track_mode;
+  for(const day of (routine?.days||[])){
+    for(const ex of getDayExercises(day)){
+      if(eidOf(ex)===eid) return getTrackMode(ex);
+    }
+  }
+  return 'weight';
+}
+// Display compacto de un set según modo (para badges del historial)
+function formatSetBadge(s,mode){
+  if(mode==='reps') return `${s.r||0} reps`;
+  if(mode==='time') return `${s.r||0} segs`;
+  return `${s.w||0}kg×${s.r||0}`;
+}
 function allCompounds(){return routine.days.flatMap(d=>getCompounds(d));}
 
 // ══ FEEDBACK ENGINE v3 ══
@@ -1014,20 +1081,24 @@ function setScore(rpe,r,target,felt){
   return range==='bajo'?-1:range==='medio'?-0.5:0.5;
 }
 // Frase descriptiva por set (NO decide nada — solo da contexto al usuario).
-function setRecData(rpe,r,target,felt){
+function setRecData(rpe,r,target,felt,mode='weight'){
   if(!rpe) return null;
   const t=repsAsNumber(target);
   const range=getRange(t);
   const completed=t!=null&&r>=t;
+  // Términos adaptados por modo
+  const upWord=mode==='reps'?'sumá reps':mode==='time'?'aguantá más':'subí peso';
+  const downWord=mode==='reps'?'bajá reps':mode==='time'?'bajá tiempo':'bajá peso';
+  const heavyWord=mode==='reps'?'difícil':mode==='time'?'mucho':'pesado';
   let phrase;
   if(!completed){
-    if(range==='bajo') phrase="🔻 Muy pesado → bajá peso";
-    else if(range==='medio') phrase="⚠️ No llegaste → ajustá peso o reps";
+    if(range==='bajo') phrase=`🔻 Muy ${heavyWord} → ${downWord}`;
+    else if(range==='medio') phrase=`⚠️ No llegaste → ajustá`;
     else phrase="🔸 Quedaste corto → completá el rango primero";
   } else if(rpe==='liviano'){
-    if(range==='bajo') phrase="🚀 Muy liviano para fuerza → subí peso";
-    else if(range==='medio') phrase="🔹 Hay margen → subí un toque";
-    else phrase="🔹 Liviano → sumá reps o peso";
+    if(range==='bajo') phrase=`🚀 Muy liviano → ${upWord}`;
+    else if(range==='medio') phrase="🔹 Hay margen → un toque más";
+    else phrase=`🔹 Liviano → ${upWord}`;
   } else if(rpe==='justo'){
     if(range==='bajo') phrase="✅ En zona de fuerza";
     else if(range==='medio') phrase="✅ Zona ideal de hipertrofia";
@@ -1037,50 +1108,49 @@ function setRecData(rpe,r,target,felt){
     else if(range==='medio') phrase="🔸 Un toque pasado para hipertrofia";
     else phrase="✔️ Así tiene que ser arriba";
   }
-  const muscle=felt===false?"🔸 No sentiste el músculo → bajá peso y enfocá técnica":null;
+  const muscleHint=mode==='weight'?'bajá peso y enfocá técnica':'enfocá en la técnica';
+  const muscle=felt===false?`🔸 No sentiste el músculo → ${muscleHint}`:null;
   return {phrase,muscle};
 }
-// Pools de frases globales (rotación determinista por nº de sesiones para variedad).
+// Pools de frases globales por modo (rotación determinista para variedad).
 const REC_PHRASES={
-  up:[
-    "🔹 Próxima: subí peso.",
-    "🚀 Te quedó margen → subí carga.",
-    "🔹 Estás listo para más peso.",
-    "🟢 Próxima sesión: subir."
-  ],
-  up_streak:[
-    "✅ Segunda sesión clavada → subí peso.",
-    "🚀 Ya consolidaste → más peso la próxima.",
-    "🎯 Dos sesiones en zona → a progresar.",
-    "🔹 Listo para subir — ya está consolidado."
-  ],
-  hold:[
-    "✅ Próxima: repetí el peso.",
-    "🟡 Mantené. Una más así y subimos.",
-    "✅ Zona buena → mismo peso.",
-    "🟡 Repetí — vamos consolidando."
-  ],
-  down:[
-    "🔻 Próxima: bajá peso.",
-    "⚠️ Demasiado → bajá la carga.",
-    "🔻 Ajustá hacia abajo.",
-    "🔻 Bajá un poco para volver a la zona."
-  ]
+  weight:{
+    up:["🔹 Próxima: subí peso.","🚀 Te quedó margen → subí carga.","🔹 Estás listo para más peso.","🟢 Próxima sesión: subir."],
+    up_streak:["✅ Segunda sesión clavada → subí peso.","🚀 Ya consolidaste → más peso la próxima.","🎯 Dos sesiones en zona → a progresar.","🔹 Listo para subir — ya está consolidado."],
+    hold:["✅ Próxima: repetí el peso.","🟡 Mantené. Una más así y subimos.","✅ Zona buena → mismo peso.","🟡 Repetí — vamos consolidando."],
+    down:["🔻 Próxima: bajá peso.","⚠️ Demasiado → bajá la carga.","🔻 Ajustá hacia abajo.","🔻 Bajá un poco para volver a la zona."]
+  },
+  reps:{
+    up:["🔹 Próxima: sumá una rep.","🚀 Te quedó margen → más reps.","🔹 Estás listo para más reps.","🟢 Próxima sesión: agregar reps."],
+    up_streak:["✅ Segunda sesión clavada → más reps.","🚀 Ya consolidaste → sumá reps.","🎯 Dos sesiones en zona → progresá.","🔹 Listo para más reps — ya está consolidado."],
+    hold:["✅ Próxima: mismas reps.","🟡 Mantené. Una más así y subimos.","✅ Zona buena → repetí.","🟡 Repetí — vamos consolidando."],
+    down:["🔻 Próxima: bajá reps.","⚠️ Demasiado → menos reps.","🔻 Ajustá hacia abajo.","🔻 Bajá un poco para volver a la zona."]
+  },
+  time:{
+    up:["🔹 Próxima: aguantá más tiempo.","🚀 Te quedó margen → más segundos.","🔹 Listo para más tiempo.","🟢 Próxima sesión: extender."],
+    up_streak:["✅ Segunda sesión clavada → más tiempo.","🚀 Ya consolidaste → más segundos la próxima.","🎯 Dos sesiones en zona → progresá.","🔹 Listo para más tiempo — consolidado."],
+    hold:["✅ Próxima: mismo tiempo.","🟡 Mantené. Una más así y subimos.","✅ Zona buena → repetí.","🟡 Repetí — vamos consolidando."],
+    down:["🔻 Próxima: bajá tiempo.","⚠️ Demasiado → menos segundos.","🔻 Ajustá hacia abajo.","🔻 Bajá un poco para volver a la zona."]
+  }
 };
-function pickRecPhrase(key){
-  const pool=REC_PHRASES[key];
+function pickRecPhrase(key,mode='weight'){
+  const pool=(REC_PHRASES[mode]||REC_PHRASES.weight)[key];
   const idx=(sessions?.length||0)%pool.length;
   return pool[idx];
 }
-// "Peso de la sesión" = moda de pesos entre sets (el más usado).
-function sessionWeight(sets){
+// "Valor consistente de la sesión" = moda del valor principal entre sets (peso para weight, reps/segs para reps/time).
+function sessionValue(sets,mode){
   if(!sets||!sets.length) return null;
   const counts={};
-  sets.forEach(s=>{if(s.w!=null) counts[s.w]=(counts[s.w]||0)+1;});
+  sets.forEach(s=>{
+    const v=mode==='weight'?s.w:s.r;
+    if(v!=null) counts[v]=(counts[v]||0)+1;
+  });
   let best=null,n=0;
-  for(const w in counts){if(counts[w]>n){n=counts[w];best=parseFloat(w);}}
+  for(const v in counts){if(counts[v]>n){n=counts[v];best=parseFloat(v);}}
   return best;
 }
+function sessionWeight(sets){return sessionValue(sets,'weight');}
 // Promedio de scores. null si falta evaluar alguno.
 function avgScore(sets,target){
   if(!sets||!sets.length) return null;
@@ -1099,8 +1169,8 @@ function priorSession(eid,beforeKey){
   }
   return null;
 }
-// Rec global de un ejercicio. exData={sets, eid?}, beforeKey opcional.
-function exerciseRec(exData,target,beforeKey){
+// Rec global de un ejercicio. exData={sets, eid?}, beforeKey opcional, mode='weight'|'reps'|'time'.
+function exerciseRec(exData,target,beforeKey,mode='weight'){
   const sets=exData.sets||[];
   const avg=avgScore(sets,target);
   if(avg==null) return null;
@@ -1110,14 +1180,14 @@ function exerciseRec(exData,target,beforeKey){
   if(avg>=1) key='up';
   else if(avg<=-1) key='down';
   else if(avg>=0){
-    // zona [0, 1) → mirar sesión previa con mismo peso
+    // zona [0, 1) → mirar sesión previa con mismo valor principal
     const eid=exData.eid;
-    const w=sessionWeight(sets);
+    const w=sessionValue(sets,mode);
     key='hold';
     if(eid&&w!=null){
       const prior=priorSession(eid,beforeKey);
       if(prior){
-        const priorW=sessionWeight(prior.ex.sets);
+        const priorW=sessionValue(prior.ex.sets,mode);
         const def=allCompounds().find(e=>eidOf(e)===eid);
         const priorAvg=def?avgScore(prior.ex.sets,def.reps):null;
         if(priorW===w&&priorAvg!=null&&priorAvg>=0) key='up_streak';
@@ -1127,18 +1197,18 @@ function exerciseRec(exData,target,beforeKey){
     // (-1, 0)
     key='hold';
   }
-  let p=pickRecPhrase(key);
+  let p=pickRecPhrase(key,mode);
   if(feltMajority) p+="  🔸 Foco en técnica.";
   return p;
 }
 // Rec de la última sesión (para mostrar arriba del workout).
-function lastSessionRec(eid){
+function lastSessionRec(eid,mode='weight'){
   const prior=priorSession(eid);
   if(!prior) return null;
   const def=allCompounds().find(e=>eidOf(e)===eid);
   if(!def) return null;
   // beforeKey = sesión actual prior, así el streak mira a la anterior a esa.
-  return exerciseRec({sets:prior.ex.sets,eid},def.reps,prior.key);
+  return exerciseRec({sets:prior.ex.sets,eid},def.reps,prior.key,mode);
 }
 
 // ══ CALENDAR ══
@@ -1171,9 +1241,9 @@ function renderHome(){
   $("home-others").innerHTML=routine.days.filter(d=>d.id!==sg).map(d=>`<div class="card" onclick="startWorkout(${d.id})" style="cursor:pointer"><div class="row"><div><div style="font-size:16px;font-weight:700">${d.name}</div><div class="text-sm text-mt">${d.sub}</div></div><div style="font-size:20px;color:var(--mt)">→</div></div></div>`).join('');
   renderCalendar();
   const last=sessions.length?[...sessions].sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
-  if(last){$("home-last-sec").style.display="block";const dayDef=routine.days.find(d=>d.id===last.dayId);$("home-last").innerHTML=`<div class="row mb-8"><span class="text-sm text-mt">${fd(last.date)}${last.time?' · '+last.time:''} — ${dayDef?.name||''}</span><button class="btn-sm" onclick="editSession('${last.id}')" style="font-size:12px">✎ Editar</button></div><div>${(last.exercises||[]).map(ex=>{const name=getExerciseName(ex.eid,allCompounds().find(e=>eidOf(e)===ex.eid)?.name);if(!name) return '';const mw=Math.max(...(ex.sets||[]).map(s=>s.w||0));return`<div class="row" style="padding:4px 0;font-size:14px"><span class="text-mt">${name}</span><span class="mono fw-700">${mw}kg</span></div>`;}).join('')}</div>`;}else{$("home-last-sec").style.display="none";}
+  if(last){$("home-last-sec").style.display="block";const dayDef=routine.days.find(d=>d.id===last.dayId);$("home-last").innerHTML=`<div class="row mb-8"><span class="text-sm text-mt">${fd(last.date)}${last.time?' · '+last.time:''} — ${dayDef?.name||''}</span><button class="btn-sm" onclick="editSession('${last.id}')" style="font-size:12px">✎ Editar</button></div><div>${(last.exercises||[]).map(ex=>{const name=getExerciseName(ex.eid,allCompounds().find(e=>eidOf(e)===ex.eid)?.name);if(!name) return '';const mode=modeOfEid(ex.eid);const peak=mode==='weight'?Math.max(...(ex.sets||[]).map(s=>s.w||0)):Math.max(...(ex.sets||[]).map(s=>s.r||0));return`<div class="row" style="padding:4px 0;font-size:14px"><span class="text-mt">${name}</span><span class="mono fw-700">${mode==='weight'?(peak+'kg'):formatPR(peak,mode)}</span></div>`;}).join('')}</div>`;}else{$("home-last-sec").style.display="none";}
   const histItems=allCompounds().filter(ex=>hist(eidOf(ex)).length>0);
-  if(histItems.length){$("home-hist-sec").style.display="block";$("home-hist").innerHTML=histItems.map(ex=>{const h=hist(eidOf(ex));return`<div class="card" onclick="showHist('${eidOf(ex)}')" style="cursor:pointer"><div class="row"><div><div style="font-size:15px;font-weight:700;color:var(--ac)">${ex.name}</div><div class="text-xs text-mt">${h.length} sesiones · PR: ${prW(eidOf(ex))}kg</div></div><div style="font-size:18px;color:var(--mt)">→</div></div></div>`;}).join('');}else{$("home-hist-sec").style.display="none";}
+  if(histItems.length){$("home-hist-sec").style.display="block";$("home-hist").innerHTML=histItems.map(ex=>{const eid=eidOf(ex);const mode=getTrackMode(ex);const h=hist(eid);const pr=prOf(eid,mode);return`<div class="card" onclick="showHist('${eid}')" style="cursor:pointer"><div class="row"><div><div style="font-size:15px;font-weight:700;color:var(--ac)">${getExName(ex)}</div><div class="text-xs text-mt">${h.length} sesiones · PR: ${formatPR(pr,mode)}</div></div><div style="font-size:18px;color:var(--mt)">→</div></div></div>`;}).join('');}else{$("home-hist-sec").style.display="none";}
   drawMuscleChart();
 }
 
@@ -1244,11 +1314,153 @@ function startWorkout(dayId,customDate){
   const sessDate=customDate||td();
   const sessTime=sessDate===td()?nowTime():null;
   curSess={id:uid(),date:sessDate,time:sessTime,dayId,
-    exercises:compounds.map(e=>({eid:eidOf(e),sets:Array.from({length:parseInt(e.sets)||1},()=>({w:lastW(eidOf(e))||0,r:repsAsNumber(e.reps)||10,rpe:null,felt:null})),note:''})),
+    exercises:compounds.map(e=>{
+      const mode=getTrackMode(e);
+      const eid=eidOf(e);
+      // Para weight: w=último peso, r=reps del target. Para reps/time: w=0, r=target (reps o segs).
+      const lastVal=lastValueOf(eid,mode);
+      const targetReps=repsAsNumber(e.reps)||10;
+      return {eid,sets:Array.from({length:parseInt(e.sets)||1},()=>({
+        w:mode==='weight'?(lastW(eid)||0):0,
+        r:mode==='weight'?targetReps:(lastVal||targetReps),
+        rpe:null,felt:null
+      })),note:''};
+    }),
     accessories:accessories.reduce((o,a)=>{o[a.id]=false;return o;},{}),
     mobility:mobility.reduce((o,m)=>{o[m.id]=false;return o;},{})
   };
   saveDraft();showPage('work');renderWork();
+}
+
+// HTML de un set-card (un set de un ejercicio del workout) — reutilizable single y grupo.
+// opts: {ci, allowAddRemove (true en single, false en grupo)}
+function renderSetCardHTML(s,si,sets,ex,mode,opts){
+  const ci=opts.ci;
+  const allowAddRemove=opts.allowAddRemove!==false;
+  const bc=s.rpe?({liviano:'var(--gn)',justo:'var(--yw)',limite:'var(--dn)'}[s.rpe]+'30'):'var(--bd)';
+  const isLast=si===sets.length-1;
+  const hdr=(isLast&&allowAddRemove)
+    ?`<div class="row mb-12"><span class="text-xs fw-700 text-mt">SERIE ${si+1}</span><div class="flex gap-6">${sets.length>1?`<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="removeWorkSet()">−</button>`:''}<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="addWorkSet()">+</button></div></div>`
+    :`<div class="text-xs fw-700 text-mt mb-12">SERIE ${si+1}</div>`;
+  let fieldsHtml='';
+  if(mode==='weight'){
+    fieldsHtml+=`<div class="row mb-12"><span class="text-sm text-mt fw-600">PESO</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},-2.5,${ci})">−</button><div id="val-w-${ci}-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'w',null,${ci})">${s.w}<span class="text-sm text-mt">kg</span></div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},2.5,${ci})">+</button></div></div>`;
+    fieldsHtml+=`<div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">REPS</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button><div id="val-r-${ci}-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button></div></div>`;
+  } else if(mode==='reps'){
+    fieldsHtml+=`<div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">REPS</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button><div id="val-r-${ci}-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button></div></div>`;
+  } else if(mode==='time'){
+    fieldsHtml+=`<div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">TIEMPO</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-5,${ci})">−</button><div id="val-r-${ci}-${si}" class="mono fw-800" style="font-size:28px;min-width:110px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r','Tiempo (segs)',${ci})">${s.r}<span class="text-sm text-mt"> segs</span></div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},5,${ci})">+</button></div></div>`;
+  }
+  let html=`<div class="set-card" style="border-color:${bc}">${hdr}
+    ${fieldsHtml}
+    <div class="flex gap-8"><button class="rpe-btn ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano',${ci})">🟢 Liviano</button><button class="rpe-btn ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo',${ci})">🟡 Justo</button><button class="rpe-btn ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite',${ci})">🔴 Al límite</button></div>`;
+  if(s.rpe){
+    if(s.felt==null){
+      html+=`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="text-xs text-mt fw-600 mb-8" style="text-align:center">¿Sentiste el músculo?</div><div class="flex gap-8"><button class="rpe-btn" onclick="setFelt(${si},true,${ci})">✅ Sí</button><button class="rpe-btn" onclick="setFelt(${si},false,${ci})">❌ No</button></div></div>`;
+    } else {
+      const rd=setRecData(s.rpe,s.r,ex.reps,s.felt,mode);
+      if(rd) html+=`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="row mb-8"><span class="text-xs text-mt fw-600">${s.felt?'✅ Sintió':'❌ No sintió'}</span><button onclick="setFelt(${si},null,${ci})" style="background:none;border:1px solid var(--bd);color:var(--mt);font-size:11px;cursor:pointer;padding:4px 10px;border-radius:8px">cambiar</button></div><div class="tips-box" style="margin-top:0">${rd.phrase}${rd.muscle?`<span style="display:block;margin-top:6px">${rd.muscle}</span>`:''}</div></div>`;
+    }
+  }
+  html+=`</div>`;
+  return html;
+}
+
+// Header común de un ejercicio en el workout: tag de bloque + nombre + meta + tips + última sesión rec
+function renderCompoundHeaderHTML(ex,ci,day,opts){
+  opts=opts||{};
+  const blockOfThisEx=blockOfExercise(day,ex.id);
+  const blockTagHtml=(blockOfThisEx&&blockOfThisEx.type)?(()=>{
+    const bt=BLOCK_TYPES[blockOfThisEx.type]||BLOCK_TYPES.custom;
+    const lbl=blockOfThisEx.type==='custom'&&blockOfThisEx.label?blockOfThisEx.label:bt.label;
+    return `<span class="badge" style="background:${bt.color};color:#fff;font-size:9px;font-weight:700;padding:3px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.5px;margin-right:8px;vertical-align:middle">${lbl}</span>`;
+  })():'';
+  const exDisplayName=getExName(ex);
+  const setsRepsLbl=formatSetsReps(ex);
+  const restLbl=ex.rest?` · Descanso: ${fmtTime(restAsSeconds(ex.rest))}`:'';
+  const mode=getTrackMode(ex);
+  const pr=prOf(eidOf(ex),mode);
+  const prLbl=pr>0?` · 🏆 ${formatPR(pr,mode)}`:'';
+  const titleSize=opts.compact?'17px':'22px';
+  const titleColor=opts.compact?'var(--tx)':'var(--ac)';
+  let html=`<div class="${opts.compact?'mb-12':'mb-20'}"><div class="row" style="margin-bottom:4px;align-items:flex-start"><div style="font-size:${titleSize};font-weight:800;color:${titleColor};flex:1;min-width:0">${opts.compact?'':blockTagHtml}${exDisplayName}</div><button class="icon-btn" onclick="showExHistoryModal('${eidOf(ex)}')" style="width:32px;height:32px;font-size:14px;flex-shrink:0">📈</button></div><div class="text-xs text-mt">${setsRepsLbl}${restLbl}${prLbl}${ex.objective?' · '+ex.objective:''}</div>`;
+  if(ex.notes) html+=`<button class="tips-btn" style="font-size:12px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none;font-size:13px">${ex.notes}</div>`;
+  html+=`</div>`;
+  return html;
+}
+
+function renderSingleCompoundWorkoutHTML(ci,compounds,day){
+  const ex=compounds[ci];
+  const sets=curSess.exercises[ci]?.sets||[];
+  const sessNote=curSess.exercises[ci]?.note||'';
+  const mode=getTrackMode(ex);
+  let html=renderCompoundHeaderHTML(ex,ci,day);
+  const prevRec=lastSessionRec(eidOf(ex),mode);
+  if(prevRec) html+=`<div class="card card-accent mb-20" style="cursor:default;display:flex;align-items:flex-start;gap:10px;padding:14px 16px"><span style="font-size:18px">💡</span><div><div class="text-xs fw-700 text-ac mb-4">ÚLTIMA SESIÓN</div><div class="text-sm">${prevRec}</div></div></div>`;
+  sets.forEach((s,si)=>{html+=renderSetCardHTML(s,si,sets,ex,mode,{ci,allowAddRemove:true});});
+  const allEval=sets.length&&sets.every(s=>s.rpe&&(s.felt===true||s.felt===false));
+  if(allEval){const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps,null,mode);if(gr) html+=`<div class="card card-accent mt-20" style="cursor:default"><div class="text-xs fw-700 text-ac mb-8">🎯 PARA LA PRÓXIMA SESIÓN</div><div style="font-size:15px;font-weight:600">${gr}</div></div>`;}
+  html+=`<textarea class="note-input" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${sessNote}</textarea>`;
+  return html;
+}
+
+// Vista unificada de un grupo (biserie/triserie): vueltas con sub-cards anidadas
+function renderGroupedWorkoutHTML(grp,compounds,day){
+  const indexes=grp.indexes;
+  const firstEx=compounds[indexes[0]];
+  const groupLabel=groupTerm(grp.size);
+  const exs=indexes.map(i=>compounds[i]);
+  const restSec=restAsSeconds(firstEx.rest);
+  // Banner del grupo arriba
+  let html=`<div class="card mb-16" style="cursor:default;background:rgba(234,179,8,.1);border:1px solid #eab308;padding:14px 16px">
+    <div class="row mb-4" style="align-items:center;gap:8px">
+      <span style="font-size:12px;font-weight:800;color:#a16207;letter-spacing:.5px;text-transform:uppercase">🔗 ${groupLabel}</span>
+    </div>
+    <div class="fw-700" style="font-size:15px;color:#78580a">${exs.map(getExName).join(' + ')}</div>
+    <div class="text-xs mt-4" style="color:#78580a;line-height:1.4">Hacé 1 set de cada uno sin descanso. Cuando completés la vuelta, tap <strong>⏱ Descansar</strong>.</div>
+  </div>`;
+  // Sub-headers compactos por ejercicio (info: PR, tips, descanso del coach)
+  indexes.forEach(ci=>{
+    const ex=compounds[ci];
+    html+=renderCompoundHeaderHTML(ex,ci,day,{compact:true});
+  });
+  // Número de vueltas = max sets de los ejercicios del grupo
+  const maxSets=Math.max(...indexes.map(ci=>(curSess.exercises[ci]?.sets||[]).length));
+  for(let si=0;si<maxSets;si++){
+    // Header de la vuelta + botón descansar
+    html+=`<div class="row mb-8 mt-16" style="align-items:center;gap:8px">
+      <span style="font-size:12px;font-weight:800;color:#a16207;letter-spacing:.5px;text-transform:uppercase">VUELTA ${si+1} / ${maxSets}</span>
+      <span style="flex:1"></span>
+      <button class="btn-sm" onclick="startTimer(${restSec})" style="font-size:11px;padding:4px 12px;background:#eab308;color:#fff;font-weight:700">⏱ Descansar</button>
+    </div>`;
+    // Sub-card por ejercicio en esta vuelta
+    indexes.forEach((ci,gi)=>{
+      const ex=compounds[ci];
+      const sets=curSess.exercises[ci]?.sets||[];
+      if(si>=sets.length) return; // este ejercicio no llega a esta vuelta
+      const s=sets[si];
+      const mode=getTrackMode(ex);
+      // Mini-banner con nombre arriba de la sub-card
+      html+=`<div class="mb-4" style="font-size:13px;font-weight:700;color:var(--ac);padding:0 4px">${gi+1}. ${getExName(ex)}</div>`;
+      html+=renderSetCardHTML(s,si,sets,ex,mode,{ci,allowAddRemove:false});
+    });
+  }
+  // Rec global y nota por ejercicio del grupo (al final)
+  html+=`<div class="mt-20" style="padding-top:14px;border-top:1px solid var(--bd)">`;
+  indexes.forEach(ci=>{
+    const ex=compounds[ci];
+    const sets=curSess.exercises[ci]?.sets||[];
+    const mode=getTrackMode(ex);
+    const allEval=sets.length&&sets.every(s=>s.rpe&&(s.felt===true||s.felt===false));
+    if(allEval){
+      const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps,null,mode);
+      if(gr) html+=`<div class="card card-accent mb-12" style="cursor:default;padding:12px 14px"><div class="text-xs fw-700 text-ac mb-4">🎯 ${getExName(ex).toUpperCase()}</div><div class="text-sm">${gr}</div></div>`;
+    }
+    const sessNote=curSess.exercises[ci]?.note||'';
+    html+=`<textarea class="note-input" placeholder="Nota de ${getExName(ex)}..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${sessNote}</textarea>`;
+  });
+  html+=`</div>`;
+  return html;
 }
 
 function renderWork(){
@@ -1263,11 +1475,27 @@ function renderWork(){
     const movActive=curSess.mobility&&Object.values(curSess.mobility).some(Boolean);
     tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="${curExI===-1?'background:#78716c;color:#fff;border-color:#78716c':'border-color:#78716c'};font-size:18px">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:#16a34a;background:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">✓</span>':(movActive?'<span style="position:absolute;top:-4px;right:-4px;font-size:9px;color:#78716c">·</span>':'')}🤸</button>`;
   }
-  tabsHtml+=compounds.map((e,i)=>{
-    const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
+  // Construir "units": cada unit es un single compound o un grupo (biserie/triserie).
+  // Tabs muestran UN solo botón por unit. Si curExI cae en un grupo, el tab activo es el del primero del grupo.
+  const units=[];const seenIdx=new Set();
+  compounds.forEach((e,i)=>{
+    if(seenIdx.has(i)) return;
     const grp=groupOfCompoundIdx(compounds,i);
-    const grpStyle=grp?'box-shadow:inset 0 -3px 0 #eab308;':'';
-    return`<button class="ex-tab${i===curExI?' active':''}" onclick="curExI=${i};renderWork()" style="${grpStyle}">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}${i+1}</button>`;
+    if(grp){grp.indexes.forEach(idx=>seenIdx.add(idx));units.push({type:'group',indexes:grp.indexes,firstIdx:grp.indexes[0],size:grp.size});}
+    else{seenIdx.add(i);units.push({type:'single',indexes:[i],firstIdx:i});}
+  });
+  // Índice "lógico" de la unit activa
+  const activeUnitIdx=units.findIndex(u=>u.indexes.includes(curExI));
+  tabsHtml+=units.map((u,ui)=>{
+    const active=ui===activeUnitIdx;
+    if(u.type==='group'){
+      const done=u.indexes.every(i=>curSess.exercises[i]?.sets?.every(s=>s.rpe!==null));
+      const label=u.size===2?'🔗 BI':u.size===3?'🔗 TRI':'🔗 ×'+u.size;
+      return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="background:${active?'#eab308':'transparent'};color:${active?'#fff':'#a16207'};border:1px solid #eab308;min-width:48px;font-size:12px;font-weight:800;padding:0 8px">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:#16a34a;background:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">✓</span>':''}${label}</button>`;
+    }
+    const i=u.firstIdx;
+    const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
+    return`<button class="ex-tab${active?' active':''}" onclick="curExI=${i};renderWork()">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}${i+1}</button>`;
   }).join('');
   if(accessories.length) tabsHtml+=`<button class="ex-tab${curExI===compounds.length?' active':''}" onclick="curExI=${compounds.length};renderWork()">ACC</button>`;
 
@@ -1297,62 +1525,17 @@ function renderWork(){
       </div>`;
     });
   } else if(curExI<compounds.length){
-    // Compound exercise view
-    const ex=compounds[curExI];const sets=curSess.exercises[curExI]?.sets||[];const sessNote=curSess.exercises[curExI]?.note||'';
+    // Compound exercise view (single o grupo unificado)
     html+=`<div id="work-pr" class="pr-banner"><span style="font-size:24px">🔥</span><div><div class="text-sm fw-700 text-ac">Nuevo PR</div><div id="work-pr-name" class="text-xs text-mt"></div></div></div>`;
-    const blockOfThisEx=blockOfExercise(day,ex.id);
-    const blockTagHtml=(blockOfThisEx&&blockOfThisEx.type)?(()=>{
-      const bt=BLOCK_TYPES[blockOfThisEx.type]||BLOCK_TYPES.custom;
-      const lbl=blockOfThisEx.type==='custom'&&blockOfThisEx.label?blockOfThisEx.label:bt.label;
-      return `<span class="badge" style="background:${bt.color};color:#fff;font-size:9px;font-weight:700;padding:3px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.5px;margin-right:8px;vertical-align:middle">${lbl}</span>`;
-    })():'';
-    const exDisplayName=getExName(ex);
-    const setsRepsLbl=formatSetsReps(ex);
-    const restLbl=ex.rest?` · Descanso: ${fmtTime(restAsSeconds(ex.rest))}`:'';
-    html+=`<div class="mb-20"><div class="row" style="margin-bottom:4px;align-items:flex-start"><div style="font-size:22px;font-weight:800;color:var(--ac);flex:1;min-width:0">${blockTagHtml}${exDisplayName}</div><button class="icon-btn" onclick="showExHistoryModal('${eidOf(ex)}')" style="width:36px;height:36px;font-size:16px;flex-shrink:0">📈</button></div><div class="text-sm text-mt">${setsRepsLbl}${restLbl}${prW(eidOf(ex))>0?' · 🏆 '+prW(eidOf(ex))+'kg':''}${ex.objective?' · '+ex.objective:''}</div>`;
-    if(ex.notes) html+=`<button class="tips-btn" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none">${ex.notes}</div>`;
-    html+=`</div>`;
-    // Banner si el ejercicio forma parte de una biserie/triserie
     const grp=groupOfCompoundIdx(compounds,curExI);
     if(grp){
-      const otherNames=grp.indexes.filter(i=>i!==curExI).map(i=>getExName(compounds[i])).join(', ');
-      const groupLabel=groupTerm(grp.size);
-      const restSec=restAsSeconds(ex.rest);
-      const isLast=grp.position===grp.size-1;
-      html+=`<div class="card mb-20" style="cursor:default;background:rgba(234,179,8,.1);border:1px solid #eab308;padding:14px 16px">
-        <div class="row mb-8" style="align-items:center;gap:8px">
-          <span style="font-size:11px;font-weight:800;color:#a16207;letter-spacing:.5px;text-transform:uppercase">🔗 ${groupLabel} (${grp.position+1}/${grp.size})</span>
-          <span style="flex:1"></span>
-          ${grp.size>1?`<button class="btn-sm" onclick="jumpInSuperset(${grp.position+1<grp.size?grp.indexes[grp.position+1]:grp.indexes[0]})" style="font-size:11px;padding:4px 10px;background:#eab308;color:#fff;font-weight:700">${isLast?'↻ Volver al 1°':'→ Siguiente'}</button>`:''}
-        </div>
-        <div class="text-sm" style="color:#78580a;line-height:1.4">Hacés <strong>1 set</strong> de cada uno sin descanso. Cuando terminás la vuelta, tap <strong>⏱ Descansar</strong>.</div>
-        ${otherNames?`<div class="text-xs mt-4" style="color:#78580a"><strong>Con:</strong> ${otherNames}</div>`:''}
-        <button class="btn mt-12" onclick="startTimer(${restSec})" style="background:#eab308;color:#fff;padding:10px;font-size:14px">⏱ Descansar (terminé la vuelta)</button>
-      </div>`;
+      // Redirigir al primero del grupo si no estamos parados ahí
+      if(curExI!==grp.indexes[0]){curExI=grp.indexes[0];return renderWork();}
+      html+=renderGroupedWorkoutHTML(grp,compounds,day);
+    } else {
+      html+=renderSingleCompoundWorkoutHTML(curExI,compounds,day);
     }
-    const prevRec=lastSessionRec(eidOf(ex));
-    if(prevRec) html+=`<div class="card card-accent mb-20" style="cursor:default;display:flex;align-items:flex-start;gap:10px;padding:14px 16px"><span style="font-size:18px">💡</span><div><div class="text-xs fw-700 text-ac mb-4">ÚLTIMA SESIÓN</div><div class="text-sm">${prevRec}</div></div></div>`;
-    
-    sets.forEach((s,si)=>{
-      const bc=s.rpe?({liviano:'var(--gn)',justo:'var(--yw)',limite:'var(--dn)'}[s.rpe]+'30'):'var(--bd)';
-      const isLast=si===sets.length-1;
-      const hdr=isLast
-        ?`<div class="row mb-12"><span class="text-xs fw-700 text-mt">SERIE ${si+1}</span><div class="flex gap-6">${sets.length>1?`<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="removeWorkSet()">−</button>`:''}<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="addWorkSet()">+</button></div></div>`
-        :`<div class="text-xs fw-700 text-mt mb-12">SERIE ${si+1}</div>`;
-      html+=`<div class="set-card" style="border-color:${bc}">${hdr}
-        <div class="row mb-12"><span class="text-sm text-mt fw-600">PESO</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},-2.5)">−</button><div id="val-w-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'w')">${s.w}<span class="text-sm text-mt">kg</span></div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},2.5)">+</button></div></div>
-        <div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">REPS</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1)">−</button><div id="val-r-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r')">${s.r}</div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1)">+</button></div></div>
-        <div class="flex gap-8"><button class="rpe-btn ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano')">🟢 Liviano</button><button class="rpe-btn ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo')">🟡 Justo</button><button class="rpe-btn ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite')">🔴 Al límite</button></div>
-        ${s.rpe?(s.felt==null?`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="text-xs text-mt fw-600 mb-8" style="text-align:center">¿Sentiste el músculo?</div><div class="flex gap-8"><button class="rpe-btn" onclick="setFelt(${si},true)">✅ Sí</button><button class="rpe-btn" onclick="setFelt(${si},false)">❌ No</button></div></div>`:(()=>{const rd=setRecData(s.rpe,s.r,ex.reps,s.felt);return rd?`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="row mb-8"><span class="text-xs text-mt fw-600">${s.felt?'✅ Sintió':'❌ No sintió'}</span><button onclick="setFelt(${si},null)" style="background:none;border:1px solid var(--bd);color:var(--mt);font-size:11px;cursor:pointer;padding:4px 10px;border-radius:8px">cambiar</button></div><div class="tips-box" style="margin-top:0">${rd.phrase}${rd.muscle?`<span style="display:block;margin-top:6px">${rd.muscle}</span>`:''}</div></div>`:'';})()):''}
-      </div>`;
-    });
-    
-    // Global rec when all sets evaluated
-    const allEval=sets.length&&sets.every(s=>s.rpe&&(s.felt===true||s.felt===false));
-    if(allEval){const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps);if(gr) html+=`<div class="card card-accent mt-20" style="cursor:default"><div class="text-xs fw-700 text-ac mb-8">🎯 PARA LA PRÓXIMA SESIÓN</div><div style="font-size:15px;font-weight:600">${gr}</div></div>`;}
-    // Session note
-    html+=`<textarea class="note-input" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${curExI}].note=this.value;saveDraft()" onblur="curSess.exercises[${curExI}].note=this.value;saveDraft()">${sessNote}</textarea>`;
-    
+
   } else {
     // Accessories view
     html+=`<div style="font-size:22px;font-weight:800;margin-bottom:16px;color:var(--ac)">Accesorios</div>`;
@@ -1364,12 +1547,26 @@ function renderWork(){
     });
   }
   
-  // Nav. Índices: -1 = MOV (si hay), 0..n-1 = compounds, n = ACC.
-  const startIdx=mobility.length?-1:0;
-  const lastIdx=compounds.length-1+(accessories.length?1:0);
+  // Nav por UNITS. -1 = MOV (si hay), 0..units.length-1 = units, units.length = ACC.
+  // Calculo qué unit/etapa está activa y cuál es la próxima/anterior.
+  const movIdx=mobility.length?-1:null;
+  const accIdx=accessories.length?units.length:null;
+  // "Stops" lineales que el alumno recorre con anterior/siguiente
+  const stops=[];
+  if(mobility.length) stops.push({kind:'mov',curExIVal:-1});
+  units.forEach(u=>stops.push({kind:'unit',curExIVal:u.firstIdx,unit:u}));
+  if(accessories.length) stops.push({kind:'acc',curExIVal:compounds.length});
+  // Encontrar el stop actual
+  let curStopIdx=-1;
+  if(curExI===-1) curStopIdx=stops.findIndex(s=>s.kind==='mov');
+  else if(curExI===compounds.length) curStopIdx=stops.findIndex(s=>s.kind==='acc');
+  else {
+    const u=units.findIndex(u=>u.indexes.includes(curExI));
+    if(u>=0){const targetCurExI=units[u].firstIdx;curStopIdx=stops.findIndex(s=>s.curExIVal===targetCurExI);}
+  }
   html+=`<div class="flex gap-10 mt-20">`;
-  if(curExI>startIdx) html+=`<button class="btn-out" onclick="curExI--;stopTimer();renderWork()">← Anterior</button>`;
-  if(curExI<lastIdx) html+=`<button class="btn" onclick="curExI++;stopTimer();renderWork()">Siguiente →</button>`;
+  if(curStopIdx>0) html+=`<button class="btn-out" onclick="curExI=${stops[curStopIdx-1].curExIVal};stopTimer();renderWork()">← Anterior</button>`;
+  if(curStopIdx<stops.length-1) html+=`<button class="btn" onclick="curExI=${stops[curStopIdx+1].curExIVal};stopTimer();renderWork()">Siguiente →</button>`;
   else html+=`<button class="btn" onclick="finishWorkout()">✓ Terminar</button>`;
   html+=`</div></div>`;
   
@@ -1381,7 +1578,11 @@ function addWorkSet(){
   const sets=curSess.exercises[curExI].sets;const last=sets[sets.length-1];
   sets.push({w:last.w,r:last.r,rpe:null,felt:null});saveDraft();renderWork();
 }
-function setFelt(si,val){curSess.exercises[curExI].sets[si].felt=val;saveDraft();renderWork();}
+function setFelt(si,val,ci){
+  ci=(ci==null)?curExI:ci;
+  curSess.exercises[ci].sets[si].felt=val;
+  saveDraft();renderWork();
+}
 function removeWorkSet(){
   const sets=curSess.exercises[curExI].sets;if(sets.length<=1) return;
   sets.pop();saveDraft();renderWork();
@@ -1400,44 +1601,60 @@ function toggleMobility(exId,restSec){
   renderWork();
 }
 
-function adjW(si,delta){
-  const s=curSess.exercises[curExI].sets[si];s.w=Math.max(0,s.w+delta);
-  $("val-w-"+si).innerHTML=s.w+'<span class="text-sm text-mt">kg</span>';
-  // Auto-copy to subsequent series
-  for(let j=si+1;j<curSess.exercises[curExI].sets.length;j++){
-    curSess.exercises[curExI].sets[j].w=s.w;
-    const el=$("val-w-"+j);if(el) el.innerHTML=s.w+'<span class="text-sm text-mt">kg</span>';
+function adjW(si,delta,ci){
+  ci=(ci==null)?curExI:ci;
+  const s=curSess.exercises[ci].sets[si];s.w=Math.max(0,s.w+delta);
+  const el=$("val-w-"+ci+"-"+si);if(el) el.innerHTML=s.w+'<span class="text-sm text-mt">kg</span>';
+  // Auto-copy to subsequent series del mismo ejercicio
+  for(let j=si+1;j<curSess.exercises[ci].sets.length;j++){
+    curSess.exercises[ci].sets[j].w=s.w;
+    const el2=$("val-w-"+ci+"-"+j);if(el2) el2.innerHTML=s.w+'<span class="text-sm text-mt">kg</span>';
   }
-  checkPR(si);document.activeElement?.blur();saveDraft();
+  checkPR(si,ci);document.activeElement?.blur();saveDraft();
 }
-function adjR(si,delta){const s=curSess.exercises[curExI].sets[si];s.r=Math.max(1,s.r+delta);$("val-r-"+si).textContent=s.r;document.activeElement?.blur();saveDraft();}
-function typeVal(si,field){
-  const s=curSess.exercises[curExI].sets[si];const current=field==='w'?s.w:s.r;const label=field==='w'?'Peso (kg)':'Repeticiones';
+function adjR(si,delta,ci){
+  ci=(ci==null)?curExI:ci;
+  const s=curSess.exercises[ci].sets[si];s.r=Math.max(1,s.r+delta);
+  const el=$("val-r-"+ci+"-"+si);if(el) el.textContent=s.r;
+  document.activeElement?.blur();saveDraft();
+}
+function typeVal(si,field,labelOverride,ci){
+  ci=(ci==null)?curExI:ci;
+  const s=curSess.exercises[ci].sets[si];const current=field==='w'?s.w:s.r;
+  const label=labelOverride||(field==='w'?'Peso (kg)':'Repeticiones');
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:16px">${label}</div>`;
   html+=`<input id="type-input" type="number" class="input-mono" value="${current}" style="font-size:28px;margin-bottom:16px">`;
-  html+=`<button class="btn mb-12" onclick="applyTypedVal(${si},'${field}')">Aplicar</button>`;
+  html+=`<button class="btn mb-12" onclick="applyTypedVal(${si},'${field}',${ci})">Aplicar</button>`;
   html+=`<button class="btn-out" onclick="closeModal()">Cancelar</button>`;
   $("modal-content").innerHTML=html;$("modal").classList.add('show');
   setTimeout(()=>{$("type-input").focus();$("type-input").select();},300);
 }
-function applyTypedVal(si,field){
+function applyTypedVal(si,field,ci){
+  ci=(ci==null)?curExI:ci;
   const val=parseFloat($("type-input").value);if(isNaN(val)||val<0) return;
-  const s=curSess.exercises[curExI].sets[si];
-  if(field==='w'){s.w=val;$("val-w-"+si).innerHTML=val+'<span class="text-sm text-mt">kg</span>';checkPR(si);}
-  else{s.r=Math.max(1,Math.round(val));$("val-r-"+si).textContent=s.r;}
+  const s=curSess.exercises[ci].sets[si];
+  if(field==='w'){s.w=val;const el=$("val-w-"+ci+"-"+si);if(el) el.innerHTML=val+'<span class="text-sm text-mt">kg</span>';checkPR(si,ci);}
+  else{s.r=Math.max(1,Math.round(val));const el=$("val-r-"+ci+"-"+si);if(el) el.textContent=s.r;}
   saveDraft();closeModal();
 }
-function checkPR(si){
+function checkPR(si,ci){
+  ci=(ci==null)?curExI:ci;
   const day=routine.days.find(d=>d.id===curDayId);const compounds=getCompounds(day);
-  const ex=compounds[curExI];const v=curSess.exercises[curExI].sets[si].w;const old=prW(eidOf(ex));
-  if(v>old&&old>0){const pr=$("work-pr");if(pr){$("work-pr-name").textContent=ex.name;pr.classList.add('show');setTimeout(()=>pr.classList.remove('show'),3000);}}
+  const ex=compounds[ci];if(!ex) return;
+  const mode=getTrackMode(ex);
+  const set=curSess.exercises[ci].sets[si];
+  const v=mode==='weight'?set.w:set.r;
+  const old=prOf(eidOf(ex),mode);
+  if(v>old&&old>0){const pr=$("work-pr");if(pr){$("work-pr-name").textContent=getExName(ex);pr.classList.add('show');setTimeout(()=>pr.classList.remove('show'),3000);}}
 }
-function setRpe(si,v){curSess.exercises[curExI].sets[si].rpe=v;
+function setRpe(si,v,ci){
+  ci=(ci==null)?curExI:ci;
+  curSess.exercises[ci].sets[si].rpe=v;
   const day=routine.days.find(d=>d.id===curDayId);
   const compounds=getCompounds(day);
-  const ex=compounds[curExI];
-  const grp=groupOfCompoundIdx(compounds,curExI);
-  // En supersets/triseries el timer se arranca manualmente al terminar la vuelta
+  const ex=compounds[ci];
+  const grp=groupOfCompoundIdx(compounds,ci);
+  // En grupos el timer se arranca manualmente al terminar la vuelta (botón "Descansar" por vuelta)
   if(!timerRef&&!grp) startTimer(restAsSeconds(ex.rest));
   renderWork();
 }
@@ -1541,17 +1758,28 @@ function pickPastDate(ds){
 
 // ══ HISTORY ══
 function showHist(eid){
-  const ex=allCompounds().find(e=>eidOf(e)===eid);const data=hist(eid);const pr=prW(eid);
-  $("hist-title").textContent=ex?.name||getExerciseName(eid)||'Ejercicio';$("hist-pr").textContent=pr;$("hist-count").textContent=data.length;
-  if(data.length>=2){$("hist-chart").style.display="block";drawChart(data);}else{$("hist-chart").style.display="none";}
+  const ex=allCompounds().find(e=>eidOf(e)===eid);
+  const mode=modeOfEid(eid);
+  const data=hist(eid);
+  const pr=prOf(eid,mode);
+  // Función para extraer el "valor principal" de una entrada hist según modo
+  const peakOf=e=>mode==='weight'?e.peso:e.peakR;
+  $("hist-title").textContent=ex?.name||getExerciseName(eid)||'Ejercicio';
+  $("hist-pr").textContent=mode==='weight'?pr:formatPR(pr,mode);
+  $("hist-count").textContent=data.length;
+  if(data.length>=2){$("hist-chart").style.display="block";drawChart(data,mode);}else{$("hist-chart").style.display="none";}
   const rpeMap={liviano:{c:'var(--gn)',i:'🟢'},justo:{c:'var(--yw)',i:'🟡'},limite:{c:'var(--dn)',i:'🔴'}};
-  $("hist-list").innerHTML=data.length?[...data].reverse().map(e=>`<div class="card" style="cursor:default"><div class="row mb-8"><span class="fw-700" style="font-size:14px">${e.date}${e.time?` <span class="text-xs text-mt fw-600">${e.time}</span>`:''}</span><span class="mono fw-800" style="font-size:18px;color:${e.peso>=pr?'var(--ac)':'var(--tx)'}">${e.peso}kg${e.peso>=pr?' 🔥':''}</span></div><div class="flex gap-8" style="flex-wrap:wrap">${e.sets.map(s=>{const r=rpeMap[s.rpe]||{c:'var(--mt)',i:''};return`<div class="badge" style="background:${r.c}18;color:${r.c}">${s.w}kg×${s.r} ${r.i}</div>`;}).join('')}</div>${e.note?`<div class="text-xs mt-8" style="color:var(--mt);font-style:italic">📝 ${e.note}</div>`:''}</div>`).join(''):'<div class="text-sm text-mt">Sin datos todavía.</div>';
+  $("hist-list").innerHTML=data.length?[...data].reverse().map(e=>{const peak=peakOf(e);const peakLbl=mode==='weight'?(peak+'kg'):formatPR(peak,mode);return `<div class="card" style="cursor:default"><div class="row mb-8"><span class="fw-700" style="font-size:14px">${e.date}${e.time?` <span class="text-xs text-mt fw-600">${e.time}</span>`:''}</span><span class="mono fw-800" style="font-size:18px;color:${peak>=pr?'var(--ac)':'var(--tx)'}">${peakLbl}${peak>=pr?' 🔥':''}</span></div><div class="flex gap-8" style="flex-wrap:wrap">${e.sets.map(s=>{const r=rpeMap[s.rpe]||{c:'var(--mt)',i:''};return`<div class="badge" style="background:${r.c}18;color:${r.c}">${formatSetBadge(s,mode)} ${r.i}</div>`;}).join('')}</div>${e.note?`<div class="text-xs mt-8" style="color:var(--mt);font-style:italic">📝 ${e.note}</div>`:''}</div>`}).join(''):'<div class="text-sm text-mt">Sin datos todavía.</div>';
   showPage('hist');
 }
-function drawChart(data){
+function drawChart(data,mode){
+  mode=mode||'weight';
   const svg=$("hist-svg");const W=svg.clientWidth||300;const H=180;const pad={t:10,r:10,b:30,l:40};const iW=W-pad.l-pad.r;const iH=H-pad.t-pad.b;
-  const vals=data.map(d=>d.peso);const mn=Math.min(...vals)-5;const mx=Math.max(...vals)+5;
-  const pts=data.map((d,i)=>({x:pad.l+(data.length>1?i/(data.length-1):0.5)*iW,y:pad.t+iH-(((d.peso-mn)/(mx-mn))*iH),d}));
+  // Para weight grafico peso; para reps/time grafico el peak de reps/segs
+  const vals=data.map(d=>mode==='weight'?d.peso:d.peakR);
+  const span=mode==='weight'?5:(mode==='time'?5:1);
+  const mn=Math.min(...vals)-span;const mx=Math.max(...vals)+span;
+  const pts=data.map((d,i)=>{const v=mode==='weight'?d.peso:d.peakR;return {x:pad.l+(data.length>1?i/(data.length-1):0.5)*iW,y:pad.t+iH-(((v-mn)/(mx-mn||1))*iH),d}});
   const line=pts.map((p,i)=>(i===0?'M':'L')+p.x+','+p.y).join(' ');
   let labels='';const step=Math.max(1,Math.floor(data.length/4));
   pts.forEach((p,i)=>{if(i%step===0||i===pts.length-1)labels+=`<text x="${p.x}" y="${H-5}" fill="#8A8478" font-size="10" text-anchor="middle">${p.d.date}</text>`;});
@@ -1563,8 +1791,11 @@ function drawChart(data){
 // ══ EXERCISE HISTORY MODAL (from workout) ══
 function showExHistoryModal(eid){
   const ex=allCompounds().find(e=>eidOf(e)===eid);
+  const mode=modeOfEid(eid);
   const data=hist(eid);
-  const pr=prW(eid);
+  const pr=prOf(eid,mode);
+  const peakOf=e=>mode==='weight'?e.peso:e.peakR;
+  const fmtPeak=v=>mode==='weight'?(v+'kg'):formatPR(v,mode);
   const rpeMap={liviano:{c:'var(--gn)',i:'🟢'},justo:{c:'var(--yw)',i:'🟡'},limite:{c:'var(--dn)',i:'🔴'}};
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:12px">${ex?.name||getExerciseName(eid)||'Historial'}</div>`;
   if(!data.length){
@@ -1573,14 +1804,15 @@ function showExHistoryModal(eid){
   }
   const last=data[data.length-1];
   html+=`<div class="flex gap-10 mb-18">`;
-  html+=`<div class="card flex-1" style="cursor:default;padding:12px 14px"><div class="text-xs text-mt fw-600 mb-4">ÚLTIMA VEZ</div><div class="mono fw-800" style="font-size:22px">${last.peso}kg</div><div class="text-xs text-mt mt-4">${last.date}${last.time?' · '+last.time:''}</div></div>`;
-  html+=`<div class="card flex-1" style="cursor:default;padding:12px 14px"><div class="text-xs text-mt fw-600 mb-4">RÉCORD</div><div class="mono fw-800" style="font-size:22px;color:var(--ac)">${pr}kg</div></div>`;
+  html+=`<div class="card flex-1" style="cursor:default;padding:12px 14px"><div class="text-xs text-mt fw-600 mb-4">ÚLTIMA VEZ</div><div class="mono fw-800" style="font-size:22px">${fmtPeak(peakOf(last))}</div><div class="text-xs text-mt mt-4">${last.date}${last.time?' · '+last.time:''}</div></div>`;
+  html+=`<div class="card flex-1" style="cursor:default;padding:12px 14px"><div class="text-xs text-mt fw-600 mb-4">RÉCORD</div><div class="mono fw-800" style="font-size:22px;color:var(--ac)">${fmtPeak(pr)}</div></div>`;
   html+=`</div>`;
   const recent=[...data].reverse().slice(0,5);
   recent.forEach(e=>{
-    html+=`<div class="set-card" style="margin-bottom:8px"><div class="row mb-8"><span class="text-sm fw-700">${e.date}</span><span class="mono fw-700" style="color:${e.peso>=pr?'var(--ac)':'var(--tx)'}">${e.peso}kg${e.peso>=pr?' 🔥':''}</span></div>`;
+    const peak=peakOf(e);
+    html+=`<div class="set-card" style="margin-bottom:8px"><div class="row mb-8"><span class="text-sm fw-700">${e.date}</span><span class="mono fw-700" style="color:${peak>=pr?'var(--ac)':'var(--tx)'}">${fmtPeak(peak)}${peak>=pr?' 🔥':''}</span></div>`;
     html+=`<div class="flex gap-6" style="flex-wrap:wrap">`;
-    e.sets.forEach(s=>{const r=rpeMap[s.rpe]||{c:'var(--mt)',i:''};html+=`<div class="badge" style="background:${r.c}18;color:${r.c};font-family:var(--fm)">${s.w}kg×${s.r}${r.i?' '+r.i:''}</div>`;});
+    e.sets.forEach(s=>{const r=rpeMap[s.rpe]||{c:'var(--mt)',i:''};html+=`<div class="badge" style="background:${r.c}18;color:${r.c};font-family:var(--fm)">${formatSetBadge(s,mode)}${r.i?' '+r.i:''}</div>`;});
     html+=`</div>`;
     if(e.note) html+=`<div class="text-xs mt-8" style="color:var(--mt);font-style:italic">📝 ${e.note}</div>`;
     html+=`</div>`;
