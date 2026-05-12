@@ -247,7 +247,7 @@ body.modal-open .page{overflow:hidden;}
     <div class="fw-700" style="font-size:16px;text-align:center;flex:1">Configuración</div>
     <div style="width:44px"></div>
   </div>
-  <div class="sec"><div class="sec-title">Días de entrenamiento por semana</div><div class="card" style="cursor:default"><div class="text-xs text-mt mb-12">La racha cuenta solo si entrenaste todos los días de la semana</div><div id="dpw-selector" class="flex gap-8" style="justify-content:center"></div></div></div>
+  <div class="sec"><div class="sec-title">Días mínimos por semana</div><div class="card" style="cursor:default"><div class="text-xs text-mt mb-12">Con este valor se cuenta tu racha 🔥 — sumás una semana cuando entrenás al menos esta cantidad de días.</div><div id="dpw-selector" class="flex gap-8" style="justify-content:center"></div></div></div>
   <div id="editR-content"></div>
   <div class="sec">
     <div class="sec-title">Historial</div>
@@ -1068,11 +1068,18 @@ function getRange(t){
   const n=repsAsNumber(t);
   if(!n||n<=6) return 'bajo'; if(n<=10) return 'medio'; return 'alto';
 }
-// Score numérico de un set (-2 a +2). null si falta data.
+// Score numérico de un set (-2 a +2). null si falta data o el set quedó sin completar.
 function setScore(rpe,r,target,felt){
-  if(!rpe||target==null) return null;
+  if(!rpe) return null;
+  // Set sin reps cargadas (r=0) → no cuenta para el promedio
+  if(!r||r===0) return null;
   const t=repsAsNumber(target);
-  if(t==null) return null;
+  // Target no numérico (ej: AMRAP) → completado siempre, evaluar solo por RPE.
+  if(t==null){
+    if(rpe==='liviano') return 1;
+    if(rpe==='justo') return 0;
+    return -0.3; // limite: AMRAP al límite es normal pero un toque pasado
+  }
   if(r<t) return -2;
   const range=getRange(t);
   if(rpe==='liviano'){return range==='bajo'?2:range==='medio'?1:0.5;}
@@ -1084,8 +1091,9 @@ function setScore(rpe,r,target,felt){
 function setRecData(rpe,r,target,felt,mode='weight'){
   if(!rpe) return null;
   const t=repsAsNumber(target);
+  const isAmrap=t==null; // AMRAP u otro sin target numérico
   const range=getRange(t);
-  const completed=t!=null&&r>=t;
+  const completed=isAmrap||(t!=null&&r>=t);
   // Términos adaptados por modo
   const upWord=mode==='reps'?'sumá reps':mode==='time'?'aguantá más':'subí peso';
   const downWord=mode==='reps'?'bajá reps':mode==='time'?'bajá tiempo':'bajá peso';
@@ -1095,6 +1103,11 @@ function setRecData(rpe,r,target,felt,mode='weight'){
     if(range==='bajo') phrase=`🔻 Muy ${heavyWord} → ${downWord}`;
     else if(range==='medio') phrase=`⚠️ No llegaste → ajustá`;
     else phrase="🔸 Quedaste corto → completá el rango primero";
+  } else if(isAmrap){
+    // AMRAP: el target es "lo que puedas". Solo el RPE manda.
+    if(rpe==='liviano') phrase=`🚀 AMRAP liviano → ${upWord}`;
+    else if(rpe==='justo') phrase="✅ AMRAP bien medido";
+    else phrase="⚠️ AMRAP al límite → todo OK, cuidá técnica";
   } else if(rpe==='liviano'){
     if(range==='bajo') phrase=`🚀 Muy liviano → ${upWord}`;
     else if(range==='medio') phrase="🔹 Hay margen → un toque más";
@@ -1151,11 +1164,11 @@ function sessionValue(sets,mode){
   return best;
 }
 function sessionWeight(sets){return sessionValue(sets,'weight');}
-// Promedio de scores. null si falta evaluar alguno.
+// Promedio de scores. Filtra sets sin score (rpe vacío, r=0, etc). null si TODOS son null.
 function avgScore(sets,target){
   if(!sets||!sets.length) return null;
-  const arr=sets.map(s=>setScore(s.rpe,s.r,target,s.felt??null));
-  if(arr.some(s=>s==null)) return null;
+  const arr=sets.map(s=>setScore(s.rpe,s.r,target,s.felt??null)).filter(s=>s!=null);
+  if(!arr.length) return null;
   return arr.reduce((a,b)=>a+b,0)/arr.length;
 }
 // Sesión previa para un ejercicio. beforeKey opcional para excluir una sesión específica.
@@ -1426,10 +1439,20 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
   });
   // Número de vueltas = max sets de los ejercicios del grupo
   const maxSets=Math.max(...indexes.map(ci=>(curSess.exercises[ci]?.sets||[]).length));
+  const firstCi=indexes[0];
   for(let si=0;si<maxSets;si++){
-    // Header de la vuelta + botón descansar
+    const isLastTurn=si===maxSets-1;
+    // Controles ± solo en la última vuelta (afectan a todo el grupo)
+    const addRemoveHtml=isLastTurn
+      ?`<div class="flex gap-6" style="align-items:center">
+          ${maxSets>1?`<button class="w-btn" style="width:26px;height:26px;border-radius:8px;font-size:14px" onclick="removeWorkSet(${firstCi})">−</button>`:''}
+          <button class="w-btn" style="width:26px;height:26px;border-radius:8px;font-size:14px" onclick="addWorkSet(${firstCi})">+</button>
+        </div>`
+      :'';
+    // Header de la vuelta + botones ± + descansar
     html+=`<div class="row mb-8 mt-16" style="align-items:center;gap:8px">
       <span style="font-size:12px;font-weight:800;color:#a16207;letter-spacing:.5px;text-transform:uppercase">VUELTA ${si+1} / ${maxSets}</span>
+      ${addRemoveHtml}
       <span style="flex:1"></span>
       <button class="btn-sm" onclick="startTimer(${restSec})" style="font-size:11px;padding:4px 12px;background:#eab308;color:#fff;font-weight:700">⏱ Descansar</button>
     </div>`;
@@ -1574,18 +1597,35 @@ function renderWork(){
   if(curSess) saveDraft();
 }
 
-function addWorkSet(){
-  const sets=curSess.exercises[curExI].sets;const last=sets[sets.length-1];
-  sets.push({w:last.w,r:last.r,rpe:null,felt:null});saveDraft();renderWork();
+function addWorkSet(ci){
+  ci=(ci==null)?curExI:ci;
+  const day=routine.days.find(d=>d.id===curDayId);
+  const compounds=getCompounds(day);
+  const grp=groupOfCompoundIdx(compounds,ci);
+  // En grupo: la vuelta extra se agrega a TODOS los ejercicios del grupo (biserie alternada).
+  const targets=grp?grp.indexes:[ci];
+  targets.forEach(idx=>{
+    const sets=curSess.exercises[idx].sets;
+    const last=sets[sets.length-1];
+    sets.push({w:last.w,r:last.r,rpe:null,felt:null});
+  });
+  saveDraft();renderWork();
 }
 function setFelt(si,val,ci){
   ci=(ci==null)?curExI:ci;
   curSess.exercises[ci].sets[si].felt=val;
   saveDraft();renderWork();
 }
-function removeWorkSet(){
-  const sets=curSess.exercises[curExI].sets;if(sets.length<=1) return;
-  sets.pop();saveDraft();renderWork();
+function removeWorkSet(ci){
+  ci=(ci==null)?curExI:ci;
+  const day=routine.days.find(d=>d.id===curDayId);
+  const compounds=getCompounds(day);
+  const grp=groupOfCompoundIdx(compounds,ci);
+  const targets=grp?grp.indexes:[ci];
+  // No remover si alguno del grupo quedaría con 0 sets
+  if(targets.some(idx=>(curSess.exercises[idx]?.sets||[]).length<=1)) return;
+  targets.forEach(idx=>{curSess.exercises[idx].sets.pop();});
+  saveDraft();renderWork();
 }
 function toggleAcc(accId,rest){
   curSess.accessories[accId]=!curSess.accessories[accId];
@@ -1616,6 +1656,8 @@ function adjR(si,delta,ci){
   ci=(ci==null)?curExI:ci;
   const s=curSess.exercises[ci].sets[si];s.r=Math.max(1,s.r+delta);
   const el=$("val-r-"+ci+"-"+si);if(el) el.textContent=s.r;
+  // checkPR detecta récord según track_mode (en reps/time el PR es el valor de r)
+  checkPR(si,ci);
   document.activeElement?.blur();saveDraft();
 }
 function typeVal(si,field,labelOverride,ci){
@@ -1634,7 +1676,7 @@ function applyTypedVal(si,field,ci){
   const val=parseFloat($("type-input").value);if(isNaN(val)||val<0) return;
   const s=curSess.exercises[ci].sets[si];
   if(field==='w'){s.w=val;const el=$("val-w-"+ci+"-"+si);if(el) el.innerHTML=val+'<span class="text-sm text-mt">kg</span>';checkPR(si,ci);}
-  else{s.r=Math.max(1,Math.round(val));const el=$("val-r-"+ci+"-"+si);if(el) el.textContent=s.r;}
+  else{s.r=Math.max(1,Math.round(val));const el=$("val-r-"+ci+"-"+si);if(el) el.textContent=s.r;checkPR(si,ci);}
   saveDraft();closeModal();
 }
 function checkPR(si,ci){
@@ -1694,8 +1736,16 @@ function timerTick(){
   const saved=load("gym-timer",null);if(!saved){stopTimer();return;}
   const elapsed=Math.floor((Date.now()-saved.start)/1000);
   timerLeft=saved.duration-elapsed;timerTotal=saved.duration;
-  if(timerLeft<=0){stopTimer();return;}
+  if(timerLeft<=0){
+    notifyTimerEnd();
+    stopTimer();
+    return;
+  }
   updateTimerDisplay();
+}
+// Vibración cuando el timer llega a 0 (Android lo soporta; iOS Safari lo ignora silenciosamente).
+function notifyTimerEnd(){
+  try{if(navigator.vibrate) navigator.vibrate([200,100,200]);}catch(e){}
 }
 function resumeTimer(){
   const t=load("gym-timer",null);if(!t) return;
