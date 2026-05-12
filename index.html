@@ -1874,7 +1874,7 @@ function renderEditR(){
     sec.style.display=total>1?'block':'none';
     if(info&&total>1) info.innerHTML=`Activa: <strong>${routine?.name||'?'}</strong> · Tenés ${total} rutinas`;
   }
-  $("editR-content").innerHTML=routine.days.map(d=>{
+  $("editR-content").innerHTML=routine.days.map((d,dayIdx)=>{
     const blocks=d.blocks||[];
     const hasMultiBlocks=blocks.length>1||(blocks[0]&&blocks[0].type!=='principal');
     let blocksHtml='';
@@ -1894,11 +1894,32 @@ function renderEditR(){
       const exs=getDayExercises(d);
       blocksHtml=exs.map(ex=>renderEditExCard(d.id,ex)).join('');
     }
-    return `<div class="sec"><div class="row mb-12"><div class="sec-title" style="margin-bottom:0">${d.name} — ${d.sub}</div><button class="icon-btn" style="width:32px;height:32px;font-size:13px" onclick="editDayPrompt(${d.id})">✎</button></div>
+    const nDays=routine.days.length;
+    const headerActions=`
+      <button class="micro-btn" style="font-size:14px" onclick="editDayPrompt(${d.id})" title="Renombrar día">✎</button>
+      ${dayIdx>0?`<button class="micro-btn" style="font-size:16px" onclick="moveRoutineDayInList(${dayIdx},-1)" title="Subir">↑</button>`:''}
+      ${dayIdx<nDays-1?`<button class="micro-btn" style="font-size:16px" onclick="moveRoutineDayInList(${dayIdx},1)" title="Bajar">↓</button>`:''}
+      ${nDays>1?`<button class="micro-btn" style="color:var(--dn);font-size:16px" onclick="deleteDay(${d.id})" title="Eliminar día">✕</button>`:''}
+    `;
+    return `<div class="sec">
+      <div class="row mb-12" style="align-items:center;gap:6px">
+        <div class="sec-title" style="margin-bottom:0;flex:1;min-width:0">${d.name}${d.sub?' — '+d.sub:''}</div>
+        ${headerActions}
+      </div>
       ${blocksHtml}
-      <button class="btn-sm mb-8" style="width:100%;background:var(--ac);color:#fff;font-weight:700" onclick="openDayBlockEditor(${d.id})">🧱 Editar bloques del día</button>
-      <div class="flex gap-8"><button class="btn-sm" style="flex:1" onclick="addEx(${d.id},'compound')">+ Ejercicio rápido</button><button class="btn-sm" style="flex:1" onclick="addAccEx(${d.id})">+ Biserie/Tri</button>${routine.days.length>1?`<button class="btn-sm" style="color:var(--dn);border-color:rgba(239,68,68,0.2)" onclick="deleteDay(${d.id})">Eliminar</button>`:''}</div></div>`;
+      <button class="btn-sm mt-8" style="width:100%;background:var(--ac);color:#fff;font-weight:700;padding:10px" onclick="openDayBlockEditor(${d.id})">✎ Editar día</button>
+    </div>`;
   }).join('')+`<div class="sec"><button class="btn-out" onclick="addDay()">+ Agregar día de entrenamiento</button></div>`;
+}
+
+// Reordenar días en la rutina activa (replicado del coach)
+function moveRoutineDayInList(dayIdx,dir){
+  const days=routine.days;
+  const to=dayIdx+dir;
+  if(to<0||to>=days.length) return;
+  [days[dayIdx],days[to]]=[days[to],days[dayIdx]];
+  saveRoutine();
+  renderEditR();
 }
 function renderEditExCard(dayId,ex){
   if(isCompound(ex)){
@@ -2407,7 +2428,16 @@ function renderBexRowHTML(ex,bi,ei,gi){
       ${renderGroupActionHTMLBE(bi,ei,gi)}
     </div>`;
   } else if(isExp&&isLegacyAcc){
-    html+=`<div class="bex-expand"><div class="text-xs text-mt">Esta es una biserie/triserie en formato antiguo. Para editarla, abrí el editor estándar desde Configuración.</div></div>`;
+    html+=`<div class="bex-expand">
+      <div style="background:rgba(234,179,8,.12);border:1px solid #eab308;border-radius:8px;padding:10px 12px">
+        <div class="text-sm" style="color:#a16207;font-weight:700;line-height:1.4">⚠ Esta biserie está en formato viejo</div>
+        <div class="text-xs mt-4" style="color:#78580a;line-height:1.5">No se puede editar acá. Para actualizarla, eliminala con <strong>✕</strong> arriba y recreala con el botón <strong>🔗 Biserie/Triserie</strong> del bloque.</div>
+      </div>
+    </div>`;
+  }
+  // Banner visible (no solo al expandir) para biseries legacy
+  if(isLegacyAcc&&!isExp){
+    html+=`<div class="text-xs mt-4" style="background:rgba(234,179,8,.12);color:#a16207;padding:5px 8px;border-radius:6px;font-weight:600;line-height:1.3">⚠ Formato viejo — tap para ver cómo actualizar</div>`;
   }
   html+=`</div>`;
   return html;
