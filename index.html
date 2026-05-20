@@ -1819,26 +1819,49 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   const mode=getTrackMode(ex);
   const eid=eidOf(ex);
   const pr=prOf(eid,mode);
-  // Identificar set "current": curWorkSetEdit si fue forzado, sino primer sin RPE.
+  // Identificar set "current": curWorkSetEdit si fue forzado, sino primer set INCOMPLETO
+  // (sin RPE o con RPE pero sin felt). Antes era solo s.rpe===null pero eso causaba que
+  // al marcar RPE el currentSi saltara al siguiente set sin esperar el felt (bug).
   let currentSi=-1;
   if(curWorkSetEdit!==null&&curWorkSetEdit>=0&&curWorkSetEdit<sets.length){
     currentSi=curWorkSetEdit;
   } else {
-    currentSi=sets.findIndex(s=>s.rpe===null);
+    currentSi=sets.findIndex(s=>s.rpe===null||s.felt===null);
   }
   // Si hay countdown activo para este ejercicio, mostramos estado C en lugar de set card
   const isCountdownActive = _workCountdown && _workCountdown.ci===ci;
 
-  // HEADER · simplificado · nombre + PR inline + botón ⓘ (info en bottom sheet)
-  let html=`<div class="row mb-14" style="align-items:center;gap:10px">
+  // HEADER · nombre + meta line con PR / historial / última sesión + botón ⓘ (detalle en sheet)
+  const histLen=hist(eid).length;
+  const prevSessRec=lastSessionRec(eid,mode);
+  // Meta brief: PR · N sesiones · última sesión (resumen 1 línea si hay)
+  const metaParts=[];
+  if(pr>0) metaParts.push(`🏆 ${formatPR(pr,mode)}`);
+  if(histLen>0) metaParts.push(`${histLen} sesion${histLen===1?'':'es'}`);
+  const metaLine=metaParts.length?metaParts.join(' · '):'';
+  let html=`<div class="row mb-12" style="align-items:flex-start;gap:10px">
     <div style="flex:1;min-width:0">
       <div style="font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;line-height:1.15">${getExName(ex)}</div>
-      ${pr>0?`<div style="font-size:11px;color:var(--mt);margin-top:3px;font-weight:500">🏆 ${formatPR(pr,mode)}</div>`:''}
+      ${metaLine?`<div style="font-size:11px;color:var(--mt);margin-top:3px;font-weight:500">${metaLine}</div>`:''}
     </div>
-    <button class="icon-btn" onclick="openExInfoSheet(${ci})" title="Info del ejercicio" aria-label="Info del ejercicio" style="width:36px;height:36px;font-size:14px;flex-shrink:0">
+    <button class="icon-btn" onclick="openExInfoSheet(${ci})" title="Más info" aria-label="Más info del ejercicio" style="width:36px;height:36px;font-size:14px;flex-shrink:0;margin-top:-2px">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
     </button>
   </div>`;
+  // Tip del coach · SIEMPRE visible en pantalla principal si hay ex.notes (pedido del usuario)
+  if(ex.notes){
+    html+=`<div class="card mb-14" style="cursor:default;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.25);padding:10px 14px;box-shadow:var(--lift-in)">
+      <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);margin-bottom:4px">💡 Tip del coach</div>
+      <div style="font-size:13px;color:var(--tx);line-height:1.45;white-space:pre-wrap">${ex.notes}</div>
+    </div>`;
+  }
+  // Última sesión · resumen breve (siempre visible si existe — el detalle va al sheet)
+  if(prevSessRec){
+    html+=`<div class="card mb-14" style="cursor:pointer;background:var(--sf);border:1px solid var(--bd);padding:10px 14px;box-shadow:var(--lift-in);display:flex;align-items:flex-start;gap:8px" onclick="openExInfoSheet(${ci});setExInfoTab('last')">
+      <span style="font-size:14px;flex-shrink:0;line-height:1.4">📝</span>
+      <div style="flex:1;min-width:0;font-size:12px;color:var(--mt);line-height:1.4"><span style="color:var(--tx);font-weight:600">Última sesión</span> · ${prevSessRec}</div>
+    </div>`;
+  }
 
   // PILLS · un pill por set + add/remove
   html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:0 2px;align-items:center">`;
@@ -2120,11 +2143,9 @@ function renderWork(){
     const u=units.findIndex(u=>u.indexes.includes(curExI));
     if(u>=0){const targetCurExI=units[u].firstIdx;curStopIdx=stops.findIndex(s=>s.curExIVal===targetCurExI);}
   }
-  html+=`<div class="flex gap-10 mt-20">`;
-  if(curStopIdx>0) html+=`<button class="btn-out" onclick="curExI=${stops[curStopIdx-1].curExIVal};stopTimer();renderWork()">← Anterior</button>`;
-  if(curStopIdx<stops.length-1) html+=`<button class="btn" onclick="curExI=${stops[curStopIdx+1].curExIVal};stopTimer();renderWork()">Siguiente →</button>`;
-  else html+=`<button class="btn" onclick="finishWorkout()">✓ Terminar</button>`;
-  html+=`</div></div>`;
+  // Fase 4.1: botones Anterior/Siguiente sacados — el usuario navega con las tabs arriba
+  // o con "Siguiente ejercicio →" / "🏁 Finalizar entreno" del estado D (todos sets completos).
+  html+=`</div>`;
   
   $("work-content").innerHTML=html;
   if(curSess) saveDraft();
