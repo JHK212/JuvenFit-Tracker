@@ -316,6 +316,27 @@ body{-webkit-font-smoothing:antialiased;}
 /* Danger button (borrar todo) */
 .oak-btn-danger{background:transparent;color:var(--dn);border:1px solid rgba(137,61,61,0.3);padding:13px 28px;border-radius:6px;font-family:var(--fs);font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;width:100%;}
 .oak-btn-danger:active{border-color:var(--dn);}
+
+/* ═══════ OAK IMPORT QR ═══════ */
+.oak-import-h{font-family:var(--serif);font-size:24px;color:var(--tx);font-weight:500;margin-bottom:6px;line-height:1.1;}
+.oak-import-h em{font-style:italic;color:var(--ac);}
+.oak-import-sub{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--mt);margin-bottom:22px;line-height:1.4;}
+/* Frame con esquinas latón (estilo Oak) */
+.oak-qr-frame{position:relative;width:100%;max-width:280px;aspect-ratio:1;margin:0 auto;background:#1F1611;border-radius:0;overflow:hidden;}
+.oak-qr-frame::before,.oak-qr-frame::after,.oak-qr-corner{content:'';position:absolute;width:32px;height:32px;border:2px solid var(--ac);}
+.oak-qr-frame::before{top:0;left:0;border-right:none;border-bottom:none;}
+.oak-qr-frame::after{top:0;right:0;border-left:none;border-bottom:none;}
+.oak-qr-frame .c-bl{bottom:0;left:0;border-top:none;border-right:none;position:absolute;width:32px;height:32px;border-left:2px solid var(--ac);border-bottom:2px solid var(--ac);}
+.oak-qr-frame .c-br{bottom:0;right:0;border-top:none;border-left:none;position:absolute;width:32px;height:32px;border-right:2px solid var(--ac);border-bottom:2px solid var(--ac);}
+.oak-qr-frame video{width:100%;height:100%;object-fit:cover;}
+.oak-qr-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(196,162,107,0.6);font-family:var(--serif);font-style:italic;font-size:14px;text-align:center;padding:20px;}
+/* Casillas individuales del código (8 chars) */
+.oak-code-row{display:flex;gap:6px;justify-content:center;margin:20px 0;}
+.oak-code-cell{width:36px;height:48px;border:1px solid var(--bd);background:var(--cd);font-family:var(--serif);font-style:italic;font-size:22px;font-weight:500;text-align:center;color:var(--tx);outline:none;border-radius:6px;text-transform:uppercase;padding:0;}
+.oak-code-cell:focus{border-color:var(--ac);}
+.oak-code-cell.is-filled{background:var(--sf);}
+.oak-code-divider{display:flex;align-items:center;gap:10px;margin:24px 0 12px;font-family:var(--fs);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--mt);}
+.oak-code-divider::before,.oak-code-divider::after{content:'';flex:1;height:1px;background:var(--bd);}
 </style>
 </head>
 <body>
@@ -463,10 +484,10 @@ body{-webkit-font-smoothing:antialiased;}
 
 <!-- ══ HISTORY ══ -->
 <div id="hist" class="page">
-  <div class="header">
-    <button class="icon-btn" onclick="showPage('home')">←</button>
-    <div id="hist-title" class="fw-700" style="font-size:16px;text-align:center;flex:1;color:var(--ac)"></div>
-    <div style="width:44px"></div>
+  <div class="oak-page-header">
+    <button class="oak-icon-btn" onclick="showPage('home')" aria-label="Volver">←</button>
+    <div id="hist-title" class="oak-page-header-title" style="font-style:italic;color:var(--ac)"></div>
+    <div class="oak-page-header-spacer"></div>
   </div>
   <div class="sec">
     <div class="flex gap-12 mb-20">
@@ -480,12 +501,12 @@ body{-webkit-font-smoothing:antialiased;}
 
 <!-- ══ ROUTINE VIEW ══ -->
 <div id="routine" class="page">
-  <div class="header">
-    <button class="icon-btn" onclick="showPage('home')">←</button>
-    <div class="fw-700" style="font-size:16px;text-align:center;flex:1">Mi Rutina</div>
-    <div style="width:44px"></div>
+  <div class="oak-page-header">
+    <button class="oak-icon-btn" onclick="showPage('home')" aria-label="Volver">←</button>
+    <div class="oak-page-header-title">Mi <em>rutina</em></div>
+    <div class="oak-page-header-spacer"></div>
   </div>
-  <div id="routine-content"></div>
+  <div id="routine-content" style="padding:0 20px 40px"></div>
 </div>
 
 <!-- ══ SETTINGS ══ -->
@@ -564,7 +585,7 @@ body{-webkit-font-smoothing:antialiased;}
 
 <!-- ══ EDIT DAY (BLOQUES) ══ -->
 <div id="editD" class="page">
-  <div class="header"><button class="icon-btn" onclick="closeDayBlockEditor()">←</button><div id="editD-title" class="fw-700" style="font-size:16px;text-align:center;flex:1">Editar día</div><button class="btn-sm" onclick="saveDayBlockEditor()" style="background:var(--ac);color:#fff;font-weight:700">Listo</button></div>
+  <div class="oak-page-header"><button class="oak-icon-btn" onclick="closeDayBlockEditor()" aria-label="Volver">←</button><div id="editD-title" class="oak-page-header-title"><em>Editar día</em></div><button class="oak-work-fin" onclick="saveDayBlockEditor()" style="padding:8px 14px">Listo</button></div>
   <div class="sec">
     <div class="mb-16">
       <label class="label">Nombre del día</label>
@@ -581,19 +602,19 @@ body{-webkit-font-smoothing:antialiased;}
 
 <!-- ══ EDIT EXERCISE ══ -->
 <div id="editE" class="page">
-  <div class="header"><button class="icon-btn" onclick="showPage('editR')">←</button><div class="fw-700" style="font-size:16px;text-align:center;flex:1">Editar Ejercicio</div><div style="width:44px"></div></div>
+  <div class="oak-page-header"><button class="oak-icon-btn" onclick="showPage('editR')" aria-label="Volver">←</button><div class="oak-page-header-title"><em>Editar ejercicio</em></div><div class="oak-page-header-spacer"></div></div>
   <div id="editE-content" class="sec"></div>
 </div>
 
 <!-- ══ EDIT SESSION ══ -->
 <div id="editS" class="page">
-  <div class="header"><button class="icon-btn" onclick="showPage('home')">←</button><div class="fw-700" style="font-size:16px;text-align:center;flex:1">Editar Sesión</div><div style="width:44px"></div></div>
+  <div class="oak-page-header"><button class="oak-icon-btn" onclick="showPage('home')" aria-label="Volver">←</button><div class="oak-page-header-title"><em>Editar sesión</em></div><div class="oak-page-header-spacer"></div></div>
   <div id="editS-content" class="sec"></div>
 </div>
 
 <!-- ══ DELETE HISTORY ══ -->
 <div id="delHist" class="page">
-  <div class="header"><button class="icon-btn" onclick="showPage(window._delHistFrom||'editR')">←</button><div class="fw-700" style="font-size:16px;text-align:center;flex:1">Borrar Sesiones</div><div style="width:44px"></div></div>
+  <div class="oak-page-header"><button class="oak-icon-btn" onclick="showPage(window._delHistFrom||'editR')" aria-label="Volver">←</button><div class="oak-page-header-title"><em>Borrar sesiones</em></div><div class="oak-page-header-spacer"></div></div>
   <div class="sec"><div class="text-sm text-mt mb-12">Tocá las sesiones que querés eliminar</div><div id="del-list"></div><button id="del-btn" class="btn-danger mt-20" onclick="deleteSelected()" style="display:none">Eliminar</button><button class="btn-out mt-12" onclick="selectAllSessions()">Seleccionar todas</button></div>
 </div>
 
@@ -3313,34 +3334,99 @@ function addCustomExerciseToBlockBE(bi){
 let _qrScanRef=null,_qrStream=null;
 let _pendingImport=null;
 
+// Pantalla unificada Oak: frame QR scanner arriba + casillas individuales para código abajo.
 function openImportRoutine(){
-  let html=`<div class="fw-800 mb-4" style="font-size:18px">Importar rutina del coach</div>`;
-  html+=`<div class="text-sm text-mt mb-20">Tu coach te pasó un código de 8 caracteres o un QR.</div>`;
-  html+=`<button class="btn mb-12" onclick="startQrScanner()">📷 Escanear QR</button>`;
-  html+=`<button class="btn-out mb-12" onclick="showPasteCodeUI()">⌨ Ingresar código</button>`;
-  html+=`<button class="btn-out" onclick="closeModal()">Cancelar</button>`;
+  let html=`<div class="oak-import-h">Importar <em>rutina</em></div>`;
+  html+=`<div class="oak-import-sub">Pedile a tu coach el código de la rutina o escaneá su QR.</div>`;
+  // Frame del scanner
+  html+=`<div class="oak-qr-frame">
+    <span class="c-bl"></span><span class="c-br"></span>
+    <video id="qr-video" playsinline muted style="display:none"></video>
+    <canvas id="qr-canvas-hidden" style="display:none"></canvas>
+    <div id="qr-placeholder" class="oak-qr-placeholder">Apuntá al código</div>
+  </div>`;
+  // Botón discreto para iniciar/parar scanner
+  html+=`<div style="text-align:center;margin-top:14px"><button id="qr-toggle" class="oak-btn-out" onclick="toggleQrScanner()" style="width:auto;display:inline-block;padding:9px 20px;font-size:11px">Activar cámara</button></div>`;
+  // Divisor
+  html+=`<div class="oak-code-divider">o pegá el código</div>`;
+  // 8 casillas individuales
+  html+=`<div class="oak-code-row">${Array.from({length:8},(_,i)=>`<input class="oak-code-cell" type="text" maxlength="1" id="code-cell-${i}" data-idx="${i}" autocomplete="off" inputmode="text" autocapitalize="characters" onkeydown="onCodeCellKey(event,${i})" oninput="onCodeCellInput(event,${i})">`).join('')}</div>`;
+  // Botón principal
+  html+=`<button class="oak-btn" onclick="submitImportCode()" style="margin-top:8px">Importar rutina</button>`;
+  html+=`<button class="oak-btn-out" onclick="stopQrScanner();closeModal()" style="margin-top:10px">Cancelar</button>`;
   $("modal-content").innerHTML=html;
   $("modal").classList.add('show');
+  setTimeout(()=>{const f=$("code-cell-0");if(f) f.focus();},150);
 }
 
-function showPasteCodeUI(){
-  stopQrScanner();
-  let html=`<div class="fw-800 mb-4" style="font-size:18px">Ingresar código</div>`;
-  html+=`<div class="text-sm text-mt mb-16">Escribí o pegá el código que te dio tu coach.</div>`;
-  html+=`<input id="import-code" class="input mb-16" placeholder="A3F2-D9B4" autocapitalize="characters" autocomplete="off" maxlength="11" oninput="this.value=this.value.toUpperCase()" style="text-align:center;font-family:var(--fm);letter-spacing:2px;font-size:20px">`;
-  html+=`<button class="btn mb-12" onclick="submitImportCode()">Importar</button>`;
-  html+=`<button class="btn-out" onclick="openImportRoutine()">Volver</button>`;
-  $("modal-content").innerHTML=html;
-  setTimeout(()=>{const i=$("import-code");if(i){i.focus();}},100);
+// Toggle scanner on/off (botón único en vez de pantalla aparte)
+function toggleQrScanner(){
+  if(_qrStream){stopQrScanner();const ph=$("qr-placeholder");if(ph) ph.style.display='flex';const v=$("qr-video");if(v) v.style.display='none';const t=$("qr-toggle");if(t) t.textContent='Activar cámara';return;}
+  startQrScannerOak();
+}
+
+async function startQrScannerOak(){
+  // Esperar a que jsQR cargue
+  if(typeof jsQR==='undefined'){
+    let attempts=0;
+    while(typeof jsQR==='undefined'&&attempts<30){await new Promise(r=>setTimeout(r,100));attempts++;}
+    if(typeof jsQR==='undefined'){toast('Scanner no disponible. Pegá el código','error');return;}
+  }
+  const v=$("qr-video"),ph=$("qr-placeholder"),t=$("qr-toggle");
+  if(!v) return;
+  try{
+    _qrStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    v.srcObject=_qrStream;v.setAttribute('playsinline',true);
+    await v.play();
+    v.style.display='block';
+    if(ph) ph.style.display='none';
+    if(t) t.textContent='Apagar cámara';
+    qrScanLoop();
+  }catch(err){
+    const msg=err&&err.name==='NotAllowedError'?'Permiso de cámara denegado':((err&&err.message)||'No se pudo acceder a la cámara');
+    if(ph){ph.style.display='flex';ph.textContent=msg;}
+  }
+}
+
+// Casillas individuales: avanzar/retroceder con tipeo o backspace
+function onCodeCellInput(ev,idx){
+  const inp=ev.target;
+  let v=(inp.value||'').toUpperCase().replace(/[^A-F0-9]/g,'');
+  inp.value=v.slice(0,1);
+  if(inp.value) inp.classList.add('is-filled'); else inp.classList.remove('is-filled');
+  // Si pegó múltiples caracteres (paste), distribuir
+  if(v.length>1){
+    for(let i=0;i<v.length&&idx+i<8;i++){
+      const cell=$("code-cell-"+(idx+i));
+      if(cell){cell.value=v[i];cell.classList.add('is-filled');}
+    }
+    const nextIdx=Math.min(idx+v.length,7);
+    const next=$("code-cell-"+nextIdx);if(next) next.focus();
+    return;
+  }
+  // Si llenó esta casilla, focus a la siguiente
+  if(inp.value&&idx<7){const next=$("code-cell-"+(idx+1));if(next) next.focus();}
+}
+
+function onCodeCellKey(ev,idx){
+  if(ev.key==='Backspace'&&!ev.target.value&&idx>0){
+    const prev=$("code-cell-"+(idx-1));if(prev){prev.focus();prev.value='';prev.classList.remove('is-filled');}
+  }
+  if(ev.key==='Enter') submitImportCode();
 }
 
 async function submitImportCode(){
-  const inp=$("import-code");
-  if(!inp) return;
-  const t=extractTokenFromText(inp.value);
-  if(!t){toast('Código inválido (8 caracteres, letras A-F y números)','error');return;}
+  // Recoger valor de las casillas
+  let code='';
+  for(let i=0;i<8;i++){const c=$("code-cell-"+i);if(c&&c.value) code+=c.value;}
+  const t=extractTokenFromText(code);
+  if(!t){toast('Código inválido (8 caracteres hex)','error');return;}
+  stopQrScanner();
   await fetchAndPreviewRoutine(t);
 }
+
+// Compatibilidad con código viejo (otras funciones llaman a showPasteCodeUI)
+function showPasteCodeUI(){openImportRoutine();}
 
 function extractTokenFromText(data){
   if(!data) return null;
