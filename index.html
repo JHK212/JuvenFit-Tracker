@@ -200,6 +200,84 @@ body{-webkit-font-smoothing:antialiased;}
 .oak-welcome-card-p{font-family:var(--fs);font-size:13px;color:var(--mt);line-height:1.5;margin-bottom:14px;}
 .oak-or{text-align:center;font-family:var(--fs);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--mt);margin:18px 0;}
 .oak-or::before,.oak-or::after{content:'';display:inline-block;width:32px;height:1px;background:var(--bd);vertical-align:middle;margin:0 12px;}
+
+/* ═══════ OAK WORKOUT ═══════ */
+.oak-work-header{padding:18px 20px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;border-bottom:1px solid var(--bd);}
+.oak-work-close{width:30px;height:30px;border-radius:8px;background:transparent;border:1px solid var(--bd);color:var(--tx);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;}
+.oak-work-close:active{border-color:var(--ac);color:var(--ac);}
+.oak-work-title{flex:1;text-align:center;min-width:0;}
+.oak-work-title-h{font-family:var(--serif);font-size:18px;color:var(--tx);font-weight:500;line-height:1.1;}
+.oak-work-title-h em{font-style:italic;color:var(--ac);font-weight:500;}
+.oak-work-title-sub{font-family:var(--fs);font-size:10px;color:var(--mt);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;}
+.oak-work-fin{background:var(--ac);color:#FBF6E8;border:none;padding:7px 16px;border-radius:6px;font-family:var(--fs);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;flex-shrink:0;}
+.oak-work-fin:active{background:#6E5119;}
+
+/* Tabs con numerales romanos */
+.oak-tabs{display:flex;border-bottom:1px solid var(--bd);padding:0 12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.oak-tab{background:transparent;border:none;padding:14px 4px 12px;margin:0 14px;font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mt);cursor:pointer;position:relative;flex-shrink:0;text-align:center;line-height:1.2;}
+.oak-tab-num{display:block;font-family:var(--serif);font-style:italic;font-size:18px;color:var(--mt);font-weight:500;margin-bottom:4px;letter-spacing:0;line-height:1;}
+.oak-tab:active,.oak-tab:hover{color:var(--tx);}
+.oak-tab:active .oak-tab-num,.oak-tab:hover .oak-tab-num{color:var(--tx);}
+.oak-tab.is-active{color:var(--ac);}
+.oak-tab.is-active .oak-tab-num{color:var(--ac);}
+.oak-tab.is-active::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--ac);}
+.oak-tab.is-done .oak-tab-num{color:var(--ac);}
+
+/* Cuerpo del ejercicio */
+.oak-ex-body{padding:20px 20px 100px;}
+.oak-ex-crumb{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ac);margin-bottom:10px;}
+.oak-ex-title{font-family:var(--serif);font-size:30px;color:var(--tx);font-weight:500;line-height:1.05;}
+.oak-ex-title em{font-style:italic;color:var(--ac);font-weight:500;}
+.oak-ex-meta{font-family:var(--fs);font-size:11px;color:var(--mt);margin-top:8px;display:flex;gap:14px;flex-wrap:wrap;align-items:baseline;}
+.oak-ex-meta .oak-num-sm{color:var(--tx);}
+
+/* Tabla de sets — encabezado + filas con regla */
+.oak-set-table{margin-top:20px;}
+.oak-set-head{display:grid;grid-template-columns:30px 1fr 70px 50px;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mt);}
+.oak-set-row{display:grid;grid-template-columns:30px 1fr 70px 50px;gap:10px;padding:14px 0;border-bottom:1px solid var(--bd);align-items:center;}
+.oak-set-row.is-empty{opacity:0.45;}
+.oak-set-num{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--ac);font-weight:500;line-height:1;}
+.oak-set-val{font-family:var(--serif);font-size:20px;font-weight:500;color:var(--tx);line-height:1;display:flex;align-items:baseline;gap:4px;cursor:pointer;}
+.oak-set-val .oak-unit{font-family:var(--fs);font-size:10px;color:var(--mt);font-weight:600;}
+.oak-set-rpe{font-family:var(--serif);font-size:18px;color:var(--tx);font-weight:500;text-align:right;line-height:1;}
+.oak-set-rpe.pending{color:var(--mt);}
+.oak-set-rpe-check{display:inline-block;color:var(--ac);font-size:16px;}
+
+/* Editor inline de peso/reps (botones − valor +) */
+.oak-input-block{margin-top:20px;}
+.oak-input-row{display:flex;gap:14px;}
+.oak-input-cell{flex:1;}
+.oak-input-lbl{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--mt);margin-bottom:8px;}
+.oak-input-ctrl{display:flex;align-items:center;gap:8px;}
+.oak-input-btn{width:34px;height:34px;border-radius:6px;background:transparent;border:1px solid var(--bd);color:var(--tx);font-size:18px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;}
+.oak-input-btn:active{border-color:var(--ac);color:var(--ac);}
+.oak-input-val{flex:1;text-align:center;font-family:var(--serif);font-size:22px;font-weight:500;color:var(--tx);cursor:pointer;line-height:1;padding:6px 0;border-bottom:1px solid var(--bd);}
+
+/* RPE como números clickeables 6-10 */
+.oak-rpe-block{margin-top:24px;}
+.oak-rpe-row{display:flex;gap:8px;}
+.oak-rpe-btn{flex:1;background:transparent;border:1px solid var(--bd);color:var(--tx);padding:14px 0;font-family:var(--serif);font-size:20px;font-weight:500;cursor:pointer;border-radius:6px;line-height:1;}
+.oak-rpe-btn:active,.oak-rpe-btn.is-active{background:var(--ac);color:#FBF6E8;border-color:var(--ac);}
+
+/* Banner biserie/triserie */
+.oak-grp-banner{margin-top:16px;border-top:1px solid var(--ac);border-bottom:1px solid var(--ac);padding:14px 4px;}
+.oak-grp-tag{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ac);margin-bottom:4px;}
+.oak-grp-list{font-family:var(--fs);font-size:11px;color:var(--mt);line-height:1.4;}
+.oak-grp-actions{display:flex;gap:8px;margin-top:10px;}
+.oak-grp-actions .oak-btn-out,.oak-grp-actions .oak-btn{padding:9px 14px;font-size:11px;}
+
+/* Timer Oak — barra abajo del viewport */
+.oak-timer{position:fixed;left:0;right:0;bottom:0;background:var(--cd);border-top:1px solid var(--ac);padding:14px 20px;display:none;align-items:center;gap:14px;z-index:90;padding-bottom:calc(14px + env(safe-area-inset-bottom));}
+.oak-timer.show{display:flex;}
+.oak-timer-l{flex:1;min-width:0;}
+.oak-timer-lbl{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mt);margin-bottom:4px;}
+.oak-timer-num{font-family:var(--serif);font-style:italic;font-size:32px;color:var(--ac);font-weight:500;line-height:1;cursor:pointer;}
+.oak-timer-track{height:2px;background:var(--bd);margin-top:6px;}
+.oak-timer-fill{height:100%;background:var(--ac);transition:width .3s;}
+.oak-timer-actions{display:flex;gap:6px;}
+
+/* Nav inferior del workout */
+.oak-work-nav{display:flex;gap:10px;margin-top:32px;padding:0 20px;}
 </style>
 </head>
 <body>
@@ -312,17 +390,25 @@ body{-webkit-font-smoothing:antialiased;}
 
 <!-- ══ WORKOUT ══ -->
 <div id="work" class="page">
-  <div class="header">
-    <button class="icon-btn" onclick="confirmExit()">←</button>
-    <div style="text-align:center;flex:1"><div id="work-day" class="text-sm fw-700 text-ac"></div><div id="work-sub" class="text-xs text-mt"></div></div>
-    <div style="width:44px"></div>
+  <div class="oak-work-header">
+    <button class="oak-work-close" onclick="confirmExit()" aria-label="Salir">✕</button>
+    <div class="oak-work-title">
+      <div id="work-day" class="oak-work-title-h"></div>
+      <div id="work-sub" class="oak-work-title-sub"></div>
+    </div>
+    <button class="oak-work-fin" onclick="finishWorkout()">Fin</button>
   </div>
   <div id="work-content"></div>
-  <div id="timer" class="timer-bar">
-    <div style="flex:1"><div class="text-xs text-mt fw-700 mb-4">DESCANSO</div><div class="timer-track"><div id="timer-fill" class="timer-fill" style="width:0%"></div></div></div>
-    <div id="timer-num" class="timer-num" onclick="tapTimerNum()">0:00</div>
-    <button class="icon-btn" onclick="if(timerTotal)startTimer(timerTotal)" style="width:40px;height:40px;font-size:16px">↻</button>
-    <button class="icon-btn" onclick="stopTimer()" style="width:40px;height:40px;font-size:14px">✕</button>
+  <div id="timer" class="oak-timer">
+    <div class="oak-timer-l">
+      <div class="oak-timer-lbl">Descanso</div>
+      <div class="oak-timer-track"><div id="timer-fill" class="oak-timer-fill" style="width:0%"></div></div>
+    </div>
+    <div id="timer-num" class="oak-timer-num" onclick="tapTimerNum()">0:00</div>
+    <div class="oak-timer-actions">
+      <button class="oak-icon-btn" onclick="if(timerTotal)startTimer(timerTotal)" aria-label="Reiniciar">↻</button>
+      <button class="oak-icon-btn" onclick="stopTimer()" aria-label="Cerrar">✕</button>
+    </div>
   </div>
   <div id="exit-modal" class="modal-overlay" onclick="closeExitModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1639,32 +1725,88 @@ function startWorkout(dayId,customDate){
 
 // HTML de un set-card (un set de un ejercicio del workout) — reutilizable single y grupo.
 // opts: {ci, allowAddRemove (true en single, false en grupo)}
+// Oak set-row: fila editable (peso/reps inline con − +) + RPE como botones 6-10 estilo
 function renderSetCardHTML(s,si,sets,ex,mode,opts){
   const ci=opts.ci;
   const allowAddRemove=opts.allowAddRemove!==false;
-  const bc=s.rpe?({liviano:'var(--gn)',justo:'var(--yw)',limite:'var(--dn)'}[s.rpe]+'30'):'var(--bd)';
   const isLast=si===sets.length-1;
-  const hdr=(isLast&&allowAddRemove)
-    ?`<div class="row mb-12"><span class="text-xs fw-700 text-mt">SERIE ${si+1}</span><div class="flex gap-6">${sets.length>1?`<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="removeWorkSet()">−</button>`:''}<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="addWorkSet()">+</button></div></div>`
-    :`<div class="text-xs fw-700 text-mt mb-12">SERIE ${si+1}</div>`;
-  let fieldsHtml='';
+  const rpeMap={liviano:'Liviano',justo:'Justo',limite:'Límite'};
+  const setRoman=toRoman(si+1);
+  // Header de la fila
+  let html=`<div style="border-top:1px solid var(--bd);padding:14px 0;margin-top:14px">`;
+  html+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div style="display:flex;align-items:baseline;gap:10px"><span style="font-family:var(--serif);font-style:italic;font-size:22px;color:var(--ac);font-weight:500;line-height:1">${setRoman}</span><span class="oak-mark">Serie ${si+1}</span></div>
+    ${(isLast&&allowAddRemove)?`<div style="display:flex;gap:6px">${sets.length>1?`<button class="oak-icon-btn" style="width:28px;height:28px;font-size:14px" onclick="removeWorkSet(${ci})" aria-label="Quitar serie">−</button>`:''}<button class="oak-icon-btn" style="width:28px;height:28px;font-size:14px" onclick="addWorkSet(${ci})" aria-label="Agregar serie">+</button></div>`:''}
+  </div>`;
+  // Editor inline de peso/reps/tiempo
+  let editorHtml='';
   if(mode==='weight'){
-    fieldsHtml+=`<div class="row mb-12"><span class="text-sm text-mt fw-600">PESO</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},-2.5,${ci})">−</button><div id="val-w-${ci}-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'w',null,${ci})">${s.w}<span class="text-sm text-mt">kg</span></div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},2.5,${ci})">+</button></div></div>`;
-    fieldsHtml+=`<div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">REPS</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button><div id="val-r-${ci}-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button></div></div>`;
+    editorHtml+=`<div class="oak-input-row">
+      <div class="oak-input-cell">
+        <div class="oak-input-lbl">Peso</div>
+        <div class="oak-input-ctrl">
+          <button class="oak-input-btn" onclick="adjW(${si},-2.5,${ci})">−</button>
+          <div id="val-w-${ci}-${si}" class="oak-input-val" onclick="typeVal(${si},'w',null,${ci})">${s.w}<span class="oak-unit" style="font-family:var(--fs);font-size:11px;color:var(--mt);font-weight:600;margin-left:3px">kg</span></div>
+          <button class="oak-input-btn" onclick="adjW(${si},2.5,${ci})">+</button>
+        </div>
+      </div>
+      <div class="oak-input-cell">
+        <div class="oak-input-lbl">Reps</div>
+        <div class="oak-input-ctrl">
+          <button class="oak-input-btn" onclick="adjR(${si},-1,${ci})">−</button>
+          <div id="val-r-${ci}-${si}" class="oak-input-val" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
+          <button class="oak-input-btn" onclick="adjR(${si},1,${ci})">+</button>
+        </div>
+      </div>
+    </div>`;
   } else if(mode==='reps'){
-    fieldsHtml+=`<div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">REPS</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button><div id="val-r-${ci}-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button></div></div>`;
+    editorHtml+=`<div class="oak-input-cell">
+      <div class="oak-input-lbl">Reps</div>
+      <div class="oak-input-ctrl">
+        <button class="oak-input-btn" onclick="adjR(${si},-1,${ci})">−</button>
+        <div id="val-r-${ci}-${si}" class="oak-input-val" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
+        <button class="oak-input-btn" onclick="adjR(${si},1,${ci})">+</button>
+      </div>
+    </div>`;
   } else if(mode==='time'){
-    fieldsHtml+=`<div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">TIEMPO</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-5,${ci})">−</button><div id="val-r-${ci}-${si}" class="mono fw-800" style="font-size:28px;min-width:110px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r','Tiempo (segs)',${ci})">${s.r}<span class="text-sm text-mt"> segs</span></div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},5,${ci})">+</button></div></div>`;
+    editorHtml+=`<div class="oak-input-cell">
+      <div class="oak-input-lbl">Tiempo</div>
+      <div class="oak-input-ctrl">
+        <button class="oak-input-btn" onclick="adjR(${si},-5,${ci})">−</button>
+        <div id="val-r-${ci}-${si}" class="oak-input-val" onclick="typeVal(${si},'r','Tiempo (segs)',${ci})">${s.r}<span class="oak-unit" style="font-family:var(--fs);font-size:11px;color:var(--mt);font-weight:600;margin-left:3px">segs</span></div>
+        <button class="oak-input-btn" onclick="adjR(${si},5,${ci})">+</button>
+      </div>
+    </div>`;
   }
-  let html=`<div class="set-card" style="border-color:${bc}">${hdr}
-    ${fieldsHtml}
-    <div class="flex gap-8"><button class="rpe-btn ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano',${ci})">🟢 Liviano</button><button class="rpe-btn ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo',${ci})">🟡 Justo</button><button class="rpe-btn ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite',${ci})">🔴 Al límite</button></div>`;
+  html+=`<div class="oak-input-block" style="margin-top:0">${editorHtml}</div>`;
+  // RPE como pills Oak: Liviano / Justo / Límite
+  html+=`<div class="oak-rpe-block">
+    <div class="oak-input-lbl">Esfuerzo percibido</div>
+    <div class="oak-rpe-row">
+      <button class="oak-rpe-btn${s.rpe==='liviano'?' is-active':''}" onclick="setRpe(${si},'liviano',${ci})" style="font-family:var(--fs);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:12px 0">Liviano</button>
+      <button class="oak-rpe-btn${s.rpe==='justo'?' is-active':''}" onclick="setRpe(${si},'justo',${ci})" style="font-family:var(--fs);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:12px 0">Justo</button>
+      <button class="oak-rpe-btn${s.rpe==='limite'?' is-active':''}" onclick="setRpe(${si},'limite',${ci})" style="font-family:var(--fs);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:12px 0">Límite</button>
+    </div>
+  </div>`;
+  // Felt + rec
   if(s.rpe){
     if(s.felt==null){
-      html+=`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="text-xs text-mt fw-600 mb-8" style="text-align:center">¿Sentiste el músculo?</div><div class="flex gap-8"><button class="rpe-btn" onclick="setFelt(${si},true,${ci})">✅ Sí</button><button class="rpe-btn" onclick="setFelt(${si},false,${ci})">❌ No</button></div></div>`;
+      html+=`<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--bd)">
+        <div class="oak-input-lbl" style="text-align:center;margin-bottom:8px">¿Sentiste el músculo?</div>
+        <div class="oak-rpe-row">
+          <button class="oak-rpe-btn" onclick="setFelt(${si},true,${ci})" style="font-family:var(--fs);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase">Sí</button>
+          <button class="oak-rpe-btn" onclick="setFelt(${si},false,${ci})" style="font-family:var(--fs);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase">No</button>
+        </div>
+      </div>`;
     } else {
       const rd=setRecData(s.rpe,s.r,ex.reps,s.felt,mode);
-      if(rd) html+=`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="row mb-8"><span class="text-xs text-mt fw-600">${s.felt?'✅ Sintió':'❌ No sintió'}</span><button onclick="setFelt(${si},null,${ci})" style="background:none;border:1px solid var(--bd);color:var(--mt);font-size:11px;cursor:pointer;padding:4px 10px;border-radius:8px">cambiar</button></div><div class="tips-box" style="margin-top:0">${rd.phrase}${rd.muscle?`<span style="display:block;margin-top:6px">${rd.muscle}</span>`:''}</div></div>`;
+      if(rd) html+=`<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--bd)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="oak-mark">${s.felt?'Sintió':'No sintió'}</span>
+          <button onclick="setFelt(${si},null,${ci})" style="background:none;border:none;color:var(--mt);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;cursor:pointer;font-family:var(--fs);font-weight:600">Cambiar</button>
+        </div>
+        <div style="font-family:var(--serif);font-size:14px;color:var(--tx);font-style:italic;line-height:1.4">${rd.phrase}${rd.muscle?`<div style="margin-top:6px;color:var(--mt)">${rd.muscle}</div>`:''}</div>
+      </div>`;
     }
   }
   html+=`</div>`;
@@ -1674,23 +1816,38 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
 // Header común de un ejercicio en el workout: tag de bloque + nombre + meta + tips + última sesión rec
 function renderCompoundHeaderHTML(ex,ci,day,opts){
   opts=opts||{};
+  // Crumb: "BLOQUE II · EJERCICIO 2 DE 4"
   const blockOfThisEx=blockOfExercise(day,ex.id);
-  const blockTagHtml=(blockOfThisEx&&blockOfThisEx.type)?(()=>{
+  const blocks=(day.blocks||[]).filter(b=>!isMobilityBlock(b));
+  let crumb='';
+  if(blockOfThisEx){
+    const blkIdx=blocks.findIndex(b=>b===blockOfThisEx)+1;
+    const exIdx=(blockOfThisEx.exercises||[]).findIndex(e=>e.id===ex.id)+1;
+    const exTotal=(blockOfThisEx.exercises||[]).length;
     const bt=BLOCK_TYPES[blockOfThisEx.type]||BLOCK_TYPES.custom;
-    const lbl=blockOfThisEx.type==='custom'&&blockOfThisEx.label?blockOfThisEx.label:bt.label;
-    return `<span class="badge" style="background:${bt.color};color:#fff;font-size:9px;font-weight:700;padding:3px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.5px;margin-right:8px;vertical-align:middle">${lbl}</span>`;
-  })():'';
+    const blkLbl=blockOfThisEx.type==='custom'&&blockOfThisEx.label?blockOfThisEx.label:bt.label;
+    crumb=`${blkLbl} ${toRoman(blkIdx)} · Ejercicio ${exIdx} de ${exTotal}`;
+  }
   const exDisplayName=getExName(ex);
+  // Title con italic en una parte si el nombre tiene "de" o similar
+  const titleHtml=exDisplayName.includes(' de ')
+    ? exDisplayName.replace(/ de /,' <em>de</em> ')
+    : exDisplayName;
   const setsRepsLbl=formatSetsReps(ex);
-  const restLbl=ex.rest?` · Descanso: ${fmtTime(restAsSeconds(ex.rest))}`:'';
+  const restLbl=ex.rest?`Descanso ${fmtTime(restAsSeconds(ex.rest))}`:'';
   const mode=getTrackMode(ex);
   const pr=prOf(eidOf(ex),mode);
-  const prLbl=pr>0?` · 🏆 ${formatPR(pr,mode)}`:'';
-  const titleSize=opts.compact?'17px':'22px';
-  const titleColor=opts.compact?'var(--tx)':'var(--ac)';
-  let html=`<div class="${opts.compact?'mb-12':'mb-20'}"><div class="row" style="margin-bottom:4px;align-items:flex-start"><div style="font-size:${titleSize};font-weight:800;color:${titleColor};flex:1;min-width:0">${opts.compact?'':blockTagHtml}${exDisplayName}</div><button class="icon-btn" onclick="showExHistoryModal('${eidOf(ex)}')" style="width:32px;height:32px;font-size:14px;flex-shrink:0">📈</button></div><div class="text-xs text-mt">${setsRepsLbl}${restLbl}${prLbl}${ex.objective?' · '+ex.objective:''}</div>`;
-  if(ex.notes) html+=`<button class="tips-btn" style="font-size:12px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none;font-size:13px">${ex.notes}</div>`;
-  html+=`</div>`;
+  const prLbl=pr>0?`PR ${formatPR(pr,mode)}`:'';
+  let metaParts=[];
+  if(setsRepsLbl) metaParts.push(`<span class="oak-num-sm">${setsRepsLbl}</span> reps`);
+  if(restLbl) metaParts.push(restLbl);
+  if(prLbl) metaParts.push(prLbl);
+  if(ex.objective) metaParts.push(`<em>${ex.objective}</em>`);
+  let html='';
+  if(crumb&&!opts.compact) html+=`<div class="oak-ex-crumb">${crumb}</div>`;
+  html+=`<div style="display:flex;align-items:flex-start;gap:10px"><div class="oak-ex-title" style="flex:1;min-width:0">${titleHtml}</div><button class="oak-icon-btn" onclick="showExHistoryModal('${eidOf(ex)}')" aria-label="Historial">📈</button></div>`;
+  html+=`<div class="oak-ex-meta">${metaParts.join(' · ')}</div>`;
+  if(ex.notes) html+=`<div class="oak-ex-meta" style="margin-top:10px;font-style:italic;color:var(--mt)">${ex.notes}</div>`;
   return html;
 }
 
@@ -1781,17 +1938,13 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
 function renderWork(){
   const day=routine.days.find(d=>d.id===curDayId);
   const compounds=getCompounds(day);const accessories=getAccessories(day);const mobility=getMobilityExs(day);
-  $("work-day").textContent=day.name;$("work-sub").textContent=day.sub;
+  // Header con romano del día (estilo Oak)
+  const dayIdx=routine.days.findIndex(d=>d.id===curDayId)+1;
+  const dayRoman=toRoman(dayIdx);
+  $("work-day").innerHTML=`Día <em>${dayRoman}</em> · ${day.name||''}`;
+  $("work-sub").textContent=day.sub||'';
 
-  // Tabs: [MOV] + compounds + [ACC]
-  let tabsHtml='';
-  if(mobility.length){
-    const movDone=mobility.every(m=>curSess.mobility&&curSess.mobility[m.id]);
-    const movActive=curSess.mobility&&Object.values(curSess.mobility).some(Boolean);
-    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="${curExI===-1?'background:#78716c;color:#fff;border-color:#78716c':'border-color:#78716c'};font-size:18px">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:#16a34a;background:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">✓</span>':(movActive?'<span style="position:absolute;top:-4px;right:-4px;font-size:9px;color:#78716c">·</span>':'')}🤸</button>`;
-  }
-  // Construir "units": cada unit es un single compound o un grupo (biserie/triserie).
-  // Tabs muestran UN solo botón por unit. Si curExI cae en un grupo, el tab activo es el del primero del grupo.
+  // Construir "units": single compound o grupo (biserie/triserie)
   const units=[];const seenIdx=new Set();
   compounds.forEach((e,i)=>{
     if(seenIdx.has(i)) return;
@@ -1799,22 +1952,40 @@ function renderWork(){
     if(grp){grp.indexes.forEach(idx=>seenIdx.add(idx));units.push({type:'group',indexes:grp.indexes,firstIdx:grp.indexes[0],size:grp.size});}
     else{seenIdx.add(i);units.push({type:'single',indexes:[i],firstIdx:i});}
   });
-  // Índice "lógico" de la unit activa
+  // Tabs Oak: numeral romano arriba + label tracked abajo
+  // Etiquetas según bloque (Movilidad / Principal / Compl. / Finisher)
+  let tabsHtml='';
+  let tabOrdinal=1;
+  if(mobility.length){
+    const movDone=mobility.every(m=>curSess.mobility&&curSess.mobility[m.id]);
+    const movActive=curSess.mobility&&Object.values(curSess.mobility).some(Boolean);
+    const isActive=curExI===-1;
+    tabsHtml+=`<button class="oak-tab${isActive?' is-active':''}${movDone?' is-done':''}" onclick="curExI=-1;renderWork()"><span class="oak-tab-num">${toRoman(tabOrdinal++)}</span>Movilidad</button>`;
+  }
   const activeUnitIdx=units.findIndex(u=>u.indexes.includes(curExI));
-  tabsHtml+=units.map((u,ui)=>{
+  units.forEach((u,ui)=>{
     const active=ui===activeUnitIdx;
+    let label='Ejercicio';
     if(u.type==='group'){
-      const done=u.indexes.every(i=>curSess.exercises[i]?.sets?.every(s=>s.rpe!==null));
-      const label=u.size===2?'🔗 BI':u.size===3?'🔗 TRI':'🔗 ×'+u.size;
-      return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="background:${active?'#eab308':'transparent'};color:${active?'#fff':'#a16207'};border:1px solid #eab308;min-width:48px;font-size:12px;font-weight:800;padding:0 8px">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:#16a34a;background:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">✓</span>':''}${label}</button>`;
+      label=u.size===2?'Biserie':u.size===3?'Triserie':'Grupo';
+    } else {
+      // Detectar bloque del ejercicio
+      const ex=compounds[u.firstIdx];
+      const blk=blockOfExercise(day,ex.id);
+      if(blk){
+        const bt=BLOCK_TYPES[blk.type]||{label:'Ejercicio'};
+        label=blk.type==='custom'&&blk.label?blk.label:bt.label;
+      }
     }
-    const i=u.firstIdx;
-    const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
-    return`<button class="ex-tab${active?' active':''}" onclick="curExI=${i};renderWork()">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}${i+1}</button>`;
-  }).join('');
-  if(accessories.length) tabsHtml+=`<button class="ex-tab${curExI===compounds.length?' active':''}" onclick="curExI=${compounds.length};renderWork()">ACC</button>`;
+    const done=u.indexes.every(i=>curSess.exercises[i]?.sets?.every(s=>s.rpe!==null));
+    tabsHtml+=`<button class="oak-tab${active?' is-active':''}${done?' is-done':''}" onclick="curExI=${u.firstIdx};renderWork()"><span class="oak-tab-num">${toRoman(tabOrdinal++)}</span>${label}</button>`;
+  });
+  if(accessories.length){
+    const isActive=curExI===compounds.length;
+    tabsHtml+=`<button class="oak-tab${isActive?' is-active':''}" onclick="curExI=${compounds.length};renderWork()"><span class="oak-tab-num">${toRoman(tabOrdinal++)}</span>Accesorios</button>`;
+  }
 
-  let html=`<div class="ex-tabs">${tabsHtml}</div><div class="sec">`;
+  let html=`<div class="oak-tabs">${tabsHtml}</div><div class="oak-ex-body">`;
 
   if(curExI===-1){
     // ── Mobility view ──
@@ -1879,10 +2050,10 @@ function renderWork(){
     const u=units.findIndex(u=>u.indexes.includes(curExI));
     if(u>=0){const targetCurExI=units[u].firstIdx;curStopIdx=stops.findIndex(s=>s.curExIVal===targetCurExI);}
   }
-  html+=`<div class="flex gap-10 mt-20">`;
-  if(curStopIdx>0) html+=`<button class="btn-out" onclick="curExI=${stops[curStopIdx-1].curExIVal};stopTimer();renderWork()">← Anterior</button>`;
-  if(curStopIdx<stops.length-1) html+=`<button class="btn" onclick="curExI=${stops[curStopIdx+1].curExIVal};stopTimer();renderWork()">Siguiente →</button>`;
-  else html+=`<button class="btn" onclick="finishWorkout()">✓ Terminar</button>`;
+  html+=`<div class="oak-work-nav">`;
+  if(curStopIdx>0) html+=`<button class="oak-btn-out" onclick="curExI=${stops[curStopIdx-1].curExIVal};stopTimer();renderWork()" style="flex:1">Anterior</button>`;
+  if(curStopIdx<stops.length-1) html+=`<button class="oak-btn" onclick="curExI=${stops[curStopIdx+1].curExIVal};stopTimer();renderWork()" style="flex:1">Siguiente</button>`;
+  else html+=`<button class="oak-btn" onclick="finishWorkout()" style="flex:1">Terminar</button>`;
   html+=`</div></div>`;
   
   $("work-content").innerHTML=html;
