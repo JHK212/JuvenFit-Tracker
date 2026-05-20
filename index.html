@@ -50,11 +50,11 @@ input:focus,textarea:focus{border-color:rgba(96,165,250,0.4)!important;box-shado
 .card{box-shadow:var(--lift-in);}.card:active{background:var(--sf);}.card-accent{background:var(--cd);border:1px solid var(--bd);}
 .icon-btn{background:none;border:1px solid var(--bd);border-radius:var(--r-btn-sm);width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--mt);cursor:pointer;font-size:18px;transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),filter 110ms ease,background 110ms ease,color 110ms ease,box-shadow 110ms ease;}
 .icon-btn:hover{color:var(--tx);background:var(--sf);}
-.icon-btn:active{transform:scale(0.92);filter:brightness(0.82);background:var(--sf);color:var(--tx);}
+.icon-btn:active,.icon-btn.is-pressing{transform:scale(0.92);filter:brightness(0.82);background:var(--sf);color:var(--tx);}
 .icon-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(96,165,250,0.32);}
 .btn{background:var(--ac);color:var(--action-tx);border:none;border-radius:var(--r-btn);padding:16px 24px;font-size:16px;font-weight:600;cursor:pointer;width:100%;text-align:center;letter-spacing:-0.2px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 1px 2px rgba(0,0,0,0.10);transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),filter 110ms ease,box-shadow 110ms ease;}
 .btn:hover{filter:brightness(1.10);}
-.btn:active{transform:scale(0.95);filter:brightness(0.84);box-shadow:inset 0 2px 4px rgba(0,0,0,0.20),inset 0 1px 0 rgba(255,255,255,0.08);}
+.btn:active,.btn.is-pressing{transform:scale(0.95);filter:brightness(0.84);box-shadow:inset 0 2px 4px rgba(0,0,0,0.20),inset 0 1px 0 rgba(255,255,255,0.08);}
 .btn:focus-visible{outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 0 0 3px rgba(96,165,250,0.40);}
 .btn-out{background:transparent;color:var(--tx);border:1.5px solid var(--bd);border-radius:14px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;width:100%;text-align:center;}
 .btn-danger{background:transparent;color:var(--dn);border:1.5px solid rgba(239,68,68,0.2);border-radius:14px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;width:100%;text-align:center;}
@@ -71,7 +71,7 @@ input:focus,textarea:focus{border-color:rgba(96,165,250,0.4)!important;box-shado
 .label{font-size:13px;font-weight:600;color:var(--mt);display:block;margin-bottom:6px;}
 .w-btn{width:52px;height:52px;border-radius:14px;border:1px solid var(--bd);background:var(--cd);color:var(--ac);font-size:24px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:var(--fm);touch-action:manipulation;box-shadow:var(--lift-in);transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),background 110ms ease,filter 110ms ease,border-color 110ms ease;}
 .w-btn:hover{background:var(--sf);}
-.w-btn:active{transform:scale(0.90);background:var(--sf);filter:brightness(1.20);border-color:rgba(96,165,250,0.40);}
+.w-btn:active,.w-btn.is-pressing{transform:scale(0.90);background:var(--sf);filter:brightness(1.20);border-color:rgba(96,165,250,0.40);}
 .rpe-btn{padding:12px 8px;border-radius:12px;border:2px solid var(--bd);background:var(--cd);color:var(--mt);font-size:13px;font-weight:700;cursor:pointer;flex:1;text-align:center;}
 .rpe-btn.active-gn{border-color:var(--gn);background:rgba(34,197,94,0.09);color:var(--gn);}
 .rpe-btn.active-yw{border-color:rgba(251,146,60,0.40);background:rgba(251,146,60,0.14);color:var(--yw);}
@@ -151,18 +151,18 @@ body.modal-open .page{overflow:hidden;}
 /* Outline/danger/small buttons — press feedback unificado e intensificado */
 .btn-out,.btn-danger,.btn-sm{transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),filter 110ms ease,background 110ms ease,border-color 110ms ease,box-shadow 110ms ease;}
 .btn-out:hover,.btn-danger:hover,.btn-sm:hover{filter:brightness(1.20);background:var(--sf);}
-.btn-out:active,.btn-danger:active,.btn-sm:active{transform:scale(0.95);filter:brightness(0.82);background:var(--bd);border-color:var(--mt2);}
+.btn-out:active,.btn-out.is-pressing,.btn-danger:active,.btn-danger.is-pressing,.btn-sm:active,.btn-sm.is-pressing{transform:scale(0.95);filter:brightness(0.82);background:var(--bd);border-color:var(--mt2);}
 .btn-out:focus-visible,.btn-danger:focus-visible,.btn-sm:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(96,165,250,0.32);}
 
 /* Helper genérico .b2-press — usalo en cualquier elemento tappable que no sea un btn (cards, links, chips) */
 .b2-press{transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),filter 110ms ease,background 110ms ease;}
 .b2-press:hover{filter:brightness(1.15);}
-.b2-press:active{transform:scale(0.95);filter:brightness(0.86);}
+.b2-press:active,.b2-press.is-pressing{transform:scale(0.95);filter:brightness(0.86);}
 
 /* Cards con feedback sutil pero visible al tap (3x más visible que el "casi imperceptible" original) */
 .card.b2-tap{cursor:pointer;transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),background 110ms ease,border-color 110ms ease;}
 .card.b2-tap:hover{background:var(--sf);border-color:var(--mt2);}
-.card.b2-tap:active{transform:scale(0.985);background:var(--sf);}
+.card.b2-tap:active,.card.b2-tap.is-pressing{transform:scale(0.985);background:var(--sf);}
 
 /* Set activo en workout — dot que pulsa + glow externo de la card */
 @keyframes b2-pulse{0%,100%{box-shadow:0 0 0 4px rgba(251,146,60,0.15);}50%{box-shadow:0 0 0 6px rgba(251,146,60,0.22);}}
@@ -180,11 +180,11 @@ body.modal-open .page{overflow:hidden;}
 .ws-pill-current{background:rgba(251,146,60,0.14);border-color:rgba(251,146,60,0.40);color:var(--yw);}
 .ws-pill-done{background:rgba(52,211,153,0.10);border-color:rgba(52,211,153,0.30);color:var(--gn);cursor:pointer;}
 .ws-pill-done:hover{background:rgba(52,211,153,0.18);}
-.ws-pill-done:active{transform:scale(0.92);filter:brightness(0.82);}
+.ws-pill-done:active,.ws-pill-done.is-pressing{transform:scale(0.92);filter:brightness(0.82);}
 .ws-pill-pending{color:var(--mt2);background:transparent;border-style:dashed;}
 .ws-pill-add{cursor:pointer;color:var(--mt);padding:7px 9px;}
 .ws-pill-add:hover{background:var(--sf);color:var(--tx);border-color:var(--mt2);}
-.ws-pill-add:active{transform:scale(0.90);filter:brightness(0.85);background:var(--sf);}
+.ws-pill-add:active,.ws-pill-add.is-pressing{transform:scale(0.90);filter:brightness(0.85);background:var(--sf);}
 </style>
 </head>
 <body>
@@ -314,9 +314,17 @@ body.modal-open .page{overflow:hidden;}
 
 <!-- ══ WORKOUT ══ -->
 <div id="work" class="page">
-  <div class="header">
-    <button class="icon-btn" onclick="confirmExit()">←</button>
-    <div style="text-align:center;flex:1"><div id="work-day" class="text-sm fw-700 text-ac"></div><div id="work-sub" class="text-xs text-mt"></div></div>
+  <!-- Header de workout · señaliza inequívocamente "estás entrenando" -->
+  <div class="header" style="padding:14px 20px 16px;padding-top:calc(14px + env(safe-area-inset-top));align-items:flex-start;background:linear-gradient(180deg,rgba(251,146,60,0.06) 0%,transparent 100%)">
+    <button class="icon-btn" onclick="confirmExit()" style="margin-top:2px">←</button>
+    <div style="flex:1;padding-left:10px;min-width:0">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+        <span class="b2-pulse-dot"></span>
+        <span style="font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--yw)">En entrenamiento</span>
+      </div>
+      <div id="work-day" style="font-size:18px;font-weight:600;color:var(--tx);letter-spacing:-0.3px;line-height:1.1"></div>
+      <div id="work-sub" style="font-size:12px;color:var(--mt);margin-top:2px;font-weight:500"></div>
+    </div>
     <div style="width:44px"></div>
   </div>
   <div id="work-content"></div>
@@ -374,7 +382,6 @@ body.modal-open .page{overflow:hidden;}
     <div style="width:44px"></div>
   </div>
   <div class="sec"><div class="sec-title">Días mínimos por semana</div><div class="card" style="cursor:default"><div class="text-xs text-mt mb-12">Con este valor se cuenta tu racha 🔥 — sumás una semana cuando entrenás al menos esta cantidad de días.</div><div id="dpw-selector" class="flex gap-8" style="justify-content:center"></div></div></div>
-  <div id="editR-content"></div>
   <div class="sec">
     <div class="sec-title">Historial</div>
     <button class="btn-out" onclick="window._delHistFrom='editR';showPage('delHist')" style="margin-bottom:12px">Borrar sesiones del historial</button>
@@ -1498,10 +1505,14 @@ function renderHome(){
   $("home-others").innerHTML=others.length===0
     ?'<div class="card" style="cursor:default;text-align:center;color:var(--mt2);padding:24px 16px;font-size:13px">No hay otros días configurados.</div>'
     :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${others.map(d=>`
-        <div class="card b2-tap" style="padding:14px;cursor:pointer" onclick="startWorkout(${d.id})">
+        <div class="card b2-tap" style="padding:14px;cursor:pointer;display:flex;flex-direction:column" onclick="startWorkout(${d.id})">
           <div style="font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mt2)">${d.name}</div>
           <div style="font-size:15px;font-weight:600;color:var(--tx);margin-top:6px;letter-spacing:-0.2px;line-height:1.1">${d.sub||''}</div>
-          ${formatDayPreview(d)?`<div style="font-size:11px;color:var(--mt);margin-top:4px;font-weight:500;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${formatDayPreview(d)}</div>`:''}
+          ${formatDayPreview(d)?`<div style="font-size:11px;color:var(--mt);margin-top:4px;font-weight:500;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;flex:1">${formatDayPreview(d)}</div>`:'<div style="flex:1"></div>'}
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)">
+            <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac)">Empezar</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color:var(--ac)"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+          </div>
         </div>
       `).join('')}</div>`;
 
@@ -1573,11 +1584,26 @@ function renderRoutineExCard(ex,gi){
 }
 
 function renderRoutine(){
+  // Mi rutina: visor + acciones de edit. Tap en "Editar bloques" abre editD page completa.
+  // Las funciones de mutación (addDay, deleteDay, etc.) ya usan rerenderRoutineList()
+  // que detecta la página activa y re-rendea acá automáticamente.
   let html='';
-  routine.days.forEach(d=>{
+  const nDays=routine.days.length;
+  routine.days.forEach((d,dayIdx)=>{
     const blocks=d.blocks||[];
     const hasTypedBlocks=blocks.length>1||(blocks[0]&&blocks[0].type!=='principal');
-    html+=`<div class="sec"><div class="sec-title">${d.name} — ${d.sub}</div>`;
+    // Sec-title con acciones de edit en azul (edit affordance)
+    const headerActions=`
+      <button class="micro-btn" style="font-size:13px;color:var(--ac)" onclick="editDayPrompt(${d.id})" title="Renombrar día">✎</button>
+      ${dayIdx>0?`<button class="micro-btn" style="font-size:15px;color:var(--ac)" onclick="moveRoutineDayInList(${dayIdx},-1)" title="Subir">↑</button>`:''}
+      ${dayIdx<nDays-1?`<button class="micro-btn" style="font-size:15px;color:var(--ac)" onclick="moveRoutineDayInList(${dayIdx},1)" title="Bajar">↓</button>`:''}
+      ${nDays>1?`<button class="micro-btn" style="color:var(--dn);font-size:15px" onclick="deleteDay(${d.id})" title="Eliminar día">✕</button>`:''}
+    `;
+    html+=`<div class="sec">
+      <div class="row mb-12" style="align-items:center;gap:6px">
+        <div class="sec-title" style="margin-bottom:0;flex:1;min-width:0">${d.name}${d.sub?' — '+d.sub:''}</div>
+        ${headerActions}
+      </div>`;
     if(hasTypedBlocks){
       blocks.forEach(b=>{
         const bt=BLOCK_TYPES[b.type]||BLOCK_TYPES.custom;
@@ -1609,8 +1635,15 @@ function renderRoutine(){
         });
       }
     }
+    // Botón "Editar bloques" — abre editor de día (page completa). backTo='routine' para volver acá.
+    html+=`<button class="btn-out mt-12" style="font-size:13px;padding:10px 16px;color:var(--ac);border-color:rgba(96,165,250,0.30);background:rgba(96,165,250,0.06);display:flex;align-items:center;justify-content:center;gap:6px" onclick="openDayBlockEditor(${d.id},'routine')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Editar bloques y ejercicios de este día
+    </button>`;
     html+=`</div>`;
   });
+  // Botón "+ Agregar día" al final
+  html+=`<div class="sec" style="padding-top:0"><button class="btn-out" style="border-style:dashed;color:var(--ac);border-color:rgba(96,165,250,0.40);background:rgba(96,165,250,0.04)" onclick="addDay()">+ Agregar día de entrenamiento</button></div>`;
   $("routine-content").innerHTML=html;
 }
 
@@ -2292,7 +2325,21 @@ function renderEditR(){
     sec.style.display=total>1?'block':'none';
     if(info&&total>1) info.innerHTML=`Activa: <strong>${routine?.name||'?'}</strong> · Tenés ${total} rutinas`;
   }
-  $("editR-content").innerHTML=routine.days.map((d,dayIdx)=>{
+}
+
+// Re-render según la página activa después de mutar la rutina.
+// Permite que addDay/deleteDay/moveDay funcionen igual desde "Mi rutina" y desde "Config".
+function rerenderRoutineList(){
+  const active=document.querySelector('.page.active')?.id;
+  if(active==='routine') renderRoutine();
+  else if(active==='editR') renderEditR();
+  else if(active==='home') renderHome();
+}
+
+// Stub para preservar referencias antiguas a $("editR-content"). Ya no se usa, los días
+// editables ahora viven en "Mi rutina" (renderRoutine).
+function _legacyEditRContent_DISABLED(){
+  return routine.days.map((d,dayIdx)=>{
     const blocks=d.blocks||[];
     const hasMultiBlocks=blocks.length>1||(blocks[0]&&blocks[0].type!=='principal');
     let blocksHtml='';
@@ -2337,7 +2384,7 @@ function moveRoutineDayInList(dayIdx,dir){
   if(to<0||to>=days.length) return;
   [days[dayIdx],days[to]]=[days[to],days[dayIdx]];
   saveRoutine();
-  renderEditR();
+  rerenderRoutineList();
 }
 function renderEditExCard(dayId,ex){
   if(isCompound(ex)){
@@ -2442,18 +2489,18 @@ function filterPicker(q){
   });
 }
 function addAccEx(dayId){const d=routine.days.find(x=>x.id===dayId);getOrCreatePrincipalBlock(d).exercises.push({id:uid(),name:"Nueva biserie",type:"biserie",sets:3,rest:60,notes:"",items:[{name:"Ejercicio A",reps:"12"},{name:"Ejercicio B",reps:"12"}]});saveRoutine();renderEditR();}
-function addDay(){routine.days.push({id:Date.now(),name:"Día "+(routine.days.length+1),sub:"Nuevo día",blocks:[{id:uid(),type:'principal',label:'',exercises:[]}]});saveRoutine();renderEditR();}
-function deleteDay(dayId){if(routine.days.length<=1)return;routine.days=routine.days.filter(d=>d.id!==dayId);saveRoutine();renderEditR();}
+function addDay(){routine.days.push({id:Date.now(),name:"Día "+(routine.days.length+1),sub:"Nuevo día",blocks:[{id:uid(),type:'principal',label:'',exercises:[]}]});saveRoutine();rerenderRoutineList();}
+function deleteDay(dayId){if(routine.days.length<=1)return;routine.days=routine.days.filter(d=>d.id!==dayId);saveRoutine();rerenderRoutineList();}
 function editDayPrompt(dayId){
   const d=routine.days.find(x=>x.id===dayId);
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:16px">Editar día</div>`;
   html+=`<div class="mb-12"><label class="label">NOMBRE</label><input id="ed-name" class="input" value="${d.name}"></div>`;
   html+=`<div class="mb-18"><label class="label">SUBTÍTULO</label><input id="ed-sub" class="input" value="${d.sub}"></div>`;
-  html+=`<button class="btn" onclick="d=routine.days.find(x=>x.id===${dayId});d.name=$('ed-name').value||d.name;d.sub=$('ed-sub').value||d.sub;saveRoutine();closeModal();renderEditR()">Guardar</button>`;
+  html+=`<button class="btn" onclick="d=routine.days.find(x=>x.id===${dayId});d.name=$('ed-name').value||d.name;d.sub=$('ed-sub').value||d.sub;saveRoutine();closeModal();rerenderRoutineList()">Guardar</button>`;
   html+=`<button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>`;
   $("modal-content").innerHTML=html;$("modal").classList.add('show');
 }
-function resetRoutine(){routine.days=JSON.parse(JSON.stringify(DEFAULT_DAYS));saveRoutine();renderEditR();}
+function resetRoutine(){routine.days=JSON.parse(JSON.stringify(DEFAULT_DAYS));saveRoutine();rerenderRoutineList();}
 
 // ══ DIAGNÓSTICO (sin trigger UI — accesible solo desde consola del browser) ══
 // window.loadDemoRoutine() carga una rutina demo si querés inspeccionar el formato de bloques.
@@ -2556,7 +2603,11 @@ let editingDayState=null;
 let expandedExBE=null; // {bi, ei}
 let _dayChartTimerBE=null;
 
-function openDayBlockEditor(dayId){
+// backTo: 'editR' (default · venía de Config) o 'routine' (vino de Mi rutina).
+// Después del save/close, vuelve a esa page y re-rendea.
+let _dayEditorBackTo='editR';
+function openDayBlockEditor(dayId,backTo){
+  _dayEditorBackTo=backTo||'editR';
   const d=routine.days.find(x=>x.id===dayId);
   if(!d){toast('Día no encontrado','error');return;}
   editDayId=dayId;
@@ -2580,7 +2631,7 @@ function openDayBlockEditor(dayId){
 
 function closeDayBlockEditor(){
   editingDayState=null;expandedExBE=null;
-  showPage('editR');
+  showPage(_dayEditorBackTo||'editR');
 }
 
 function saveDayBlockEditor(){
@@ -2596,7 +2647,9 @@ function saveDayBlockEditor(){
   saveRoutine();
   toast('Día guardado','success');
   closeDayBlockEditor();
-  renderEditR();
+  // El render lo dispara showPage en el destino — pero forzamos también por las dudas.
+  if(_dayEditorBackTo==='routine') renderRoutine();
+  else renderEditR();
 }
 
 function renderDayBlocksContainer(){
@@ -3476,6 +3529,40 @@ function doImport(mode){
   const u=c.toDataURL('image/png');const l=document.createElement('link');l.rel='apple-touch-icon';l.href=u;document.head.appendChild(l);const f=document.createElement('link');f.rel='icon';f.type='image/png';f.href=u;document.head.appendChild(f);};img.src='./shield.png';}catch{}
   try{const m={name:"JuvenFIT Tracker",short_name:"JuvenFIT",start_url:location.href,display:"standalone",background_color:"#0A0A0B",theme_color:"#0A0A0B",icons:[{src:"./shield.png",sizes:"512x512",type:"image/png",purpose:"any"}]};const b=new Blob([JSON.stringify(m)],{type:'application/json'});const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(b);document.head.appendChild(l);}catch{}
   try{if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});}catch{}
+})();
+
+// ══ Bento Tri · MOBILE PRESS FEEDBACK ══
+// :active es inconsistente en iOS Safari PWA y en algunos Android cuando el
+// browser optimiza repaints. Aplicamos clase .is-pressing por touchstart/touchend
+// para forzar el feedback visual. CSS aplica los mismos efectos en :active Y .is-pressing.
+(function(){
+  const SELECTORS = '.btn,.btn-out,.btn-danger,.btn-sm,.icon-btn,.w-btn,.card.b2-tap,.b2-press,.ws-pill-done,.ws-pill-add';
+  function findPressable(el){
+    while(el && el !== document.body){
+      if(el.matches && el.matches(SELECTORS)) return el;
+      el = el.parentNode;
+    }
+    return null;
+  }
+  let _pressed = null;
+  document.addEventListener('touchstart', e => {
+    const t = findPressable(e.target);
+    if(t){ t.classList.add('is-pressing'); _pressed = t; }
+  }, {passive: true});
+  function release(){
+    // Limpiar todos por las dudas (touchcancel puede haber dejado uno colgado)
+    document.querySelectorAll('.is-pressing').forEach(el => el.classList.remove('is-pressing'));
+    _pressed = null;
+  }
+  document.addEventListener('touchend', release, {passive: true});
+  document.addEventListener('touchcancel', release, {passive: true});
+  // Fallback para mouse en desktop preview (también funciona en algunos hybrid touch)
+  document.addEventListener('mousedown', e => {
+    const t = findPressable(e.target);
+    if(t){ t.classList.add('is-pressing'); _pressed = t; }
+  });
+  document.addEventListener('mouseup', release);
+  document.addEventListener('mouseleave', release);
 })();
 
 init();
