@@ -15,6 +15,10 @@
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;color:inherit;}
 :root{--bg:#F4ECDB;--sf:#EDE2C9;--cd:#FFFBF1;--bd:#D7C9A8;--tx:#2A2014;--mt:#7C6B52;--ac:#8A6724;--hi:#A6803A;--dn:#893D3D;--gn:#5C7A3A;--yw:#B8862E;--fm:'JetBrains Mono',monospace;--fs:'Inter Tight',system-ui,sans-serif;--serif:'Cormorant Garamond','Times New Roman',serif;}
+/* Dark theme — chocolate oscuro con latón claro */
+[data-theme="dark"]{--bg:#1F1611;--sf:#2A2014;--cd:#2A2014;--bd:#3D2F1F;--tx:#F4ECDB;--mt:#A89478;--ac:#C4A26B;--hi:#D9B584;--dn:#C76060;--gn:#8AA770;--yw:#D4A857;}
+/* meta theme-color sigue al tema */
+html[data-theme="dark"]{color-scheme:dark;}
 body{background:var(--bg);color:var(--tx);font-family:var(--fs);max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);}
 input,textarea,button,select{font-family:var(--fs);outline:none;color:var(--tx);}
 input:focus,textarea:focus{border-color:rgba(90,26,26,0.5)!important;}
@@ -1041,6 +1045,20 @@ function groupOfCompoundIdx(compounds,idx){
 }
 
 // ══ INIT ══
+// ── OAK THEME ──
+function getOakTheme(){return localStorage.getItem('oak-theme')||'light';}
+function setOakTheme(t){
+  if(t!=='dark'&&t!=='light') t='light';
+  localStorage.setItem('oak-theme',t);
+  document.documentElement.setAttribute('data-theme',t);
+  // Actualizar meta theme-color para la status bar del browser
+  const meta=document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', t==='dark'?'#1F1611':'#F4ECDB');
+}
+function toggleOakTheme(){setOakTheme(getOakTheme()==='dark'?'light':'dark');}
+// Aplicar tema temprano (antes de init) para evitar flash blanco
+(function(){setOakTheme(getOakTheme());})();
+
 function init(){
   migrateLibV1();
   migrateLibV2();
