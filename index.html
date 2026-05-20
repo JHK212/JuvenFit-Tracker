@@ -178,21 +178,31 @@ body.modal-open .page{overflow:hidden;}
 
 <!-- ══ HOME ══ -->
 <div id="home" class="page active">
-  <div class="header">
-    <div style="display:flex;align-items:center;gap:10px"><img src="./shield.png" alt="JuvenFIT" style="height:44px;width:auto;mix-blend-mode:multiply"><div class="logo">TRACKER</div></div>
+  <div class="header" style="padding:18px 20px 10px;padding-top:calc(18px + env(safe-area-inset-top));align-items:flex-start">
+    <div style="min-width:0;flex:1">
+      <div id="home-date" style="font-size:10.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)"></div>
+      <div id="home-greeting" style="font-size:22px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;margin-top:3px;line-height:1.1"></div>
+    </div>
     <div class="flex gap-8">
-      <button class="icon-btn" onclick="openImportRoutine()" title="Importar rutina del coach" aria-label="Importar rutina del coach" style="display:inline-flex;align-items:center;justify-content:center;color:var(--ac)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
-          <rect x="3" y="3" width="7" height="7"/>
-          <rect x="14" y="3" width="7" height="7"/>
-          <rect x="3" y="14" width="7" height="7"/>
-          <rect x="14" y="14" width="3" height="3"/>
-          <rect x="18" y="18" width="3" height="3"/>
-          <rect x="14" y="19" width="3" height="2"/>
+      <button class="icon-btn" onclick="openImportRoutine()" title="Importar rutina del coach" aria-label="Importar rutina del coach">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
+          <rect x="18" y="18" width="3" height="3"/><rect x="14" y="19" width="3" height="2"/>
         </svg>
       </button>
-      <button class="icon-btn" onclick="showPage('routine')" style="font-size:14px">📋</button>
-      <button class="icon-btn" onclick="showPage('editR')">⚙</button>
+      <button class="icon-btn" onclick="showPage('routine')" title="Ver rutina" aria-label="Ver rutina">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+      </button>
+      <button class="icon-btn" onclick="showPage('editR')" title="Ajustes" aria-label="Ajustes">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
     </div>
   </div>
   <div id="home-welcome" style="display:none">
@@ -224,22 +234,68 @@ body.modal-open .page{overflow:hidden;}
     </div>
   </div>
   <div id="home-main">
-    <div id="draft-banner" style="display:none;padding:16px 20px 0"></div>
-    <div class="sec">
+    <div id="draft-banner" style="display:none;padding:14px 20px 0"></div>
+
+    <!-- HERO: Hoy te toca · CTA azul prominente -->
+    <div class="sec" style="padding-top:6px;padding-bottom:14px">
+      <div id="home-suggested" class="card" style="cursor:default"></div>
+    </div>
+
+    <!-- STATS: Racha (naranja · intensidad) + Sesiones (blanco · neutro) -->
+    <div class="sec" style="padding-top:0;padding-bottom:14px">
       <div class="flex gap-12">
-        <div class="card flex-1" style="cursor:default"><div class="text-xs text-mt fw-600 mb-8">RACHA</div><div class="flex gap-8" style="align-items:baseline"><span id="home-streak" class="accent-num">0</span><span class="text-sm text-mt">sem</span><span id="home-fire" style="font-size:22px;display:none">🔥</span></div><div id="home-streak-detail" class="text-xs text-mt mt-8"></div></div>
-        <div class="card flex-1" style="cursor:default"><div class="row mb-8"><span class="text-xs text-mt fw-600">SESIONES</span><button class="icon-btn" onclick="window._delHistFrom='home';showPage('delHist')" style="width:26px;height:26px;font-size:12px">✎</button></div><span id="home-sessions" class="big-num">0</span></div>
+        <div class="card flex-1" style="cursor:default;padding:16px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <svg id="home-fire" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color:var(--yw);display:none;flex-shrink:0"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Racha</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-top:8px">
+            <span id="home-streak" style="font-size:42px;font-weight:700;color:var(--yw);line-height:0.85;letter-spacing:-1.8px">0</span>
+            <span style="font-size:13px;font-weight:500;color:var(--mt)">sem</span>
+          </div>
+          <div id="home-streak-bars" style="display:flex;gap:3px;align-items:flex-end;height:20px;margin-top:14px"></div>
+          <div id="home-streak-detail" style="font-size:11px;color:var(--mt);font-weight:500;margin-top:10px"></div>
+        </div>
+        <div class="card flex-1" style="cursor:default;padding:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Sesiones</span>
+            <button class="icon-btn" onclick="window._delHistFrom='home';showPage('delHist')" title="Borrar sesiones" style="width:26px;height:26px;font-size:11px">✎</button>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:6px;margin-top:8px">
+            <span id="home-sessions" style="font-size:42px;font-weight:700;color:var(--tx);line-height:0.85;letter-spacing:-1.8px">0</span>
+          </div>
+          <div id="home-sessions-detail" style="font-size:11px;color:var(--mt);font-weight:500;margin-top:14px"></div>
+        </div>
       </div>
     </div>
-    <div class="sec" style="padding-top:0"><div class="card" style="cursor:default"><div id="home-calendar"></div></div></div>
-    <div class="sec">
-      <div class="sec-title">Hoy te toca</div><div id="home-suggested" class="card card-accent"></div>
-      <div class="sec-title mt-24">Otros días</div><div id="home-others"></div>
-      <button class="btn-out mt-12" onclick="showPastWorkout()" style="font-size:14px">📅 Registrar entreno anterior</button>
+
+    <!-- ÚLTIMA SESIÓN — con PR banner verde integrado adentro si hubo PR -->
+    <div id="home-last-sec" class="sec" style="display:none;padding-top:0;padding-bottom:14px">
+      <div id="home-last" class="card" style="cursor:default"></div>
     </div>
-    <div id="home-last-sec" class="sec" style="display:none"><div class="sec-title">Última sesión</div><div id="home-last" class="card" style="cursor:default"></div></div>
-    <div id="home-hist-sec" class="sec" style="display:none"><div class="sec-title">Historial por ejercicio</div><div id="home-hist"></div></div>
-    <div id="home-volume-sec" class="sec" style="display:none"><div class="sec-title">Volumen muscular</div><div id="home-volume" class="card" style="cursor:default"></div></div>
+
+    <!-- OTROS DÍAS — grid 2x2 de cards chicas -->
+    <div class="sec" style="padding-top:0;padding-bottom:14px">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);padding-left:2px;margin-bottom:12px">Otros días</div>
+      <div id="home-others"></div>
+      <button class="btn-out mt-12" onclick="showPastWorkout()" style="font-size:14px;padding:12px 20px">📅 Registrar entreno anterior</button>
+    </div>
+
+    <!-- CALENDARIO — movido al final, leyenda verde/naranja -->
+    <div class="sec" style="padding-top:0;padding-bottom:14px">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);padding-left:2px;margin-bottom:12px">Calendario</div>
+      <div class="card" style="cursor:default"><div id="home-calendar"></div></div>
+    </div>
+
+    <!-- LEGACY: Historial por ejercicio + Volumen muscular (irán a "Mi progreso" en handoff de features) -->
+    <div id="home-hist-sec" class="sec" style="display:none;padding-top:0;padding-bottom:14px">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);padding-left:2px;margin-bottom:12px">Historial por ejercicio</div>
+      <div id="home-hist"></div>
+    </div>
+    <div id="home-volume-sec" class="sec" style="display:none;padding-top:0;padding-bottom:14px">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);padding-left:2px;margin-bottom:12px">Volumen muscular</div>
+      <div id="home-volume" class="card" style="cursor:default"></div>
+    </div>
   </div>
 </div>
 
@@ -871,6 +927,63 @@ function uid(){return Math.random().toString(36).slice(2,8);}
 function nowBsAs(){return new Date(Date.now()-3*3600*1000);}
 function td(){const d=nowBsAs();return d.toISOString().slice(0,10);}
 function nowTime(){return nowBsAs().toISOString().slice(11,16);}
+
+// ══ HOME HELPERS (Bento Tri) ══
+function homeGreet(){
+  const h=nowBsAs().getUTCHours();
+  if(h<5) return 'Buenas noches';
+  if(h<12) return 'Buen día';
+  if(h<19) return 'Buenas tardes';
+  return 'Buenas noches';
+}
+function homeDateLabel(){
+  const d=nowBsAs();
+  const dias=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${dias[d.getUTCDay()]} ${d.getUTCDate()} ${meses[d.getUTCMonth()]}`;
+}
+function homeLast7Trained(){
+  // Array [oldest..newest] de bools — true si entrené ese día. Para mini-barras de racha.
+  const arr=[];const today=nowBsAs();
+  for(let i=6;i>=0;i--){
+    const d=new Date(today.getTime()-i*24*3600*1000);
+    const ds=d.toISOString().slice(0,10);
+    arr.push(sessions.some(s=>s.date===ds));
+  }
+  return arr;
+}
+function homeDayMeta(day){
+  // Cuenta ejercicios + bloques + sets totales del día, usado en el hero "Hoy te toca".
+  const blocks=day.blocks||[{type:'principal',exercises:day.exercises||[]}];
+  let ex=0,sets=0;
+  blocks.forEach(b=>(b.exercises||[]).forEach(e=>{ex++;sets+=parseInt(e.sets)||1;}));
+  return {ex,blocks:blocks.length,sets};
+}
+function homeSessionPRs(session){
+  // PRs registrados en esta sesión: peak >= PR actual del ejercicio. Para el banner verde integrado.
+  const out=[];
+  (session.exercises||[]).forEach(ex=>{
+    const compound=allCompounds().find(e=>eidOf(e)===ex.eid);
+    if(!compound) return;
+    const mode=getTrackMode(compound);
+    const peak=mode==='weight'
+      ?Math.max(0,...(ex.sets||[]).map(s=>s.w||0))
+      :Math.max(0,...(ex.sets||[]).map(s=>s.r||0));
+    if(peak<=0) return;
+    if(peak===prOf(ex.eid,mode)) out.push({name:getExName(compound),value:peak,mode});
+  });
+  return out;
+}
+function relativeDate(dateStr){
+  // "Hoy" / "Ayer" / "Hace N días" / fd(date) si es más viejo.
+  const today=td();
+  if(dateStr===today) return 'Hoy';
+  const yesterday=new Date(nowBsAs().getTime()-24*3600*1000).toISOString().slice(0,10);
+  if(dateStr===yesterday) return 'Ayer';
+  const diffDays=Math.floor((new Date(today+'T00:00:00').getTime()-new Date(dateStr+'T00:00:00').getTime())/(24*3600*1000));
+  if(diffDays>0 && diffDays<=7) return `Hace ${diffDays} días`;
+  return fd(dateStr);
+}
 function fd(d){try{return new Date(d+"T12:00:00").toLocaleDateString("es-AR",{day:"numeric",month:"short"});}catch{return d;}}
 function fmtTime(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0");}
 function $(id){return document.getElementById(id);}
@@ -1302,20 +1415,130 @@ function renderHome(){
   const totalExercises=routine.days.reduce((s,d)=>s+getDayExercises(d).length,0);
   if(totalExercises===0){$("home-welcome").style.display="block";$("home-main").style.display="none";return;}
   $("home-welcome").style.display="none";$("home-main").style.display="block";
+
+  // Header: greeting + fecha
+  $("home-greeting").textContent=homeGreet();
+  $("home-date").textContent=homeDateLabel();
+
+  // Draft banner — naranja sutil con dot pulsante (intensidad: hay un trabajo en curso)
   const draft=load("gym-draft",null);
   const db=$("draft-banner");
-  if(draft){const dayDef=routine.days.find(d=>d.id===draft.dayId);db.style.display="block";db.innerHTML=`<div class="card card-accent" style="cursor:default"><div class="row mb-8"><span class="fw-700">📋 Borrador sin guardar</span><span class="text-xs text-mt">${fd(draft.date)} · ${dayDef?.name||'?'}</span></div><div class="text-sm text-mt mb-14">Cerraste sin finalizar. ¿Continuás?</div><div class="flex gap-8"><button class="btn" style="flex:1;padding:12px 0" onclick="resumeDraft()">Continuar →</button><button class="btn-out" style="flex:1;padding:12px 0" onclick="discardDraft()">Descartar</button></div></div>`;}
-  else{db.style.display="none";db.innerHTML="";}
-  const sg=sugDay();const sgD=routine.days.find(d=>d.id===sg);const st=streak();const tw=thisWeekSessions();const dpw=config.daysPerWeek||3;
-  $("home-streak").textContent=st;$("home-fire").style.display=st>0?"inline":"none";$("home-sessions").textContent=sessions.length;
-  $("home-streak-detail").innerHTML=`Esta semana: <strong style="color:${tw>=dpw?'var(--gn)':'var(--ac)'}">${tw}/${dpw}</strong>${tw>=dpw?' ✓':''}`;
-  $("home-suggested").innerHTML=`<div class="row" onclick="startWorkout(${sg})" style="cursor:pointer"><div><div style="font-size:20px;font-weight:800;margin-bottom:4px;color:var(--ac)">${sgD.name}</div><div class="text-sm text-mt">${sgD.sub}</div><div class="text-xs text-mt mt-8">${formatDayPreview(sgD)}</div></div><div style="font-size:32px;color:var(--ac)">→</div></div>`;
-  $("home-others").innerHTML=routine.days.filter(d=>d.id!==sg).map(d=>`<div class="card" onclick="startWorkout(${d.id})" style="cursor:pointer"><div class="row"><div><div style="font-size:16px;font-weight:700">${d.name}</div><div class="text-sm text-mt">${d.sub}</div></div><div style="font-size:20px;color:var(--mt)">→</div></div></div>`).join('');
+  if(draft){
+    const dayDef=routine.days.find(d=>d.id===draft.dayId);
+    db.style.display="block";
+    db.innerHTML=`<div class="card" style="cursor:default;background:rgba(251,146,60,0.08);border-color:rgba(251,146,60,0.30);box-shadow:var(--lift-in)">
+      <div class="row mb-8" style="align-items:center;gap:8px">
+        <span class="b2-pulse-dot"></span>
+        <span style="color:var(--yw);font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">Borrador en curso</span>
+        <span class="text-xs text-mt" style="margin-left:auto">${fd(draft.date)} · ${dayDef?.name||'?'}</span>
+      </div>
+      <div class="text-sm text-mt mb-14">Cerraste sin finalizar. ¿Continuás?</div>
+      <div class="flex gap-8">
+        <button class="btn" style="flex:1;padding:12px 0;font-size:14px" onclick="resumeDraft()">Continuar →</button>
+        <button class="btn-out" style="flex:1;padding:12px 0;font-size:14px" onclick="discardDraft()">Descartar</button>
+      </div>
+    </div>`;
+  } else {db.style.display="none";db.innerHTML="";}
+
+  // HERO — "Hoy te toca" con CTA azul prominente
+  const sg=sugDay();const sgD=routine.days.find(d=>d.id===sg);
+  const meta=homeDayMeta(sgD);
+  $("home-suggested").innerHTML=`
+    <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Hoy te toca</div>
+    <div style="font-size:26px;font-weight:600;color:var(--tx);line-height:1.05;margin-top:6px;letter-spacing:-0.5px">${sgD.name}${sgD.sub?` <span style="color:var(--mt);font-weight:500">· ${sgD.sub}</span>`:''}</div>
+    <div style="font-size:13px;color:var(--mt);margin-top:4px;font-weight:500">${formatDayPreview(sgD)||''}</div>
+    <div style="display:flex;gap:14px;margin-top:14px;font-size:12px;color:var(--mt);font-weight:500;flex-wrap:wrap">
+      <span><span style="color:var(--tx);font-weight:600">${meta.ex}</span> ejercicio${meta.ex===1?'':'s'}</span>
+      ${meta.blocks>1?`<span style="color:var(--bd)">·</span><span><span style="color:var(--tx);font-weight:600">${meta.blocks}</span> bloques</span>`:''}
+      <span style="color:var(--bd)">·</span>
+      <span><span style="color:var(--tx);font-weight:600">${meta.sets}</span> sets</span>
+    </div>
+    <button class="btn" style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 0;font-size:14.5px;letter-spacing:-0.2px" onclick="startWorkout(${sg})">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>
+      Empezar entrenamiento
+    </button>
+  `;
+
+  // STATS — Racha (naranja + barras 7d) + Sesiones (blanco + delta semana)
+  const st=streak();
+  const tw=thisWeekSessions();
+  const dpw=config.daysPerWeek||3;
+  $("home-streak").textContent=st;
+  $("home-fire").style.display=st>0?"inline-block":"none";
+  $("home-sessions").textContent=sessions.length;
+  $("home-streak-detail").innerHTML=`Esta semana: <span style="color:${tw>=dpw?'var(--gn)':'var(--tx)'};font-weight:600">${tw}/${dpw}</span>${tw>=dpw?' <span style="color:var(--gn)">✓</span>':''}`;
+  // Barras 7d
+  const last7=homeLast7Trained();
+  $("home-streak-bars").innerHTML=last7.map(v=>`<div style="flex:1;height:${v?'100%':'38%'};background:${v?'var(--yw)':'var(--bd)'};border-radius:2px;opacity:${v?1:0.5};transition:height 0.3s ease"></div>`).join('');
+  // Sesiones: "+X últimos 7 días"
+  const sevenAgo=new Date(nowBsAs().getTime()-7*24*3600*1000).toISOString().slice(0,10);
+  const sessLast7=sessions.filter(s=>s.date>sevenAgo).length;
+  $("home-sessions-detail").innerHTML=sessLast7>0
+    ?`<span style="color:var(--tx);font-weight:600">+${sessLast7}</span> últimos 7 días`
+    :`<span style="color:var(--mt2)">—</span>`;
+
+  // OTROS DÍAS — grid 2x2 (responsive si hay impar)
+  const others=routine.days.filter(d=>d.id!==sg);
+  $("home-others").innerHTML=others.length===0
+    ?'<div class="card" style="cursor:default;text-align:center;color:var(--mt2);padding:24px 16px;font-size:13px">No hay otros días configurados.</div>'
+    :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${others.map(d=>`
+        <div class="card b2-tap" style="padding:14px;cursor:pointer" onclick="startWorkout(${d.id})">
+          <div style="font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mt2)">${d.name}</div>
+          <div style="font-size:15px;font-weight:600;color:var(--tx);margin-top:6px;letter-spacing:-0.2px;line-height:1.1">${d.sub||''}</div>
+          ${formatDayPreview(d)?`<div style="font-size:11px;color:var(--mt);margin-top:4px;font-weight:500;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${formatDayPreview(d)}</div>`:''}
+        </div>
+      `).join('')}</div>`;
+
   renderCalendar();
+
+  // ÚLTIMA SESIÓN — con PR banner verde integrado si hubo PR
   const last=sessions.length?[...sessions].sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
-  if(last){$("home-last-sec").style.display="block";const dayDef=routine.days.find(d=>d.id===last.dayId);$("home-last").innerHTML=`<div class="row mb-8"><span class="text-sm text-mt">${fd(last.date)}${last.time?' · '+last.time:''} — ${dayDef?.name||''}</span><button class="btn-sm" onclick="editSession('${last.id}')" style="font-size:12px">✎ Editar</button></div><div>${(last.exercises||[]).map(ex=>{const name=getExerciseName(ex.eid,allCompounds().find(e=>eidOf(e)===ex.eid)?.name);if(!name) return '';const mode=modeOfEid(ex.eid);const peak=mode==='weight'?Math.max(...(ex.sets||[]).map(s=>s.w||0)):Math.max(...(ex.sets||[]).map(s=>s.r||0));return`<div class="row" style="padding:4px 0;font-size:14px"><span class="text-mt">${name}</span><span class="mono fw-700">${mode==='weight'?(peak+'kg'):formatPR(peak,mode)}</span></div>`;}).join('')}</div>`;}else{$("home-last-sec").style.display="none";}
+  if(last){
+    $("home-last-sec").style.display="block";
+    const dayDef=routine.days.find(d=>d.id===last.dayId);
+    const prs=homeSessionPRs(last);
+    const exDone=(last.exercises||[]).filter(ex=>ex.sets&&ex.sets.some(s=>s.rpe!==null)).length;
+    const setsRegistered=(last.exercises||[]).reduce((s,ex)=>s+(ex.sets||[]).filter(st=>st.rpe!==null).length,0);
+    $("home-last").innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px">
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Última sesión</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span style="font-size:11px;color:var(--mt2);font-weight:500">${relativeDate(last.date)}${last.time?' · '+last.time:''}</span>
+          <button class="btn-sm" onclick="editSession('${last.id}')" title="Editar sesión" style="font-size:11px;padding:5px 10px;border-radius:8px">✎</button>
+        </div>
+      </div>
+      <div style="font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.3px;line-height:1.1">${dayDef?.name||'—'}${dayDef?.sub?` <span style="color:var(--mt);font-weight:500">· ${dayDef.sub}</span>`:''}</div>
+      <div style="font-size:12px;color:var(--mt);margin-top:3px;font-weight:500">${exDone} ejercicio${exDone===1?'':'s'} · ${setsRegistered} sets registrados</div>
+      ${prs.length?`
+        <div style="margin-top:12px;padding:10px 12px;background:rgba(52,211,153,0.10);border:1px solid rgba(52,211,153,0.25);border-radius:12px;display:flex;align-items:center;gap:10px">
+          <div style="width:30px;height:30px;border-radius:9px;background:rgba(52,211,153,0.20);color:var(--gn);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px">🏆</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12.5px;font-weight:600;color:var(--tx);line-height:1.15;letter-spacing:-0.1px">${prs[0].name} · <span style="color:var(--gn)">${formatPR(prs[0].value,prs[0].mode)}</span></div>
+            <div style="font-size:11px;color:var(--mt);margin-top:2px;font-weight:500">${prs.length===1?'Nuevo PR':`${prs.length} PRs esta sesión`}</div>
+          </div>
+        </div>
+      `:''}
+    `;
+  } else {$("home-last-sec").style.display="none";}
+
+  // HISTORIAL POR EJERCICIO (legacy abajo · va a "Mi progreso" en handoff de features)
   const histItems=allCompounds().filter(ex=>hist(eidOf(ex)).length>0);
-  if(histItems.length){$("home-hist-sec").style.display="block";$("home-hist").innerHTML=histItems.map(ex=>{const eid=eidOf(ex);const mode=getTrackMode(ex);const h=hist(eid);const pr=prOf(eid,mode);return`<div class="card" onclick="showHist('${eid}')" style="cursor:pointer"><div class="row"><div><div style="font-size:15px;font-weight:700;color:var(--ac)">${getExName(ex)}</div><div class="text-xs text-mt">${h.length} sesiones · PR: ${formatPR(pr,mode)}</div></div><div style="font-size:18px;color:var(--mt)">→</div></div></div>`;}).join('');}else{$("home-hist-sec").style.display="none";}
+  if(histItems.length){
+    $("home-hist-sec").style.display="block";
+    $("home-hist").innerHTML=histItems.map(ex=>{
+      const eid=eidOf(ex);const mode=getTrackMode(ex);const h=hist(eid);const pr=prOf(eid,mode);
+      return`<div class="card b2-tap" onclick="showHist('${eid}')" style="cursor:pointer">
+        <div class="row">
+          <div>
+            <div style="font-size:15px;font-weight:600;color:var(--tx);letter-spacing:-0.2px">${getExName(ex)}</div>
+            <div style="font-size:11px;color:var(--mt);margin-top:3px;font-weight:500">${h.length} sesion${h.length===1?'':'es'} · PR: <span style="color:var(--gn);font-weight:600">${formatPR(pr,mode)}</span></div>
+          </div>
+          <div style="font-size:18px;color:var(--mt2)">→</div>
+        </div>
+      </div>`;
+    }).join('');
+  } else {$("home-hist-sec").style.display="none";}
+
   drawMuscleChart();
 }
 
