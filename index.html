@@ -175,6 +175,40 @@ body.modal-open .page{overflow:hidden;}
 /* Halo verde detrás del PR modal (cuando llegue) — irradia el momento de logro */
 .b2-pr-halo{box-shadow:0 -20px 40px -10px rgba(0,0,0,0.45),0 0 80px rgba(52,211,153,0.10);}
 
+/* ─── Bottom sheet (info ejercicio durante workout, Fase 4) ─── */
+.bsheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);backdrop-filter:blur(0);z-index:100;display:none;align-items:flex-end;justify-content:center;transition:background 0.2s ease,backdrop-filter 0.2s ease;}
+.bsheet-overlay.show{display:flex;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);}
+.bsheet{width:100%;max-width:480px;background:var(--cd);border-radius:20px 20px 0 0;border-top:1px solid var(--bd);padding:8px 18px 24px;padding-bottom:calc(24px + env(safe-area-inset-bottom));box-shadow:0 -20px 40px -10px rgba(0,0,0,0.5);max-height:75vh;overflow-y:auto;transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.2,0.7,0.2,1);}
+.bsheet-overlay.show .bsheet{transform:translateY(0);}
+.bsheet-handle{width:36px;height:4px;background:var(--bd);border-radius:2px;margin:0 auto 12px;}
+.bsheet-title{font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.3px;margin-bottom:14px;}
+.bsheet-tabs{display:flex;gap:0;border-bottom:1px solid var(--bd);margin-bottom:14px;}
+.bsheet-tab{flex:1;padding:10px 4px;font-size:11.5px;font-weight:600;color:var(--mt);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;transition:color 110ms ease,border-color 110ms ease;font-family:var(--fs);}
+.bsheet-tab.active{color:var(--ac);border-bottom-color:var(--ac);}
+.bsheet-content{padding:4px 0 8px;font-size:14px;line-height:1.55;color:var(--tx);min-height:80px;}
+.bsheet-content .empty{color:var(--mt2);font-size:13px;text-align:center;padding:24px 0;font-weight:500;}
+
+/* ─── Countdown card post-felt (estado C de workout focused) ─── */
+.cdown-card{background:var(--cd);border:1px solid rgba(251,146,60,0.30);border-radius:20px;padding:24px 18px;text-align:center;box-shadow:0 0 0 1px rgba(251,146,60,0.15),0 8px 28px -8px rgba(251,146,60,0.30),inset 0 1px 0 rgba(255,255,255,0.04);}
+.cdown-check{font-size:38px;line-height:1;margin-bottom:6px;color:var(--gn);}
+.cdown-rec{background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.25);border-radius:14px;padding:14px 16px;margin:14px 0;text-align:left;font-size:14px;line-height:1.5;color:var(--tx);}
+.cdown-label{font-size:11px;font-weight:700;color:var(--mt);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;}
+.cdown-num{font-size:52px;font-weight:700;color:var(--yw);letter-spacing:-2.5px;line-height:1;margin:6px 0 18px;font-variant-numeric:tabular-nums;}
+.cdown-btns{display:flex;flex-direction:column;gap:10px;}
+
+/* ─── Tip del set anterior (colapsable arriba del set siguiente) ─── */
+.prev-tip{background:rgba(96,165,250,0.04);border:1px dashed rgba(96,165,250,0.30);border-radius:12px;padding:10px 14px;margin-bottom:14px;cursor:pointer;transition:background 110ms ease;}
+.prev-tip:hover{background:rgba(96,165,250,0.08);}
+.prev-tip-header{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);}
+.prev-tip-body{font-size:13px;color:var(--tx);line-height:1.45;margin-top:8px;display:none;}
+.prev-tip.open .prev-tip-body{display:block;}
+.prev-tip-chev{margin-left:auto;font-size:10px;transition:transform 110ms ease;}
+.prev-tip.open .prev-tip-chev{transform:rotate(180deg);}
+
+/* Quitar el marker default de <details> en notas (Safari incluido) */
+details summary{list-style:none;}
+details summary::-webkit-details-marker{display:none;}
+
 /* ─── Workout focused mode: pills de set state arriba del card grande ─── */
 .ws-pill{display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border-radius:100px;border:1px solid var(--bd);background:transparent;color:var(--mt);font-size:11.5px;font-weight:600;cursor:default;font-family:var(--fs);transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),background 110ms ease,border-color 110ms ease,color 110ms ease,filter 110ms ease;white-space:nowrap;line-height:1;}
 .ws-pill-current{background:rgba(251,146,60,0.14);border-color:rgba(251,146,60,0.40);color:var(--yw);}
@@ -439,6 +473,20 @@ body.modal-open .page{overflow:hidden;}
 <!-- ══ Modal ══ -->
 <div id="modal" class="modal-overlay" onclick="closeModal()">
   <div class="modal" onclick="event.stopPropagation()"><div id="modal-content"></div></div>
+</div>
+
+<!-- ══ Bottom Sheet · info del ejercicio durante workout (Bento Tri · Fase 4) ══ -->
+<div id="ex-info-sheet" class="bsheet-overlay" onclick="closeExInfoSheet()">
+  <div class="bsheet" onclick="event.stopPropagation()">
+    <div class="bsheet-handle"></div>
+    <div id="bsheet-title" class="bsheet-title"></div>
+    <div class="bsheet-tabs">
+      <button id="bsheet-tab-coach" class="bsheet-tab active" onclick="setExInfoTab('coach')">Tip del coach</button>
+      <button id="bsheet-tab-hist" class="bsheet-tab" onclick="setExInfoTab('hist')">Mi historial</button>
+      <button id="bsheet-tab-last" class="bsheet-tab" onclick="setExInfoTab('last')">Última sesión</button>
+    </div>
+    <div id="bsheet-content" class="bsheet-content"></div>
+  </div>
 </div>
 
 <script>
@@ -939,6 +987,11 @@ let routine,routineStore,sessions,config,curSess,curDayId,curExI,timerRef,timerT
 // Bento Tri · workout focused mode: si está set, sobreescribe el "primer sin RPE" como currentSi.
 // Se reseteea en setFelt/addWorkSet/removeWorkSet y al cambiar de ejercicio (ver renderWork).
 let curWorkSetEdit=null,_lastCurExI=null;
+// Fase 4 · auto-paso post-felt + bottom sheet info ejercicio
+let _workCountdown=null;        // {ci, si, secondsLeft, intervalRef, rec}
+let _lastSetTip=null;            // {ci, si, rec} para el "Tip del set anterior" colapsable
+let _infoSheetTab='coach';       // tab activa del bottom sheet
+let _infoSheetCi=null;           // ci del ejercicio cuyo sheet está abierto
 let calYear,calMonth;
 let selectedDel=new Set();
 
@@ -1716,8 +1769,11 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
     <div class="flex gap-8"><button class="rpe-btn ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano',${ci})">🟢 Liviano</button><button class="rpe-btn ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo',${ci})">🟡 Justo</button><button class="rpe-btn ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite',${ci})">🔴 Al límite</button></div>`;
   if(s.rpe){
     if(s.felt==null){
+      // Pregunta "¿Sentiste el músculo?" — siempre se muestra al completar RPE
       html+=`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="text-xs text-mt fw-600 mb-8" style="text-align:center">¿Sentiste el músculo?</div><div class="flex gap-8"><button class="rpe-btn" onclick="setFelt(${si},true,${ci})">✅ Sí</button><button class="rpe-btn" onclick="setFelt(${si},false,${ci})">❌ No</button></div></div>`;
-    } else {
+    } else if(!focused){
+      // SOLO en non-focused (grouped workout legacy): mostrar rec inline + botón cambiar.
+      // En focused, la rec aparece en la countdown card del estado C (no acá).
       const rd=setRecData(s.rpe,s.r,ex.reps,s.felt,mode);
       if(rd) html+=`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="row mb-8"><span class="text-xs text-mt fw-600">${s.felt?'✅ Sintió':'❌ No sintió'}</span><button onclick="setFelt(${si},null,${ci})" style="background:none;border:1px solid var(--bd);color:var(--mt);font-size:11px;cursor:pointer;padding:4px 10px;border-radius:8px">cambiar</button></div><div class="tips-box" style="margin-top:0">${rd.phrase}${rd.muscle?`<span style="display:block;margin-top:6px">${rd.muscle}</span>`:''}</div></div>`;
     }
@@ -1749,28 +1805,42 @@ function renderCompoundHeaderHTML(ex,ci,day,opts){
   return html;
 }
 
-// Workout FOCUSED MODE: solo el set actual (o forzado) se muestra como card grande.
-// Los anteriores y futuros se colapsan a pills al tope. Pills done son tappables para editar.
+// Workout FOCUSED MODE (Bento Tri Fase 4): pantalla limpia, "una decisión por momento".
+// Estados:
+//   A · Ingresando (rpe=null): peso/reps + RPE
+//   B · RPE marcado, esperando felt: agrega "¿Sentiste?"
+//   C · Felt marcado + auto-paso activo: countdown card con rec
+//   D · Todos sets completos: "Ejercicio completo" + Siguiente / Finalizar
+// La info no-crítica (tip coach, historial, última sesión) vive en el bottom sheet ⓘ.
 function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   const ex=compounds[ci];
   const sets=curSess.exercises[ci]?.sets||[];
   const sessNote=curSess.exercises[ci]?.note||'';
   const mode=getTrackMode(ex);
-  // Identificar el set "current": curWorkSetEdit si fue forzado, sino primer sin RPE.
+  const eid=eidOf(ex);
+  const pr=prOf(eid,mode);
+  // Identificar set "current": curWorkSetEdit si fue forzado, sino primer sin RPE.
   let currentSi=-1;
   if(curWorkSetEdit!==null&&curWorkSetEdit>=0&&curWorkSetEdit<sets.length){
     currentSi=curWorkSetEdit;
   } else {
     currentSi=sets.findIndex(s=>s.rpe===null);
   }
+  // Si hay countdown activo para este ejercicio, mostramos estado C en lugar de set card
+  const isCountdownActive = _workCountdown && _workCountdown.ci===ci;
 
-  let html=renderCompoundHeaderHTML(ex,ci,day);
+  // HEADER · simplificado · nombre + PR inline + botón ⓘ (info en bottom sheet)
+  let html=`<div class="row mb-14" style="align-items:center;gap:10px">
+    <div style="flex:1;min-width:0">
+      <div style="font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;line-height:1.15">${getExName(ex)}</div>
+      ${pr>0?`<div style="font-size:11px;color:var(--mt);margin-top:3px;font-weight:500">🏆 ${formatPR(pr,mode)}</div>`:''}
+    </div>
+    <button class="icon-btn" onclick="openExInfoSheet(${ci})" title="Info del ejercicio" aria-label="Info del ejercicio" style="width:36px;height:36px;font-size:14px;flex-shrink:0">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    </button>
+  </div>`;
 
-  // Banner "Última sesión" — info azul (acción/edit affordance hacia la rec)
-  const prevRec=lastSessionRec(eidOf(ex),mode);
-  if(prevRec) html+=`<div class="card mb-16" style="cursor:default;display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.25);box-shadow:var(--lift-in)"><span style="font-size:16px;flex-shrink:0">💡</span><div style="flex:1;min-width:0"><div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);margin-bottom:4px">Última sesión</div><div class="text-sm" style="color:var(--tx);line-height:1.4">${prevRec}</div></div></div>`;
-
-  // PILLS SUMMARY — un pill por set + add/remove
+  // PILLS · un pill por set + add/remove
   html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:0 2px;align-items:center">`;
   sets.forEach((s,si)=>{
     const isDone=s.rpe!==null;
@@ -1779,7 +1849,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     if(mode==='weight') valLabel=`${s.w}kg×${s.r}`;
     else if(mode==='time') valLabel=`${s.r}s`;
     else valLabel=`×${s.r}`;
-    if(isCurrent){
+    if(isCurrent && !isCountdownActive){
       html+=`<span class="ws-pill ws-pill-current"><span class="b2-pulse-dot" style="margin-right:2px"></span>S${si+1} en curso</span>`;
     } else if(isDone){
       html+=`<button class="ws-pill ws-pill-done" onclick="setForcedSetEdit(${si})" title="Tap para editar"><span style="font-weight:700">S${si+1}</span><span style="opacity:0.85">${valLabel}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>`;
@@ -1787,29 +1857,93 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
       html+=`<span class="ws-pill ws-pill-pending">S${si+1} —</span>`;
     }
   });
-  // Pills + / − para agregar/quitar sets
   html+=`<button class="ws-pill ws-pill-add" onclick="addWorkSet(${ci})" title="Agregar serie"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`;
   if(sets.length>1){
     html+=`<button class="ws-pill ws-pill-add" onclick="removeWorkSet(${ci})" title="Quitar última"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`;
   }
   html+=`</div>`;
 
-  // SET ACTUAL GIGANTE (o estado "todos completos")
-  if(currentSi>=0){
+  // TIP DEL SET ANTERIOR · colapsable arriba del set actual (cuando se viene del countdown)
+  if(_lastSetTip && _lastSetTip.ci===ci && _lastSetTip.si===currentSi-1 && currentSi>=0 && !isCountdownActive){
+    const tipHtml=(_lastSetTip.rec||'').replace(/\n/g,'<br>');
+    html+=`<div class="prev-tip" onclick="this.classList.toggle('open')">
+      <div class="prev-tip-header">
+        <span>💡 Tip del set anterior</span>
+        <span class="prev-tip-chev">▼</span>
+      </div>
+      <div class="prev-tip-body">${tipHtml||'<em style="color:var(--mt)">(sin recomendación)</em>'}</div>
+    </div>`;
+  }
+
+  // CUERPO: estado C (countdown) / D (completo) / A o B (set card normal)
+  if(isCountdownActive){
+    // Estado C — countdown card grande
+    const cd=_workCountdown;
+    const nextLabel=currentSi>=0?`Pasando al set ${currentSi+1}`:'Pasando al siguiente';
+    const recHtml=cd.rec?cd.rec.replace(/\n/g,'<br>'):'';
+    html+=`<div class="cdown-card">
+      <div class="cdown-check">✓</div>
+      <div style="font-size:13px;font-weight:500;color:var(--mt);margin-bottom:2px">Set ${cd.si+1} guardado</div>
+      ${recHtml?`<div class="cdown-rec">🔹 ${recHtml}</div>`:''}
+      <div class="cdown-label">${nextLabel} en</div>
+      <div class="cdown-num">${cd.secondsLeft}</div>
+      <div class="cdown-btns">
+        <button class="btn" onclick="nextSetNow()" style="padding:14px 0;display:flex;align-items:center;justify-content:center;gap:8px">
+          Siguiente ahora
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        </button>
+        <button class="btn-out" onclick="cancelSetCountdown()" style="padding:11px 0;font-size:13px">Mantener este set</button>
+      </div>
+    </div>`;
+  } else if(currentSi>=0){
+    // Estado A o B (depende de s.rpe / s.felt internos)
     html+=renderSetCardHTML(sets[currentSi],currentSi,sets,ex,mode,{ci,allowAddRemove:false,focused:true});
   } else {
-    // Todos los sets completos — celebración verde + rec para próxima
-    html+=`<div class="card" style="cursor:default;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.30);padding:18px 16px;text-align:center;box-shadow:var(--lift-in)">
-      <div style="font-size:30px;margin-bottom:6px">✅</div>
-      <div style="font-size:15px;font-weight:600;color:var(--gn);margin-bottom:4px;letter-spacing:-0.2px">Ejercicio completo</div>
-      <div style="font-size:11.5px;color:var(--mt);font-weight:500">${sets.length} set${sets.length===1?'':'s'} registrado${sets.length===1?'':'s'}</div>
+    // Estado D · todos sets completos · "Ejercicio completo" + siguiente/finalizar
+    html+=`<div class="card" style="cursor:default;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.30);padding:22px 18px;text-align:center;box-shadow:var(--lift-in)">
+      <div style="font-size:38px;margin-bottom:4px">✅</div>
+      <div style="font-size:16px;font-weight:600;color:var(--gn);letter-spacing:-0.2px">Ejercicio completo</div>
+      <div style="font-size:12px;color:var(--mt);margin-top:4px;font-weight:500">${sets.length} set${sets.length===1?'':'s'} registrado${sets.length===1?'':'s'}</div>
     </div>`;
     const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps,null,mode);
     if(gr) html+=`<div class="card mt-12" style="cursor:default;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.25);padding:14px 16px;box-shadow:var(--lift-in)"><div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);margin-bottom:8px">🎯 Para la próxima sesión</div><div style="font-size:14px;color:var(--tx);font-weight:500;line-height:1.5">${gr}</div></div>`;
+    // Botón "Siguiente ejercicio" / "Finalizar entreno" — chequear si soy el último
+    const units=[];const seenIdx=new Set();
+    compounds.forEach((e,i)=>{
+      if(seenIdx.has(i)) return;
+      const grp=groupOfCompoundIdx(compounds,i);
+      if(grp){grp.indexes.forEach(idx=>seenIdx.add(idx));units.push({firstIdx:grp.indexes[0]});}
+      else{seenIdx.add(i);units.push({firstIdx:i});}
+    });
+    let myUnit=-1;
+    for(let i=0;i<units.length;i++){if(units[i].firstIdx<=ci){myUnit=i;}else break;}
+    const isLastEx=myUnit===units.length-1;
+    if(isLastEx){
+      html+=`<button class="btn mt-16" onclick="confirmExit()" style="padding:16px 0;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--gn);color:var(--action-tx)">
+        🏁 Finalizar entrenamiento
+      </button>`;
+    } else {
+      html+=`<button class="btn mt-16" onclick="gotoNextExercise()" style="padding:16px 0;display:flex;align-items:center;justify-content:center;gap:8px">
+        Siguiente ejercicio
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+      </button>`;
+    }
   }
 
-  // Notas (siempre disponible al final)
-  html+=`<textarea class="note-input mt-12" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${sessNote}</textarea>`;
+  // Notas · colapsadas con "+ Agregar nota" si no hay, textarea normal si hay (no aparece durante countdown)
+  if(!isCountdownActive){
+    if(sessNote){
+      html+=`<textarea class="note-input mt-16" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${sessNote}</textarea>`;
+    } else {
+      html+=`<details class="mt-16"><summary style="font-size:12px;color:var(--mt);cursor:pointer;padding:8px 4px;display:flex;align-items:center;gap:6px;font-weight:500">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Agregar nota
+      </summary>
+      <textarea class="note-input mt-4" placeholder="Tu nota..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()"></textarea>
+      </details>`;
+    }
+  }
+
   return html;
 }
 
@@ -2013,7 +2147,31 @@ function addWorkSet(ci){
 function setFelt(si,val,ci){
   ci=(ci==null)?curExI:ci;
   curSess.exercises[ci].sets[si].felt=val;
-  curWorkSetEdit=null;saveDraft();renderWork();
+  saveDraft();
+  // Auto-paso post-felt: solo en single compound (focused), no en grupo, no en edit mode,
+  // y solo si quedan sets sin completar todavía en este ejercicio.
+  const day=routine.days.find(d=>d.id===curDayId);
+  const compounds=getCompounds(day);
+  const grp=groupOfCompoundIdx(compounds,ci);
+  const isEditMode=curWorkSetEdit!==null;
+  if(!grp && !isEditMode){
+    const sets=curSess.exercises[ci].sets;
+    const stillIncomplete=sets.some((s,i)=>i!==si && s.rpe===null);
+    if(stillIncomplete){
+      const ex=compounds[ci];
+      const mode=getTrackMode(ex);
+      const rd=setRecData(sets[si].rpe,sets[si].r,ex.reps,val,mode);
+      let recText='';
+      if(rd){
+        recText=rd.phrase||'';
+        if(rd.muscle) recText+=(recText?'\n':'')+rd.muscle;
+      }
+      startSetCountdown(ci,si,recText);
+      return;
+    }
+  }
+  // Sin auto-paso: comportamiento normal (reset edit y render)
+  curWorkSetEdit=null;renderWork();
 }
 function removeWorkSet(ci){
   ci=(ci==null)?curExI:ci;
@@ -2027,7 +2185,138 @@ function removeWorkSet(ci){
   curWorkSetEdit=null;saveDraft();renderWork();
 }
 // Focused mode: tap en un pill done trae ese set a card grande para edición.
-function setForcedSetEdit(si){curWorkSetEdit=si;renderWork();}
+function setForcedSetEdit(si){curWorkSetEdit=si;cancelSetCountdown(true);renderWork();}
+
+// ══ Fase 4 · Auto-paso post-felt + bottom sheet de info ══
+function startSetCountdown(ci,si,rec){
+  cancelSetCountdown(true);
+  _workCountdown={ci,si,secondsLeft:3,rec,intervalRef:null};
+  _workCountdown.intervalRef=setInterval(()=>{
+    if(!_workCountdown){return;}
+    _workCountdown.secondsLeft--;
+    if(_workCountdown.secondsLeft<=0){
+      // Guardar tip del set anterior para que aparezca colapsado arriba del siguiente
+      _lastSetTip={ci:_workCountdown.ci,si:_workCountdown.si,rec:_workCountdown.rec};
+      cancelSetCountdown(false);
+      // Scroll suave al set siguiente que acaba de renderearse
+      setTimeout(()=>{
+        const setCard=document.querySelector('.set-card');
+        if(setCard) setCard.scrollIntoView({behavior:'smooth',block:'start'});
+      },50);
+    } else {
+      // Update solo el número, sin re-render completo (más fluido)
+      const numEl=document.querySelector('.cdown-num');
+      if(numEl) numEl.textContent=_workCountdown.secondsLeft;
+    }
+  },1000);
+  renderWork();
+}
+function cancelSetCountdown(silent){
+  if(_workCountdown&&_workCountdown.intervalRef) clearInterval(_workCountdown.intervalRef);
+  _workCountdown=null;
+  if(!silent) renderWork();
+}
+function nextSetNow(){
+  if(!_workCountdown) return;
+  _lastSetTip={ci:_workCountdown.ci,si:_workCountdown.si,rec:_workCountdown.rec};
+  cancelSetCountdown(false);
+  setTimeout(()=>{
+    const setCard=document.querySelector('.set-card');
+    if(setCard) setCard.scrollIntoView({behavior:'smooth',block:'start'});
+  },50);
+}
+
+// Bottom sheet · info del ejercicio (3 tabs: coach / historial / última sesión)
+function openExInfoSheet(ci){
+  _infoSheetCi=ci;_infoSheetTab='coach';
+  const day=routine.days.find(d=>d.id===curDayId);
+  const compounds=getCompounds(day);
+  const ex=compounds[ci];
+  if(!ex) return;
+  $("bsheet-title").textContent=getExName(ex);
+  ['coach','hist','last'].forEach(t=>{
+    const btn=$("bsheet-tab-"+t);
+    if(btn) btn.classList.toggle('active',t==='coach');
+  });
+  renderExInfoSheetContent();
+  $("ex-info-sheet").classList.add('show');
+}
+function closeExInfoSheet(){
+  $("ex-info-sheet").classList.remove('show');
+  _infoSheetCi=null;
+}
+function setExInfoTab(tab){
+  _infoSheetTab=tab;
+  ['coach','hist','last'].forEach(t=>{
+    const btn=$("bsheet-tab-"+t);
+    if(btn) btn.classList.toggle('active',t===tab);
+  });
+  renderExInfoSheetContent();
+}
+function renderExInfoSheetContent(){
+  if(_infoSheetCi===null) return;
+  const day=routine.days.find(d=>d.id===curDayId);
+  const compounds=getCompounds(day);
+  const ex=compounds[_infoSheetCi];
+  if(!ex){closeExInfoSheet();return;}
+  const mode=getTrackMode(ex);
+  const eid=eidOf(ex);
+  let content='';
+  if(_infoSheetTab==='coach'){
+    const tips=ex.notes;
+    const setsReps=formatSetsReps(ex);
+    const restSec=restAsSeconds(ex.rest);
+    const restLbl=restSec?` · Descanso: ${fmtTime(restSec)}`:'';
+    content=`<div style="font-size:12px;color:var(--mt);font-weight:500;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bd)">${setsReps}${restLbl}${ex.objective?' · '+ex.objective:''}</div>`;
+    if(tips){
+      content+=`<div style="white-space:pre-wrap">${tips}</div>`;
+    } else {
+      content+=`<div class="empty">El coach no agregó notas para este ejercicio.</div>`;
+    }
+  } else if(_infoSheetTab==='hist'){
+    const h=hist(eid);
+    const pr=prOf(eid,mode);
+    if(!h.length){
+      content=`<div class="empty">Sin sesiones registradas todavía.</div>`;
+    } else {
+      content=`<div style="margin-bottom:14px;font-size:13px">PR actual: <span style="color:var(--gn);font-weight:600">${formatPR(pr,mode)}</span> · ${h.length} sesion${h.length===1?'':'es'}</div>`;
+      content+=`<button class="btn-out" onclick="closeExInfoSheet();showHist('${eid}')" style="padding:12px 16px;font-size:13px">Ver historial completo →</button>`;
+    }
+  } else if(_infoSheetTab==='last'){
+    const prevRec=lastSessionRec(eid,mode);
+    if(prevRec){
+      content=`<div>${prevRec}</div>`;
+    } else {
+      content=`<div class="empty">No hay sesión anterior registrada para este ejercicio.</div>`;
+    }
+  }
+  $("bsheet-content").innerHTML=content;
+}
+
+// Saltar al siguiente ejercicio (botón en estado D "Ejercicio completo")
+function gotoNextExercise(){
+  const day=routine.days.find(d=>d.id===curDayId);
+  const compounds=getCompounds(day);
+  const units=[];const seenIdx=new Set();
+  compounds.forEach((e,i)=>{
+    if(seenIdx.has(i)) return;
+    const grp=groupOfCompoundIdx(compounds,i);
+    if(grp){grp.indexes.forEach(idx=>seenIdx.add(idx));units.push({firstIdx:grp.indexes[0]});}
+    else{seenIdx.add(i);units.push({firstIdx:i});}
+  });
+  let curIdx=-1;
+  for(let i=0;i<units.length;i++){if(units[i].firstIdx<=curExI){curIdx=i;}else break;}
+  if(curIdx>=0 && curIdx<units.length-1){
+    curExI=units[curIdx+1].firstIdx;
+    curWorkSetEdit=null;_lastSetTip=null;
+    cancelSetCountdown(true);
+    renderWork();
+    setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50);
+  } else {
+    // Era el último — abrir modal de salida con "Guardar y salir" como CTA
+    confirmExit();
+  }
+}
 function toggleAcc(accId,rest){
   curSess.accessories[accId]=!curSess.accessories[accId];
   if(curSess.accessories[accId]&&rest&&!timerRef) startTimer(rest);
