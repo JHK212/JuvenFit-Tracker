@@ -6,28 +6,56 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Tracker">
-<meta name="theme-color" content="#F5F2ED">
+<meta name="theme-color" content="#0A0A0B">
 <title>Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;color:inherit;}
-:root{--bg:#F5F2ED;--sf:#EDE9E3;--cd:#FFFFFF;--bd:#E0DBD3;--tx:#1a1a1a;--mt:#8A8478;--ac:#5A1A1A;--dn:#dc2626;--gn:#16a34a;--yw:#ca8a04;--fm:'JetBrains Mono',monospace;--fs:'DM Sans',system-ui,sans-serif;}
+:root{
+  /* Bento Tri · Dark · paleta tri-color estricta */
+  --bg:#0A0A0B;            /* fondo página */
+  --sf:#1F1F23;            /* surface alt (inputs, surf2) */
+  --cd:#18181B;            /* card (TODAS iguales — sin tints de fondo) */
+  --bd:#27272A;            /* border sutil */
+  --tx:#FAFAFA;            /* texto principal off-white */
+  --mt:#A1A1AA;            /* muted */
+  --mt2:#71717A;           /* muted secundario */
+  --ac:#60A5FA;            /* AZUL = acción (CTAs, edit affordance) */
+  --action-tx:#0A0A0B;     /* texto sobre fondo azul */
+  --gn:#34D399;            /* VERDE = logro (PR, set done, ✓) */
+  --yw:#FB923C;            /* NARANJA = intensidad (set activo, racha, RPE, timer) */
+  --dn:#F87171;            /* danger */
+  /* radios estandarizados (de 7 escalas a 4) */
+  --r-chip:6px;
+  --r-btn-sm:10px;
+  --r-btn:14px;
+  --r-card:20px;
+  /* lift interno sutil en cards (en vez de sombras Material) */
+  --lift-in:inset 0 1px 0 rgba(255,255,255,0.04);
+  --fm:'JetBrains Mono',ui-monospace,monospace;
+  --fs:'Inter Tight',-apple-system,system-ui,sans-serif;
+}
 body{background:var(--bg);color:var(--tx);font-family:var(--fs);max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);}
 input,textarea,button,select{font-family:var(--fs);outline:none;color:var(--tx);}
-input:focus,textarea:focus{border-color:rgba(90,26,26,0.5)!important;}
+input:focus,textarea:focus{border-color:rgba(96,165,250,0.4)!important;box-shadow:0 0 0 3px rgba(96,165,250,0.16);}
 ::-webkit-scrollbar{width:0;}
 .page{display:none;padding-bottom:100px;}.page.active{display:block;}
 .header{padding:20px 20px 14px;padding-top:calc(20px + env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;background:var(--bg);}
 .logo{font-family:var(--fm);font-size:20px;font-weight:800;color:var(--ac);}
 .sec{padding:20px;}.sec-title{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--ac);margin-bottom:14px;}
 .card{background:var(--cd);border-radius:16px;border:1px solid var(--bd);padding:18px;margin-bottom:12px;color:var(--tx);}
-.card:active{background:var(--bd);}.card-accent{background:linear-gradient(135deg,var(--cd),rgba(90,26,26,0.06));border:1.5px solid rgba(90,26,26,0.2);}
-.icon-btn{background:none;border:1px solid var(--bd);border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--mt);cursor:pointer;font-size:18px;}
-.btn{background:var(--ac);color:#F5F0E8;border:none;border-radius:14px;padding:16px 24px;font-size:16px;font-weight:700;cursor:pointer;width:100%;text-align:center;}
-.btn:active{opacity:0.85;}
+.card{box-shadow:var(--lift-in);}.card:active{background:var(--sf);}.card-accent{background:var(--cd);border:1px solid var(--bd);}
+.icon-btn{background:none;border:1px solid var(--bd);border-radius:var(--r-btn-sm);width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--mt);cursor:pointer;font-size:18px;transition:transform 80ms ease,filter 80ms ease,background 80ms ease,color 80ms ease,box-shadow 80ms ease;}
+.icon-btn:hover{color:var(--tx);background:var(--sf);}
+.icon-btn:active{transform:scale(0.96);filter:brightness(0.92);}
+.icon-btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(96,165,250,0.28);}
+.btn{background:var(--ac);color:var(--action-tx);border:none;border-radius:var(--r-btn);padding:16px 24px;font-size:16px;font-weight:600;cursor:pointer;width:100%;text-align:center;letter-spacing:-0.2px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.18);transition:transform 80ms ease,filter 80ms ease,box-shadow 80ms ease;}
+.btn:hover{filter:brightness(1.08);}
+.btn:active{transform:scale(0.97);filter:brightness(0.92);box-shadow:inset 0 1px 0 rgba(255,255,255,0.10);}
+.btn:focus-visible{outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.18),0 0 0 3px rgba(96,165,250,0.32);}
 .btn-out{background:transparent;color:var(--tx);border:1.5px solid var(--bd);border-radius:14px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;width:100%;text-align:center;}
 .btn-danger{background:transparent;color:var(--dn);border:1.5px solid rgba(239,68,68,0.2);border-radius:14px;padding:14px 20px;font-size:15px;font-weight:600;cursor:pointer;width:100%;text-align:center;}
 .btn-sm{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;}
@@ -45,13 +73,13 @@ input:focus,textarea:focus{border-color:rgba(90,26,26,0.5)!important;}
 .w-btn:active{background:var(--bd);}
 .rpe-btn{padding:12px 8px;border-radius:12px;border:2px solid var(--bd);background:var(--cd);color:var(--mt);font-size:13px;font-weight:700;cursor:pointer;flex:1;text-align:center;}
 .rpe-btn.active-gn{border-color:var(--gn);background:rgba(34,197,94,0.09);color:var(--gn);}
-.rpe-btn.active-yw{border-color:var(--yw);background:rgba(234,179,8,0.09);color:var(--yw);}
+.rpe-btn.active-yw{border-color:rgba(251,146,60,0.40);background:rgba(251,146,60,0.14);color:var(--yw);}
 .rpe-btn.active-dn{border-color:var(--dn);background:rgba(239,68,68,0.09);color:var(--dn);}
 .ex-tabs{display:flex;gap:6px;padding:16px 20px 0;overflow-x:auto;}
 .ex-tab{padding:8px 14px;border-radius:10px;border:1.5px solid var(--bd);background:var(--cd);color:var(--mt);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;position:relative;}
-.ex-tab.active{border-color:var(--ac);background:rgba(90,26,26,0.09);color:var(--ac);}
+.ex-tab.active{border-color:rgba(251,146,60,0.40);background:rgba(251,146,60,0.12);color:var(--yw);}
 .set-card{background:var(--cd);border-radius:14px;border:1px solid var(--bd);padding:16px;margin-bottom:10px;}
-.tips-box{background:rgba(90,26,26,0.06);border:1px solid rgba(90,26,26,0.15);border-radius:12px;padding:12px 14px;margin-top:8px;font-size:13px;color:var(--ac);line-height:1.5;}
+.tips-box{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-top:8px;font-size:13px;color:var(--tx);line-height:1.5;box-shadow:var(--lift-in);}
 .tips-btn{background:none;border:none;color:var(--ac);font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;padding:0;}
 .qchip{display:inline-block;padding:4px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:14px;font-size:12px;font-weight:600;color:var(--mt);cursor:pointer;font-family:var(--fm);}
 .qchip:hover,.qchip:active{border-color:var(--ac);color:var(--ac);}
@@ -61,7 +89,7 @@ input:focus,textarea:focus{border-color:rgba(90,26,26,0.5)!important;}
 .micro-btn:hover{color:var(--ac);}
 .block-wrap{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:12px;}
 .block-hd{display:flex;align-items:center;gap:6px;margin-bottom:10px;}
-.block-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:0.5px;color:#fff;text-transform:uppercase;flex-shrink:0;}
+.block-tag{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:0.5px;color:var(--action-tx);text-transform:uppercase;flex-shrink:0;}
 .bex-row{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:11px 12px;margin-bottom:6px;}
 .bex-top{display:flex;align-items:center;gap:6px;}
 .bex-name{font-weight:700;font-size:14px;flex:1;cursor:pointer;transition:color .15s;}
@@ -87,7 +115,7 @@ textarea.xfl-inp{resize:none;min-height:48px;font-size:14px;}
 .modal{background:var(--sf);border-radius:24px 24px 0 0;padding:28px 20px 40px;padding-bottom:calc(40px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:85dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 body.modal-open{overflow:hidden;touch-action:none;}
 body.modal-open .page{overflow:hidden;}
-.pr-banner{background:rgba(90,26,26,0.08);border:1.5px solid rgba(90,26,26,0.25);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:none;align-items:center;gap:10px;}
+.pr-banner{background:rgba(52,211,153,0.10);border:1px solid rgba(52,211,153,0.30);border-radius:14px;padding:14px 18px;margin-bottom:16px;display:none;align-items:center;gap:10px;color:var(--gn);box-shadow:var(--lift-in);}
 .pr-banner.show{display:flex;}
 .chart-svg{width:100%;height:180px;}
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
@@ -97,13 +125,13 @@ body.modal-open .page{overflow:hidden;}
 .cal-header{font-size:11px;color:var(--mt);font-weight:600;padding:6px 0;}
 .cal-day{font-size:13px;padding:8px 0;border-radius:10px;color:var(--mt);font-weight:500;}
 .cal-day.empty{color:transparent;}
-.cal-day.trained{background:rgba(90,26,26,0.12);color:var(--ac);font-weight:700;border:1px solid rgba(90,26,26,0.25);}
+.cal-day.trained{background:rgba(52,211,153,0.14);color:var(--gn);font-weight:700;border:1px solid rgba(52,211,153,0.30);}
 .cal-day.today{border:1.5px solid var(--bd);color:var(--tx);font-weight:700;}
 .cal-day.trained.today{border-color:var(--ac);}
 .cal-day.clickable{cursor:pointer;}
 .cal-day.clickable:active{opacity:0.6;}
 .dpw-btn{width:44px;height:44px;border-radius:12px;border:1.5px solid var(--bd);background:var(--cd);color:var(--mt);font-size:18px;font-weight:700;cursor:pointer;font-family:var(--fm);}
-.dpw-btn.active{border-color:var(--ac);background:rgba(90,26,26,0.12);color:var(--ac);}
+.dpw-btn.active{border-color:rgba(96,165,250,0.40);background:rgba(96,165,250,0.12);color:var(--ac);}
 .del-check{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--bd);background:var(--cd);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:var(--ac);}
 .del-check.checked{border-color:var(--dn);background:rgba(239,68,68,0.12);}
 /* Accessory */
@@ -112,9 +140,38 @@ body.modal-open .page{overflow:hidden;}
 .acc-check{width:32px;height:32px;border-radius:10px;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0;}
 .acc-check.done{border-color:var(--gn);background:rgba(34,197,94,0.12);color:var(--gn);}
 .acc-tag{display:inline-block;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
-.acc-tag-bi{background:rgba(167,139,250,0.12);color:#a78bfa;}
-.acc-tag-tri{background:rgba(251,146,60,0.12);color:#fb923c;}
+.acc-tag-bi{background:var(--sf);color:var(--mt);border:1px solid var(--bd);}
+.acc-tag-tri{background:var(--sf);color:var(--mt);border:1px solid var(--bd);}
 .note-input{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--tx);width:100%;box-sizing:border-box;resize:none;min-height:36px;margin-top:10px;}
+
+/* ═══════════════════════════════════════════════════════════════
+   Bento Tri · polish global · press feedback + glow + helpers
+   ═══════════════════════════════════════════════════════════════ */
+/* Outline/danger/small buttons — press feedback unificado */
+.btn-out,.btn-danger,.btn-sm{transition:transform 80ms ease,filter 80ms ease,background 80ms ease,border-color 80ms ease,box-shadow 80ms ease;}
+.btn-out:hover,.btn-danger:hover,.btn-sm:hover{filter:brightness(1.15);}
+.btn-out:active,.btn-danger:active,.btn-sm:active{transform:scale(0.97);filter:brightness(0.88);}
+.btn-out:focus-visible,.btn-danger:focus-visible,.btn-sm:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(96,165,250,0.28);}
+
+/* Helper genérico .b2-press — usalo en cualquier elemento tappable que no sea un btn (cards, links, chips) */
+.b2-press{transition:transform 80ms ease,filter 80ms ease,background 80ms ease;}
+.b2-press:hover{filter:brightness(1.10);}
+.b2-press:active{transform:scale(0.96);filter:brightness(0.92);}
+
+/* Cards con feedback sutil al tap (Apple Fitness-style: el cuerpo lo siente, casi no se ve) */
+.card.b2-tap{cursor:pointer;transition:transform 80ms ease,background 80ms ease;}
+.card.b2-tap:active{transform:scale(0.997);background:var(--sf);}
+
+/* Set activo en workout — dot que pulsa + glow externo de la card */
+@keyframes b2-pulse{0%,100%{box-shadow:0 0 0 4px rgba(251,146,60,0.15);}50%{box-shadow:0 0 0 6px rgba(251,146,60,0.22);}}
+.b2-pulse-dot{width:8px;height:8px;border-radius:4px;background:var(--yw);animation:b2-pulse 1.8s ease-in-out infinite;display:inline-block;}
+.b2-set-glow{box-shadow:0 0 0 1px rgba(251,146,60,0.20),0 8px 28px -8px rgba(251,146,60,0.32),inset 0 1px 0 rgba(255,255,255,0.04)!important;}
+
+/* Sticky elementos flotantes (timer, headers que floten) — sombra de elevación que los "despega" */
+.b2-sticky-lift{box-shadow:0 -12px 28px -10px rgba(0,0,0,0.55);}
+
+/* Halo verde detrás del PR modal (cuando llegue) — irradia el momento de logro */
+.b2-pr-halo{box-shadow:0 -20px 40px -10px rgba(0,0,0,0.45),0 0 80px rgba(52,211,153,0.10);}
 </style>
 </head>
 <body>
@@ -270,7 +327,7 @@ body.modal-open .page{overflow:hidden;}
 
 <!-- ══ EDIT DAY (BLOQUES) ══ -->
 <div id="editD" class="page">
-  <div class="header"><button class="icon-btn" onclick="closeDayBlockEditor()">←</button><div id="editD-title" class="fw-700" style="font-size:16px;text-align:center;flex:1">Editar día</div><button class="btn-sm" onclick="saveDayBlockEditor()" style="background:var(--ac);color:#fff;font-weight:700">Listo</button></div>
+  <div class="header"><button class="icon-btn" onclick="closeDayBlockEditor()">←</button><div id="editD-title" class="fw-700" style="font-size:16px;text-align:center;flex:1">Editar día</div><button class="btn-sm" onclick="saveDayBlockEditor()" style="background:var(--ac);color:var(--action-tx);font-weight:700">Listo</button></div>
   <div class="sec">
     <div class="mb-16">
       <label class="label">Nombre del día</label>
@@ -316,11 +373,13 @@ const DEFAULT_DAYS=[
 
 // ══ BLOCK TYPES (deben matchear con la app del coach) ══
 const BLOCK_TYPES={
-  movilidad:{label:'Movilidad',color:'#78716c'},
-  principal:{label:'Principal',color:'#5A1A1A'},
-  complementario:{label:'Complementario',color:'#2563eb'},
-  finisher:{label:'Finisher',color:'#16a34a'},
-  custom:{label:'Personalizado',color:'#7c3aed'}
+  // Bento Tri: las etiquetas de bloque son taxonomía, no acción/logro/intensidad → todas gris.
+  // Excepción: Finisher mapea a "intensidad" (esfuerzo final) → naranja.
+  movilidad:{label:'Movilidad',color:'#A1A1AA'},
+  principal:{label:'Principal',color:'#A1A1AA'},
+  complementario:{label:'Complementario',color:'#A1A1AA'},
+  finisher:{label:'Finisher',color:'#FB923C'},
+  custom:{label:'Personalizado',color:'#A1A1AA'}
 };
 
 // ══ EXERCISE LIBRARY (v1) ══
@@ -455,7 +514,7 @@ function getActiveRoutine(){return routineStore&&routineStore.list&&(routineStor
 function saveRoutine(){save("gym-r",routineStore);}
 
 // ══ MUSCLE VOLUME ══
-const MUSCLE_COLORS={pecho:'#dc2626',dorsal:'#2563eb',trapecio:'#7c3aed',lumbar:'#92400e',biceps:'#ea580c',triceps:'#e11d48',antebrazo:'#ca8a04',delt_ant:'#db2777',delt_lat:'#0891b2',delt_post:'#0d9488',cuadriceps:'#3b82f6',isquios:'#16a34a',gluteo:'#9333ea',gemelos:'#84a829',aductor:'#a855f7',core:'#78716c'};
+const MUSCLE_COLORS={pecho:'#dc2626',dorsal:'#2563eb',trapecio:'#7c3aed',lumbar:'#92400e',biceps:'#ea580c',triceps:'#e11d48',antebrazo:'#ca8a04',delt_ant:'#db2777',delt_lat:'#0891b2',delt_post:'#0d9488',cuadriceps:'#3b82f6',isquios:'#16a34a',gluteo:'#9333ea',gemelos:'#84a829',aductor:'#a855f7',core:'#A1A1AA'};
 // Parse de reps en items de biserie/triserie:
 //   "12"      → 12 reps
 //   "30 segs" → 10 reps eq (3 seg = 1 rep, tempo estándar de rep controlada)
@@ -516,7 +575,7 @@ const BODY_ZONES={
   Hombros:{muscles:['delt_ant','delt_lat','delt_post'],color:'#7c3aed'},
   Brazos:{muscles:['biceps','triceps','antebrazo'],color:'#ea580c'},
   Piernas:{muscles:['cuadriceps','isquios','gluteo','gemelos','aductor'],color:'#16a34a'},
-  Core:{muscles:['core'],color:'#78716c'}
+  Core:{muscles:['core'],color:'#A1A1AA'}
 };
 // Genera tonos del mismo color base para los sub-músculos
 function shadeColor(hex,factor){
@@ -713,7 +772,7 @@ function drawMuscleChart(){
     groupVols[g]=ms.reduce((s,m)=>s+(totals[m]||0),0);
   });
   const groupTotal=Object.values(groupVols).reduce((a,b)=>a+b,0);
-  const groupColors={Push:'#dc2626',Pull:'#2563eb',Pierna:'#16a34a',Core:'#78716c'};
+  const groupColors={Push:'#dc2626',Pull:'#2563eb',Pierna:'#16a34a',Core:'#A1A1AA'};
   let groupBar='';
   if(groupTotal>0){
     groupBar=`<div class="text-xs text-mt fw-600 mt-20" style="margin-bottom:8px">PATRÓN DE MOVIMIENTO</div>`;
@@ -904,7 +963,7 @@ function formatDayPreview(day){
   if(counts[3]>0) parts.push(`${counts[3]} triserie${counts[3]===1?'':'s'}`);
   if(counts.more>0) parts.push(`${counts.more} grupo${counts.more===1?'':'s'}`);
   if(parts.length){
-    out+=`  <span style="color:#a16207;font-weight:700">· ${parts.join(' · ')}</span>`;
+    out+=`  <span style="color:var(--mt);font-weight:600">· ${parts.join(' · ')}</span>`;
   }
   return out;
 }
@@ -1234,7 +1293,7 @@ function renderCalendar(){
   for(let i=0;i<startDow;i++) html+='<div class="cal-day empty"></div>';
   for(let d=1;d<=lastDay;d++){const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;let cls='cal-day';if(ds===todayDate) cls+=' today';if(sd[ds]) cls+=' trained';html+=`<div class="${cls}">${d}</div>`;}
   html+='</div>';
-  html+=`<div style="display:flex;gap:16px;margin-top:12px;justify-content:center"><div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:4px;background:rgba(90,26,26,0.15);border:1px solid rgba(90,26,26,0.3)"></div><span class="text-xs text-mt">Entrené</span></div><div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:4px;border:1.5px solid var(--bd)"></div><span class="text-xs text-mt">Hoy</span></div></div>`;
+  html+=`<div style="display:flex;gap:16px;margin-top:12px;justify-content:center"><div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:4px;background:rgba(52,211,153,0.18);border:1px solid rgba(52,211,153,0.40)"></div><span class="text-xs text-mt">Entrené</span></div><div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:4px;border:1.5px solid var(--yw)"></div><span class="text-xs text-mt">Hoy</span></div></div>`;
   $("home-calendar").innerHTML=html;
 }
 
@@ -1266,9 +1325,9 @@ function renderRoutineExCard(ex,gi){
   const name=getExName(ex);
   const setsReps=formatSetsReps(ex);
   const inGroup=gi&&gi.groupId;
-  const groupBorder=inGroup?'border-left:3px solid #eab308;':'';
-  const groupBadge=(inGroup&&gi.isFirst)?`<div style="font-size:10px;font-weight:800;color:#a16207;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${groupTerm(gi.groupSize)}</div>`:'';
-  const groupCont=(inGroup&&!gi.isFirst)?` <span class="text-xs" style="color:#a16207;font-weight:700;margin-left:6px">+${gi.groupIndex+1}</span>`:'';
+  const groupBorder=inGroup?'border-left:2px solid var(--bd);':'';
+  const groupBadge=(inGroup&&gi.isFirst)?`<div style="font-size:10px;font-weight:700;color:var(--mt);letter-spacing:1.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${groupTerm(gi.groupSize)}</div>`:'';
+  const groupCont=(inGroup&&!gi.isFirst)?` <span class="text-xs" style="color:var(--mt);font-weight:600;margin-left:6px">+${gi.groupIndex+1}</span>`:'';
   const restSec=restAsSeconds(ex.rest);
   const restLbl=ex.rest?`Descanso: ${fmtTime(restSec)}`:'';
   return `<div class="card" style="cursor:default;${groupBorder}">${groupBadge}<div class="row mb-4"><span class="fw-700" style="color:var(--ac)">${name}${groupCont}</span><span class="text-xs text-mt mono">${setsReps}</span></div>${restLbl||ex.objective?`<div class="text-xs text-mt">${restLbl}${restLbl&&ex.objective?' · ':''}${ex.objective||''}</div>`:''}${ex.notes?`<div class="tips-box mt-8">${ex.notes}</div>`:''}</div>`;
@@ -1284,7 +1343,7 @@ function renderRoutine(){
       blocks.forEach(b=>{
         const bt=BLOCK_TYPES[b.type]||BLOCK_TYPES.custom;
         const lbl=b.type==='custom'&&b.label?b.label:bt.label;
-        html+=`<div class="row mb-8 mt-12" style="align-items:center;gap:8px"><span class="badge" style="background:${bt.color};color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px">${lbl}</span><span style="flex:1;height:1px;background:var(--bd)"></span></div>`;
+        html+=`<div class="row mb-8 mt-12" style="align-items:center;gap:8px"><span class="badge" style="background:${bt.color};color:var(--action-tx);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px">${lbl}</span><span style="flex:1;height:1px;background:var(--bd)"></span></div>`;
         const groupInfo=computeBlockGroups(b.exercises||[]);
         (b.exercises||[]).forEach((ex,exIdx)=>{
           if(isCompound(ex)){
@@ -1386,7 +1445,7 @@ function renderCompoundHeaderHTML(ex,ci,day,opts){
   const blockTagHtml=(blockOfThisEx&&blockOfThisEx.type)?(()=>{
     const bt=BLOCK_TYPES[blockOfThisEx.type]||BLOCK_TYPES.custom;
     const lbl=blockOfThisEx.type==='custom'&&blockOfThisEx.label?blockOfThisEx.label:bt.label;
-    return `<span class="badge" style="background:${bt.color};color:#fff;font-size:9px;font-weight:700;padding:3px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.5px;margin-right:8px;vertical-align:middle">${lbl}</span>`;
+    return `<span class="badge" style="background:${bt.color};color:var(--action-tx);font-size:9px;font-weight:700;padding:3px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.5px;margin-right:8px;vertical-align:middle">${lbl}</span>`;
   })():'';
   const exDisplayName=getExName(ex);
   const setsRepsLbl=formatSetsReps(ex);
@@ -1425,12 +1484,12 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
   const exs=indexes.map(i=>compounds[i]);
   const restSec=restAsSeconds(firstEx.rest);
   // Banner del grupo arriba
-  let html=`<div class="card mb-16" style="cursor:default;background:rgba(234,179,8,.1);border:1px solid #eab308;padding:14px 16px">
+  let html=`<div class="card mb-16" style="cursor:default;background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.30);padding:14px 16px;box-shadow:var(--lift-in)">
     <div class="row mb-4" style="align-items:center;gap:8px">
-      <span style="font-size:12px;font-weight:800;color:#a16207;letter-spacing:.5px;text-transform:uppercase">🔗 ${groupLabel}</span>
+      <span style="font-size:12px;font-weight:700;color:var(--yw);letter-spacing:1.5px;text-transform:uppercase">🔗 ${groupLabel}</span>
     </div>
-    <div class="fw-700" style="font-size:15px;color:#78580a">${exs.map(getExName).join(' + ')}</div>
-    <div class="text-xs mt-4" style="color:#78580a;line-height:1.4">Hacé 1 set de cada uno sin descanso. Cuando completés la vuelta, tap <strong>⏱ Descansar</strong>.</div>
+    <div class="fw-700" style="font-size:15px;color:var(--tx)">${exs.map(getExName).join(' + ')}</div>
+    <div class="text-xs mt-4" style="color:var(--mt);line-height:1.4">Hacé 1 set de cada uno sin descanso. Cuando completés la vuelta, tap <strong style="color:var(--yw)">⏱ Descansar</strong>.</div>
   </div>`;
   // Sub-headers compactos por ejercicio (info: PR, tips, descanso del coach)
   indexes.forEach(ci=>{
@@ -1451,10 +1510,10 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
       :'';
     // Header de la vuelta + botones ± + descansar
     html+=`<div class="row mb-8 mt-16" style="align-items:center;gap:8px">
-      <span style="font-size:12px;font-weight:800;color:#a16207;letter-spacing:.5px;text-transform:uppercase">VUELTA ${si+1} / ${maxSets}</span>
+      <span style="font-size:12px;font-weight:700;color:var(--yw);letter-spacing:1.5px;text-transform:uppercase">VUELTA ${si+1} / ${maxSets}</span>
       ${addRemoveHtml}
       <span style="flex:1"></span>
-      <button class="btn-sm" onclick="startTimer(${restSec})" style="font-size:11px;padding:4px 12px;background:#eab308;color:#fff;font-weight:700">⏱ Descansar</button>
+      <button class="btn-sm" onclick="startTimer(${restSec})" style="font-size:11px;padding:6px 14px;background:var(--yw);color:var(--action-tx);font-weight:600;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.18)">⏱ Descansar</button>
     </div>`;
     // Sub-card por ejercicio en esta vuelta
     indexes.forEach((ci,gi)=>{
@@ -1496,7 +1555,7 @@ function renderWork(){
   if(mobility.length){
     const movDone=mobility.every(m=>curSess.mobility&&curSess.mobility[m.id]);
     const movActive=curSess.mobility&&Object.values(curSess.mobility).some(Boolean);
-    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="${curExI===-1?'background:#78716c;color:#fff;border-color:#78716c':'border-color:#78716c'};font-size:18px">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:#16a34a;background:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">✓</span>':(movActive?'<span style="position:absolute;top:-4px;right:-4px;font-size:9px;color:#78716c">·</span>':'')}🤸</button>`;
+    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="font-size:18px">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':(movActive?'<span style="position:absolute;top:-4px;right:-4px;font-size:9px;color:var(--mt)">·</span>':'')}🤸</button>`;
   }
   // Construir "units": cada unit es un single compound o un grupo (biserie/triserie).
   // Tabs muestran UN solo botón por unit. Si curExI cae en un grupo, el tab activo es el del primero del grupo.
@@ -1514,7 +1573,7 @@ function renderWork(){
     if(u.type==='group'){
       const done=u.indexes.every(i=>curSess.exercises[i]?.sets?.every(s=>s.rpe!==null));
       const label=u.size===2?'🔗 BI':u.size===3?'🔗 TRI':'🔗 ×'+u.size;
-      return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="background:${active?'#eab308':'transparent'};color:${active?'#fff':'#a16207'};border:1px solid #eab308;min-width:48px;font-size:12px;font-weight:800;padding:0 8px">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:#16a34a;background:#fff;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center">✓</span>':''}${label}</button>`;
+      return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="background:${active?'rgba(251,146,60,0.14)':'transparent'};color:${active?'var(--yw)':'var(--mt)'};border:1px solid ${active?'rgba(251,146,60,0.40)':'var(--bd)'};min-width:48px;font-size:12px;font-weight:700;padding:0 8px">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':''}${label}</button>`;
     }
     const i=u.firstIdx;
     const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
@@ -1526,7 +1585,7 @@ function renderWork(){
 
   if(curExI===-1){
     // ── Mobility view ──
-    html+=`<div class="row mb-4" style="align-items:center;gap:10px"><span style="font-size:28px">🤸</span><span style="font-size:22px;font-weight:800;color:#78716c">Movilidad</span></div>`;
+    html+=`<div class="row mb-4" style="align-items:center;gap:10px"><span style="font-size:28px">🤸</span><span style="font-size:22px;font-weight:700;color:var(--tx);letter-spacing:-0.4px">Movilidad</span></div>`;
     html+=`<div class="text-sm text-mt mb-18">Entrada en calor — marcá cada ejercicio cuando lo completes.</div>`;
     mobility.forEach(m=>{
       const done=curSess.mobility&&curSess.mobility[m.id];
@@ -1832,10 +1891,10 @@ function drawChart(data,mode){
   const pts=data.map((d,i)=>{const v=mode==='weight'?d.peso:d.peakR;return {x:pad.l+(data.length>1?i/(data.length-1):0.5)*iW,y:pad.t+iH-(((v-mn)/(mx-mn||1))*iH),d}});
   const line=pts.map((p,i)=>(i===0?'M':'L')+p.x+','+p.y).join(' ');
   let labels='';const step=Math.max(1,Math.floor(data.length/4));
-  pts.forEach((p,i)=>{if(i%step===0||i===pts.length-1)labels+=`<text x="${p.x}" y="${H-5}" fill="#8A8478" font-size="10" text-anchor="middle">${p.d.date}</text>`;});
-  let yLabels='';for(let i=0;i<=4;i++){const v=mn+((mx-mn)/4)*i;const y=pad.t+iH-((i/4)*iH);yLabels+=`<text x="${pad.l-8}" y="${y+4}" fill="#8A8478" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">${Math.round(v)}</text><line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="#E0DBD3" stroke-width="0.5"/>`;}
+  pts.forEach((p,i)=>{if(i%step===0||i===pts.length-1)labels+=`<text x="${p.x}" y="${H-5}" fill="#A1A1AA" font-size="10" text-anchor="middle">${p.d.date}</text>`;});
+  let yLabels='';for(let i=0;i<=4;i++){const v=mn+((mx-mn)/4)*i;const y=pad.t+iH-((i/4)*iH);yLabels+=`<text x="${pad.l-8}" y="${y+4}" fill="#A1A1AA" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">${Math.round(v)}</text><line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="#27272A" stroke-width="0.5"/>`;}
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  svg.innerHTML=`${yLabels}<path d="${line}" fill="none" stroke="#5A1A1A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="#5A1A1A"/>`).join('')}${labels}`;
+  svg.innerHTML=`${yLabels}<path d="${line}" fill="none" stroke="#FAFAFA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="#FAFAFA"/>`).join('')}${labels}`;
 }
 
 // ══ EXERCISE HISTORY MODAL (from workout) ══
@@ -1935,7 +1994,7 @@ function renderEditR(){
         const bLabel=b.type==='custom'&&b.label?b.label:bt.label;
         const exHtml=(b.exercises||[]).map(ex=>renderEditExCard(d.id,ex)).join('');
         return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:10px">
-          <div class="row mb-8"><span class="badge" style="background:${bt.color};color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px">${bLabel}</span></div>
+          <div class="row mb-8"><span class="badge" style="background:${bt.color};color:var(--action-tx);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px">${bLabel}</span></div>
           ${exHtml||'<div class="text-xs text-mt center" style="padding:6px 0">Sin ejercicios</div>'}
         </div>`;
       }).join('');
@@ -1957,7 +2016,7 @@ function renderEditR(){
         ${headerActions}
       </div>
       ${blocksHtml}
-      <button class="btn-sm mt-8" style="width:100%;background:var(--ac);color:#fff;font-weight:700;padding:10px" onclick="openDayBlockEditor(${d.id})">✎ Editar día</button>
+      <button class="btn-sm mt-8" style="width:100%;background:var(--ac);color:var(--action-tx);font-weight:700;padding:10px" onclick="openDayBlockEditor(${d.id})">✎ Editar día</button>
     </div>`;
   }).join('')+`<div class="sec"><button class="btn-out" onclick="addDay()">+ Agregar día de entrenamiento</button></div>`;
 }
@@ -1999,7 +2058,7 @@ function addEx(dayId,type){
     const lbl=b.type==='custom'&&b.label?b.label:bt.label;
     const count=(b.exercises||[]).length;
     html+=`<div class="card" onclick="closeModal();openExercisePicker(${dayId},'${b.id}')" style="cursor:pointer">
-      <div class="row"><div><span class="badge" style="background:${bt.color};color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px">${lbl}</span><div class="text-xs text-mt mt-4">${count} ejercicio${count===1?'':'s'}</div></div><div style="font-size:18px;color:var(--ac)">→</div></div>
+      <div class="row"><div><span class="badge" style="background:${bt.color};color:var(--action-tx);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px">${lbl}</span><div class="text-xs text-mt mt-4">${count} ejercicio${count===1?'':'s'}</div></div><div style="font-size:18px;color:var(--ac)">→</div></div>
     </div>`;
   });
   html+='<button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>';
@@ -2287,7 +2346,7 @@ function renderBlockHTML(b,bi){
   }
   html+=`<div class="flex gap-8 mt-8">
     <button class="btn-out" style="flex:1;font-size:13px;padding:9px" onclick="openExPickerForBlock(${bi})">+ Ejercicio</button>
-    <button class="btn-out" style="flex:1;font-size:13px;padding:9px;color:#a16207;border-color:#eab308" onclick="openCreateGroupModalBE(${bi})">🔗 Biserie/Triserie</button>
+    <button class="btn-out" style="flex:1;font-size:13px;padding:9px;color:var(--ac);border-color:rgba(96,165,250,0.30);background:rgba(96,165,250,0.06)" onclick="openCreateGroupModalBE(${bi})">🔗 Biserie/Triserie</button>
   </div>`;
   html+=`</div>`;
   return html;
@@ -2301,7 +2360,7 @@ function openCreateGroupModalBE(bi){
   html+=`<div class="mb-16">
     <label class="label">Tipo</label>
     <div class="flex gap-8">
-      <button class="btn-sm active" data-grpsize="2" onclick="setGroupCreatorTypeBE(2)" style="flex:1;background:var(--ac);color:#fff">Biserie</button>
+      <button class="btn-sm active" data-grpsize="2" onclick="setGroupCreatorTypeBE(2)" style="flex:1;background:var(--ac);color:var(--action-tx)">Biserie</button>
       <button class="btn-sm" data-grpsize="3" onclick="setGroupCreatorTypeBE(3)" style="flex:1;border:1px solid var(--bd);background:transparent">Triserie</button>
       <button class="btn-sm" data-grpsize="4" onclick="setGroupCreatorTypeBE(4)" style="flex:1;border:1px solid var(--bd);background:transparent">×4</button>
     </div>
@@ -2320,7 +2379,7 @@ function setGroupCreatorTypeBE(size){
   document.querySelectorAll('[data-grpsize]').forEach(b=>{
     const active=parseInt(b.dataset.grpsize)===size;
     b.style.background=active?'var(--ac)':'transparent';
-    b.style.color=active?'#fff':'';
+    b.style.color=active?'var(--action-tx)':'';
     b.style.border=active?'1px solid var(--ac)':'1px solid var(--bd)';
   });
 }
@@ -2397,13 +2456,13 @@ function renderBexRowHTML(ex,bi,ei,gi){
   const isLegacyAcc=ex.type&&ex.type!=='compound'; // biserie/triserie heredada
   // Render compacto especial para slot vacío (creado top-down)
   if(isEmptySlot){
-    const groupBorder='border-left:3px solid #eab308;';
+    const groupBorder='border-left:2px solid var(--ac);';
     const exs=editingDayState.blocks[bi].exercises;
-    const groupBadge=(gi&&gi.isFirst)?`<div style="font-size:10px;font-weight:800;color:#a16207;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${groupTerm(gi.groupSize)}</div>`:'';
-    return `<div class="bex-row" style="${groupBorder};background:rgba(234,179,8,0.06);border-color:#eab308;cursor:pointer" onclick="openExPickerForBlock(${bi},${ei})">
+    const groupBadge=(gi&&gi.isFirst)?`<div style="font-size:10px;font-weight:700;color:var(--ac);letter-spacing:1.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${groupTerm(gi.groupSize)}</div>`:'';
+    return `<div class="bex-row" style="${groupBorder};background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.25);cursor:pointer" onclick="openExPickerForBlock(${bi},${ei})">
       ${groupBadge}
       <div class="row" style="align-items:center;gap:8px">
-        <span style="flex:1;font-style:italic;color:#a16207;font-weight:600">Tap para elegir ejercicio</span>
+        <span style="flex:1;font-style:italic;color:var(--ac);font-weight:600">Tap para elegir ejercicio</span>
         ${ei>0?`<button class="micro-btn" onclick="event.stopPropagation();moveExercise(${bi},${ei},-1)">↑</button>`:''}
         ${ei<exs.length-1?`<button class="micro-btn" onclick="event.stopPropagation();moveExercise(${bi},${ei},1)">↓</button>`:''}
         <button class="micro-btn" style="color:var(--dn)" onclick="event.stopPropagation();removeExerciseFromBlock(${bi},${ei})">✕</button>
@@ -2427,9 +2486,9 @@ function renderBexRowHTML(ex,bi,ei,gi){
   const s=v=>(v!=null&&v!==undefined)?String(v):'';
   // Visual de grupo (biserie/triserie)
   const inGroup=gi&&gi.groupId;
-  const groupBorder=inGroup?'border-left:3px solid #eab308;':'';
-  const groupBadge=(inGroup&&gi.isFirst)?`<div style="font-size:10px;font-weight:800;color:#a16207;letter-spacing:.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${groupTerm(gi.groupSize)}</div>`:'';
-  const groupContinuation=(inGroup&&!gi.isFirst)?`<span class="text-xs" style="color:#a16207;font-weight:700;margin-left:6px">+${gi.groupIndex+1}</span>`:'';
+  const groupBorder=inGroup?'border-left:2px solid var(--bd);':'';
+  const groupBadge=(inGroup&&gi.isFirst)?`<div style="font-size:10px;font-weight:700;color:var(--mt);letter-spacing:1.5px;margin-bottom:6px;text-transform:uppercase">🔗 ${groupTerm(gi.groupSize)}</div>`:'';
+  const groupContinuation=(inGroup&&!gi.isFirst)?`<span class="text-xs" style="color:var(--mt);font-weight:600;margin-left:6px">+${gi.groupIndex+1}</span>`:'';
   let html=`<div class="bex-row" style="${groupBorder}">
     ${groupBadge}
     <div class="bex-top">
@@ -2479,15 +2538,15 @@ function renderBexRowHTML(ex,bi,ei,gi){
     </div>`;
   } else if(isExp&&isLegacyAcc){
     html+=`<div class="bex-expand">
-      <div style="background:rgba(234,179,8,.12);border:1px solid #eab308;border-radius:8px;padding:10px 12px">
-        <div class="text-sm" style="color:#a16207;font-weight:700;line-height:1.4">⚠ Esta biserie está en formato viejo</div>
-        <div class="text-xs mt-4" style="color:#78580a;line-height:1.5">No se puede editar acá. Para actualizarla, eliminala con <strong>✕</strong> arriba y recreala con el botón <strong>🔗 Biserie/Triserie</strong> del bloque.</div>
+      <div style="background:rgba(251,146,60,0.10);border:1px solid rgba(251,146,60,0.30);border-radius:10px;padding:10px 12px">
+        <div class="text-sm" style="color:var(--yw);font-weight:700;line-height:1.4">⚠ Esta biserie está en formato viejo</div>
+        <div class="text-xs mt-4" style="color:var(--mt);line-height:1.5">No se puede editar acá. Para actualizarla, eliminala con <strong style="color:var(--tx)">✕</strong> arriba y recreala con el botón <strong style="color:var(--yw)">🔗 Biserie/Triserie</strong> del bloque.</div>
       </div>
     </div>`;
   }
   // Banner visible (no solo al expandir) para biseries legacy
   if(isLegacyAcc&&!isExp){
-    html+=`<div class="text-xs mt-4" style="background:rgba(234,179,8,.12);color:#a16207;padding:5px 8px;border-radius:6px;font-weight:600;line-height:1.3">⚠ Formato viejo — tap para ver cómo actualizar</div>`;
+    html+=`<div class="text-xs mt-4" style="background:rgba(251,146,60,0.10);color:var(--yw);padding:5px 8px;border-radius:6px;font-weight:600;line-height:1.3;border:1px solid rgba(251,146,60,0.25)">⚠ Formato viejo — tap para ver cómo actualizar</div>`;
   }
   html+=`</div>`;
   return html;
@@ -2525,7 +2584,7 @@ function renderGroupActionHTMLBE(bi,ei,gi){
   }
   if(inGroup){
     const term=gi.groupSize===2?'biserie':gi.groupSize===3?'triserie':'grupo';
-    html+=`<button class="btn-sm" onclick="ungroupExerciseBE(${bi},${ei})" style="width:100%;font-size:12px;color:#a16207;border:1px solid #eab308;background:transparent">🔗 Sacar de la ${term}</button>`;
+    html+=`<button class="btn-sm" onclick="ungroupExerciseBE(${bi},${ei})" style="width:100%;font-size:12px;color:var(--ac);border:1px solid rgba(96,165,250,0.30);background:rgba(96,165,250,0.06)">🔗 Sacar de la ${term}</button>`;
     renderedAny=true;
   }
   html+=`</div>`;
@@ -2967,7 +3026,7 @@ function toast(msg,kind){
   let t=document.getElementById('_toast');
   if(!t){
     t=document.createElement('div');t.id='_toast';
-    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--tx);color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:600;z-index:1000;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center';
+    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--cd);color:var(--tx);border:1px solid var(--bd);box-shadow:var(--lift-in),0 10px 28px -8px rgba(0,0,0,0.5);padding:10px 18px;border-radius:12px;font-size:14px;font-weight:500;z-index:1000;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center';
     document.body.appendChild(t);
   }
   t.textContent=msg;
@@ -3098,15 +3157,15 @@ function doImport(mode){
 // ══ PWA ══
 (function(){
   try{const img=new Image();img.crossOrigin='anonymous';img.onload=()=>{const c=document.createElement('canvas');c.width=180;c.height=180;const x=c.getContext('2d');
-  x.fillStyle='#F5F2ED';x.beginPath();x.roundRect(0,0,180,180,36);x.fill();x.save();x.beginPath();x.roundRect(0,0,180,180,36);x.clip();
+  x.fillStyle='#0A0A0B';x.beginPath();x.roundRect(0,0,180,180,36);x.fill();x.save();x.beginPath();x.roundRect(0,0,180,180,36);x.clip();
   const s=Math.min(140/img.width,140/img.height);const w=img.width*s,h=img.height*s;x.drawImage(img,(180-w)/2,(180-h)/2-5,w,h);x.restore();
   x.save();x.beginPath();x.roundRect(0,0,180,180,36);x.clip();
-  const by=148;x.strokeStyle='#5A1A1A';x.lineWidth=5;x.lineCap='round';x.beginPath();x.moveTo(50,by);x.lineTo(130,by);x.stroke();
-  x.fillStyle='#5A1A1A';x.beginPath();x.roundRect(38,by-16,16,32,4);x.fill();x.beginPath();x.roundRect(126,by-16,16,32,4);x.fill();
-  x.fillStyle='#8A7060';x.beginPath();x.roundRect(54,by-10,8,20,3);x.fill();x.beginPath();x.roundRect(118,by-10,8,20,3);x.fill();
+  const by=148;x.strokeStyle='#FAFAFA';x.lineWidth=5;x.lineCap='round';x.beginPath();x.moveTo(50,by);x.lineTo(130,by);x.stroke();
+  x.fillStyle='#FAFAFA';x.beginPath();x.roundRect(38,by-16,16,32,4);x.fill();x.beginPath();x.roundRect(126,by-16,16,32,4);x.fill();
+  x.fillStyle='#A1A1AA';x.beginPath();x.roundRect(54,by-10,8,20,3);x.fill();x.beginPath();x.roundRect(118,by-10,8,20,3);x.fill();
   x.restore();
   const u=c.toDataURL('image/png');const l=document.createElement('link');l.rel='apple-touch-icon';l.href=u;document.head.appendChild(l);const f=document.createElement('link');f.rel='icon';f.type='image/png';f.href=u;document.head.appendChild(f);};img.src='./shield.png';}catch{}
-  try{const m={name:"JuvenFIT Tracker",short_name:"JuvenFIT",start_url:location.href,display:"standalone",background_color:"#F5F2ED",theme_color:"#F5F2ED",icons:[{src:"./shield.png",sizes:"512x512",type:"image/png",purpose:"any"}]};const b=new Blob([JSON.stringify(m)],{type:'application/json'});const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(b);document.head.appendChild(l);}catch{}
+  try{const m={name:"JuvenFIT Tracker",short_name:"JuvenFIT",start_url:location.href,display:"standalone",background_color:"#0A0A0B",theme_color:"#0A0A0B",icons:[{src:"./shield.png",sizes:"512x512",type:"image/png",purpose:"any"}]};const b=new Blob([JSON.stringify(m)],{type:'application/json'});const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(b);document.head.appendChild(l);}catch{}
   try{if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});}catch{}
 })();
 
