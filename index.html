@@ -278,6 +278,44 @@ body{-webkit-font-smoothing:antialiased;}
 
 /* Nav inferior del workout */
 .oak-work-nav{display:flex;gap:10px;margin-top:32px;padding:0 20px;}
+
+/* ═══════ OAK SETTINGS ═══════ */
+.oak-sec-h{font-family:var(--fs);font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mt);margin:32px 0 10px;padding:0 20px;}
+.oak-list{margin:0 20px;}
+.oak-item{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--bd);cursor:pointer;background:transparent;border-left:none;border-right:none;border-top:none;width:100%;text-align:left;font-family:var(--fs);}
+.oak-item:active{opacity:.5;}
+.oak-item-body{flex:1;min-width:0;}
+.oak-item-title{font-family:var(--serif);font-size:16px;color:var(--tx);line-height:1.2;font-weight:500;}
+.oak-item-meta{font-family:var(--fs);font-size:11px;color:var(--mt);margin-top:2px;}
+.oak-item-val{font-family:var(--serif);font-style:italic;font-size:15px;color:var(--ac);font-weight:500;}
+.oak-item-chev{color:var(--mt);font-size:20px;font-family:var(--serif);line-height:1;}
+/* DPW selector Oak — números cuadrados con borde */
+.oak-dpw-row{display:flex;gap:6px;flex-wrap:wrap;}
+.oak-dpw-btn{flex:1;min-width:38px;height:42px;border-radius:6px;background:transparent;border:1px solid var(--bd);color:var(--tx);font-family:var(--serif);font-size:18px;font-weight:500;cursor:pointer;line-height:1;}
+.oak-dpw-btn.is-active{background:var(--ac);border-color:var(--ac);color:#FBF6E8;}
+/* Theme toggle Oak — dos pills */
+.oak-theme-row{display:flex;gap:6px;}
+.oak-theme-btn{flex:1;padding:8px 14px;border:1px solid var(--bd);background:transparent;color:var(--tx);font-family:var(--fs);font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border-radius:6px;}
+.oak-theme-btn.is-active{background:var(--ac);border-color:var(--ac);color:#FBF6E8;}
+/* Header de pantalla con back */
+.oak-page-header{display:flex;align-items:center;gap:12px;padding:18px 20px 14px;border-bottom:1px solid var(--bd);}
+.oak-page-header-title{flex:1;text-align:center;font-family:var(--serif);font-size:20px;font-weight:500;color:var(--tx);}
+.oak-page-header-title em{font-style:italic;color:var(--ac);}
+.oak-page-header-spacer{width:30px;}
+/* Card de rutina activa con metadata + romanos */
+.oak-routine-card{margin:14px 20px 0;padding:16px 0;border-top:1px solid var(--ac);border-bottom:1px solid var(--ac);}
+.oak-routine-name{font-family:var(--serif);font-size:24px;color:var(--tx);font-weight:500;line-height:1.1;}
+.oak-routine-name em{font-style:italic;color:var(--ac);}
+.oak-routine-meta{font-family:var(--fs);font-size:11px;color:var(--mt);margin-top:6px;line-height:1.4;}
+.oak-routine-weeks{display:flex;align-items:baseline;gap:6px;margin-top:12px;}
+.oak-routine-weeks-num{font-family:var(--serif);font-style:italic;font-size:28px;color:var(--ac);font-weight:500;line-height:1;}
+.oak-routine-weeks-sep{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--mt);}
+.oak-routine-weeks-lbl{font-family:var(--fs);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--mt);margin-left:auto;}
+.oak-routine-actions{display:flex;gap:8px;margin-top:14px;}
+.oak-routine-actions .oak-btn,.oak-routine-actions .oak-btn-out{flex:1;padding:11px 14px;font-size:11px;}
+/* Danger button (borrar todo) */
+.oak-btn-danger{background:transparent;color:var(--dn);border:1px solid rgba(137,61,61,0.3);padding:13px 28px;border-radius:6px;font-family:var(--fs);font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;width:100%;}
+.oak-btn-danger:active{border-color:var(--dn);}
 </style>
 </head>
 <body>
@@ -452,30 +490,76 @@ body{-webkit-font-smoothing:antialiased;}
 
 <!-- ══ SETTINGS ══ -->
 <div id="editR" class="page">
-  <div class="header">
-    <button class="icon-btn" onclick="showPage('home')">←</button>
-    <div class="fw-700" style="font-size:16px;text-align:center;flex:1">Configuración</div>
-    <div style="width:44px"></div>
+  <div class="oak-page-header">
+    <button class="oak-icon-btn" onclick="showPage('home')" aria-label="Volver">←</button>
+    <div class="oak-page-header-title"><em>Ajustes</em></div>
+    <div class="oak-page-header-spacer"></div>
   </div>
-  <div class="sec"><div class="sec-title">Días mínimos por semana</div><div class="card" style="cursor:default"><div class="text-xs text-mt mb-12">Con este valor se cuenta tu racha 🔥 — sumás una semana cuando entrenás al menos esta cantidad de días.</div><div id="dpw-selector" class="flex gap-8" style="justify-content:center"></div></div></div>
+
+  <!-- Rutina activa -->
+  <div class="oak-sec-h">Rutina activa</div>
+  <div id="oak-routine-card" class="oak-routine-card"></div>
+
+  <!-- Editor de días + bloques -->
   <div id="editR-content"></div>
-  <div class="sec">
-    <div class="sec-title">Historial</div>
-    <button class="btn-out" onclick="window._delHistFrom='editR';showPage('delHist')" style="margin-bottom:12px">Borrar sesiones del historial</button>
+
+  <!-- Preferencias -->
+  <div class="oak-sec-h">Preferencias</div>
+  <div class="oak-list">
+    <div style="padding:14px 4px;border-bottom:1px solid var(--bd)">
+      <div class="oak-item-title" style="margin-bottom:4px">Días mínimos por semana</div>
+      <div class="oak-item-meta" style="margin-bottom:10px">Con este valor se cuenta tu racha 🔥</div>
+      <div id="dpw-selector" class="oak-dpw-row"></div>
+    </div>
+    <div style="padding:14px 4px;border-bottom:1px solid var(--bd)">
+      <div class="oak-item-title" style="margin-bottom:10px">Tema</div>
+      <div id="oak-theme-toggle" class="oak-theme-row"></div>
+    </div>
   </div>
-  <div class="sec" style="padding-top:0">
-    <div class="sec-title">Datos</div>
-    <button class="btn-out" onclick="exportData()" style="margin-bottom:12px">📤 Exportar mis datos</button>
-    <label class="btn-out" style="display:block;text-align:center;cursor:pointer;margin-bottom:12px">📥 Importar datos<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
-    <button class="btn-out" onclick="manualSyncLibrary(this)" style="margin-bottom:8px">🔄 Sincronizar biblioteca</button>
-    <div id="sync-status" class="text-xs text-mt" style="text-align:center"></div>
+
+  <!-- Datos -->
+  <div class="oak-sec-h">Datos</div>
+  <div class="oak-list">
+    <button class="oak-item" onclick="exportData()">
+      <div class="oak-item-body"><div class="oak-item-title">Exportar copia</div><div class="oak-item-meta">Guardá tus sesiones y rutina en un archivo JSON</div></div>
+      <span class="oak-item-chev">›</span>
+    </button>
+    <label class="oak-item" style="cursor:pointer">
+      <div class="oak-item-body"><div class="oak-item-title">Importar copia</div><div class="oak-item-meta">Cargá un backup previo</div></div>
+      <span class="oak-item-chev">›</span>
+      <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+    </label>
+    <button class="oak-item" onclick="manualSyncLibrary(this)">
+      <div class="oak-item-body"><div class="oak-item-title">Sincronizar biblioteca</div><div class="oak-item-meta" id="sync-status">Bajar ejercicios actualizados del coach</div></div>
+      <span class="oak-item-chev">›</span>
+    </button>
   </div>
-  <div class="sec" style="padding-top:0" id="sec-routines">
-    <div class="sec-title">Mis rutinas</div>
-    <div id="routines-info" class="text-xs text-mt mb-8"></div>
-    <button class="btn-out" id="btn-switch-routine" onclick="openRoutineSwitcher()" style="margin-bottom:8px">⇄ Cambiar rutina activa</button>
+
+  <!-- Historial -->
+  <div class="oak-sec-h">Historial</div>
+  <div class="oak-list">
+    <button class="oak-item" onclick="window._delHistFrom='editR';showPage('delHist')">
+      <div class="oak-item-body"><div class="oak-item-title">Borrar sesiones</div><div class="oak-item-meta">Eliminar entrenos guardados</div></div>
+      <span class="oak-item-chev">›</span>
+    </button>
   </div>
-  <div class="sec" style="padding-top:0"><button class="btn-danger" onclick="resetRoutine()">Borrar toda la rutina</button></div>
+
+  <!-- Mis rutinas (solo si >1) -->
+  <div id="sec-routines" style="display:none">
+    <div class="oak-sec-h">Mis rutinas</div>
+    <div class="oak-list">
+      <div id="routines-info" class="oak-item-meta" style="padding:0 4px 8px"></div>
+      <button class="oak-item" id="btn-switch-routine" onclick="openRoutineSwitcher()">
+        <div class="oak-item-body"><div class="oak-item-title">Cambiar rutina activa</div><div class="oak-item-meta">Alternar entre tus rutinas guardadas</div></div>
+        <span class="oak-item-chev">›</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Borrar -->
+  <div style="padding:32px 20px 60px">
+    <button class="oak-btn-danger" onclick="resetRoutine()">Borrar toda la rutina</button>
+  </div>
 </div>
 
 <!-- ══ EDIT DAY (BLOQUES) ══ -->
@@ -2379,13 +2463,39 @@ function deleteSess(sid){sessions=sessions.filter(s=>s.id!==sid);save("gym-s",se
 // ══ SETTINGS ══
 function renderEditR(){
   const dpw=config.daysPerWeek||3;
-  $("dpw-selector").innerHTML=[1,2,3,4,5,6].map(n=>`<button class="dpw-btn${n===dpw?' active':''}" onclick="setDPW(${n})">${n}</button>`).join('');
-  // Sección "Mis rutinas": solo visible si hay >1 (no hay nada que cambiar si solo tenés una)
+  // DPW selector Oak (números 1-6 cuadrados)
+  $("dpw-selector").innerHTML=[1,2,3,4,5,6].map(n=>`<button class="oak-dpw-btn${n===dpw?' is-active':''}" onclick="setDPW(${n})">${n}</button>`).join('');
+
+  // Theme toggle Oak (Claro / Oscuro)
+  const theme=getOakTheme();
+  const tt=$("oak-theme-toggle");
+  if(tt){
+    tt.innerHTML=`
+      <button class="oak-theme-btn${theme==='light'?' is-active':''}" onclick="setOakTheme('light');renderEditR()">Claro</button>
+      <button class="oak-theme-btn${theme==='dark'?' is-active':''}" onclick="setOakTheme('dark');renderEditR()">Oscuro</button>
+    `;
+  }
+
+  // Card de rutina activa
+  const rcard=$("oak-routine-card");
+  if(rcard){
+    const totalDays=(routine.days||[]).length;
+    const totalBlocks=(routine.days||[]).reduce((s,d)=>s+((d.blocks||[]).length),0);
+    const nameParts=(routine.name||'Mi Rutina').split(' · ');
+    const nameHtml=nameParts.length>1?`${nameParts[0]} · <em>${nameParts.slice(1).join(' · ')}</em>`:`${nameParts[0]}`;
+    const sourceLine=routine.coachName?`Coach ${routine.coachName}`:'Armada por vos';
+    rcard.innerHTML=`
+      <div class="oak-routine-name">${nameHtml}</div>
+      <div class="oak-routine-meta">${totalDays} día${totalDays===1?'':'s'} · ${totalBlocks} bloque${totalBlocks===1?'':'s'} · ${sourceLine}</div>
+    `;
+  }
+
+  // Sección "Mis rutinas": solo visible si hay >1
   const total=(routineStore.list||[]).length;
   const sec=$("sec-routines"),info=$("routines-info");
   if(sec){
     sec.style.display=total>1?'block':'none';
-    if(info&&total>1) info.innerHTML=`Activa: <strong>${routine?.name||'?'}</strong> · Tenés ${total} rutinas`;
+    if(info&&total>1) info.innerHTML=`Activa: <strong>${routine?.name||'?'}</strong> · Tenés ${total} rutinas guardadas`;
   }
   $("editR-content").innerHTML=routine.days.map((d,dayIdx)=>{
     const blocks=d.blocks||[];
