@@ -209,6 +209,14 @@ body.modal-open .page{overflow:hidden;}
 details summary{list-style:none;}
 details summary::-webkit-details-marker{display:none;}
 
+/* ─── RPE segmented control minimalista (Fase 4.2 set card sin caja) ─── */
+.rpe-btn-min{flex:1;padding:12px 0;border-radius:12px;background:var(--sf);border:1px solid var(--bd);color:var(--tx);font-family:var(--fs);font-size:13px;font-weight:600;letter-spacing:-0.1px;cursor:pointer;transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),background 110ms ease,border-color 110ms ease,filter 110ms ease;}
+.rpe-btn-min:hover{background:var(--bd);}
+.rpe-btn-min:active,.rpe-btn-min.is-pressing{transform:scale(0.94);filter:brightness(0.84);}
+.rpe-btn-min.active-gn{background:rgba(52,211,153,0.14);border-color:rgba(52,211,153,0.40);color:var(--gn);}
+.rpe-btn-min.active-yw{background:rgba(251,146,60,0.14);border-color:rgba(251,146,60,0.40);color:var(--yw);}
+.rpe-btn-min.active-dn{background:rgba(248,113,113,0.14);border-color:rgba(248,113,113,0.40);color:var(--dn);}
+
 /* ─── Workout focused mode: pills de set state arriba del card grande ─── */
 .ws-pill{display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border-radius:100px;border:1px solid var(--bd);background:transparent;color:var(--mt);font-size:11.5px;font-weight:600;cursor:default;font-family:var(--fs);transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),background 110ms ease,border-color 110ms ease,color 110ms ease,filter 110ms ease;white-space:nowrap;line-height:1;}
 .ws-pill-current{background:rgba(251,146,60,0.14);border-color:rgba(251,146,60,0.40);color:var(--yw);}
@@ -1735,26 +1743,100 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
   const ci=opts.ci;
   const allowAddRemove=opts.allowAddRemove!==false;
   const focused=!!opts.focused;
-  const bc=s.rpe?({liviano:'var(--gn)',justo:'var(--yw)',limite:'var(--dn)'}[s.rpe]+'30'):'var(--bd)';
   const isLast=si===sets.length-1;
-  // En focused mode: glow naranja externo si el set está "en curso" (rpe null),
-  // y dot pulsante en el header para que el ojo vaya solo.
-  const isCurrent=focused&&s.rpe===null;
-  const focusedShadow=isCurrent
-    ?'box-shadow:0 0 0 1px rgba(251,146,60,0.30),0 8px 28px -8px rgba(251,146,60,0.32),inset 0 1px 0 rgba(255,255,255,0.04);border-color:rgba(251,146,60,0.40);'
-    :(focused?'box-shadow:0 0 0 1px rgba(96,165,250,0.25),0 4px 18px -6px rgba(96,165,250,0.18),inset 0 1px 0 rgba(255,255,255,0.04);border-color:rgba(96,165,250,0.30);':'');
-  const focusedPadding=focused?'padding:20px':'';
-  // Header
-  let hdr;
+
+  // ════════════════════════════════════════════════════════════════
+  // FOCUSED MODE · diseño minimalista SIN CAJA (Fase 4.2)
+  // Sin border, sin background, sin glow externo. Sólo dot pulsante,
+  // números gigantes centrados, dividers internos, RPE segmented sin emojis.
+  // ════════════════════════════════════════════════════════════════
   if(focused){
-    const label=isCurrent?`Set ${si+1} en curso`:`Editando set ${si+1}`;
-    const labelColor=isCurrent?'var(--yw)':'var(--ac)';
-    hdr=`<div class="row mb-14" style="align-items:center;gap:8px"><span class="b2-pulse-dot" style="background:${labelColor}"></span><span style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${labelColor}">${label}</span></div>`;
-  } else if(isLast&&allowAddRemove){
-    hdr=`<div class="row mb-12"><span class="text-xs fw-700 text-mt">SERIE ${si+1}</span><div class="flex gap-6">${sets.length>1?`<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="removeWorkSet()">−</button>`:''}<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="addWorkSet()">+</button></div></div>`;
-  } else {
-    hdr=`<div class="text-xs fw-700 text-mt mb-12">SERIE ${si+1}</div>`;
+    // Si está completo (rpe + felt) y aún se renderea acá → es edit mode (dot azul).
+    const isEditingDone = s.rpe!==null && s.felt!==null;
+    const dotColor = isEditingDone ? 'var(--ac)' : 'var(--yw)';
+    const labelText = isEditingDone ? `Editando set ${si+1}` : `Set ${si+1} en curso`;
+
+    let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:22px;padding:0 4px">
+      <span class="b2-pulse-dot" style="background:${dotColor}"></span>
+      <span style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:${dotColor}">${labelText}</span>
+    </div>`;
+
+    // Campos numéricos centrados, sin caja
+    if(mode==='weight'){
+      html+=`<div style="display:flex;justify-content:center;gap:36px;margin:8px 0 24px;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Peso</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},-2.5,${ci})">−</button>
+            <div id="val-w-${ci}-${si}" class="mono fw-700" style="font-size:34px;min-width:70px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1" onclick="typeVal(${si},'w',null,${ci})">${s.w}</div>
+            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},2.5,${ci})">+</button>
+          </div>
+          <div style="font-size:10px;color:var(--mt2);margin-top:8px;font-weight:600;letter-spacing:0.5px">kg</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Reps</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button>
+            <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:34px;min-width:50px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
+            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button>
+          </div>
+        </div>
+      </div>`;
+    } else if(mode==='reps'){
+      html+=`<div style="display:flex;justify-content:center;margin:8px 0 24px">
+        <div style="text-align:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Repeticiones</div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button>
+            <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:52px;min-width:100px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1.8px;line-height:1" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
+            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button>
+          </div>
+        </div>
+      </div>`;
+    } else if(mode==='time'){
+      html+=`<div style="display:flex;justify-content:center;margin:8px 0 24px">
+        <div style="text-align:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Tiempo</div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-5,${ci})">−</button>
+            <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:52px;min-width:120px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1.8px;line-height:1" onclick="typeVal(${si},'r','Tiempo (segs)',${ci})">${s.r}</div>
+            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},5,${ci})">+</button>
+          </div>
+          <div style="font-size:10px;color:var(--mt2);margin-top:8px;font-weight:600;letter-spacing:0.5px">segs</div>
+        </div>
+      </div>`;
+    }
+
+    // Divider horizontal sutil + RPE segmented control SIN emojis
+    html+=`<div style="height:1px;background:var(--bd);margin:0 4px 18px"></div>`;
+    html+=`<div style="display:flex;gap:6px;padding:0 4px">
+      <button class="rpe-btn-min ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano',${ci})">Liviano</button>
+      <button class="rpe-btn-min ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo',${ci})">Justo</button>
+      <button class="rpe-btn-min ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite',${ci})">Al límite</button>
+    </div>`;
+
+    // ¿Sentiste el músculo? aparece solo cuando RPE marcado y felt null
+    if(s.rpe && s.felt==null){
+      html+=`<div style="margin-top:24px;padding-top:18px;border-top:1px dashed var(--bd)">
+        <div style="font-size:12px;font-weight:600;color:var(--mt);text-align:center;letter-spacing:0.3px;margin-bottom:12px">¿Sentiste el músculo?</div>
+        <div style="display:flex;gap:8px;padding:0 4px">
+          <button class="rpe-btn-min" onclick="setFelt(${si},true,${ci})">✅ Sí</button>
+          <button class="rpe-btn-min" onclick="setFelt(${si},false,${ci})">❌ No</button>
+        </div>
+      </div>`;
+    }
+    // (Sin rec inline en focused — la rec va a la countdown card del estado C)
+
+    return html;
   }
+
+  // ════════════════════════════════════════════════════════════════
+  // LEGACY · grouped workout (biserie/triserie) — sigue como antes, con caja.
+  // ════════════════════════════════════════════════════════════════
+  const bc=s.rpe?({liviano:'var(--gn)',justo:'var(--yw)',limite:'var(--dn)'}[s.rpe]+'30'):'var(--bd)';
+  const hdr=(isLast&&allowAddRemove)
+    ?`<div class="row mb-12"><span class="text-xs fw-700 text-mt">SERIE ${si+1}</span><div class="flex gap-6">${sets.length>1?`<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="removeWorkSet()">−</button>`:''}<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="addWorkSet()">+</button></div></div>`
+    :`<div class="text-xs fw-700 text-mt mb-12">SERIE ${si+1}</div>`;
   let fieldsHtml='';
   if(mode==='weight'){
     fieldsHtml+=`<div class="row mb-12"><span class="text-sm text-mt fw-600">PESO</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},-2.5,${ci})">−</button><div id="val-w-${ci}-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'w',null,${ci})">${s.w}<span class="text-sm text-mt">kg</span></div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},2.5,${ci})">+</button></div></div>`;
@@ -1764,16 +1846,13 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
   } else if(mode==='time'){
     fieldsHtml+=`<div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">TIEMPO</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-5,${ci})">−</button><div id="val-r-${ci}-${si}" class="mono fw-800" style="font-size:28px;min-width:110px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r','Tiempo (segs)',${ci})">${s.r}<span class="text-sm text-mt"> segs</span></div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},5,${ci})">+</button></div></div>`;
   }
-  let html=`<div class="set-card" style="border-color:${bc};${focusedShadow}${focusedPadding}">${hdr}
+  let html=`<div class="set-card" style="border-color:${bc}">${hdr}
     ${fieldsHtml}
     <div class="flex gap-8"><button class="rpe-btn ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano',${ci})">🟢 Liviano</button><button class="rpe-btn ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo',${ci})">🟡 Justo</button><button class="rpe-btn ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite',${ci})">🔴 Al límite</button></div>`;
   if(s.rpe){
     if(s.felt==null){
-      // Pregunta "¿Sentiste el músculo?" — siempre se muestra al completar RPE
       html+=`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="text-xs text-mt fw-600 mb-8" style="text-align:center">¿Sentiste el músculo?</div><div class="flex gap-8"><button class="rpe-btn" onclick="setFelt(${si},true,${ci})">✅ Sí</button><button class="rpe-btn" onclick="setFelt(${si},false,${ci})">❌ No</button></div></div>`;
-    } else if(!focused){
-      // SOLO en non-focused (grouped workout legacy): mostrar rec inline + botón cambiar.
-      // En focused, la rec aparece en la countdown card del estado C (no acá).
+    } else {
       const rd=setRecData(s.rpe,s.r,ex.reps,s.felt,mode);
       if(rd) html+=`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="row mb-8"><span class="text-xs text-mt fw-600">${s.felt?'✅ Sintió':'❌ No sintió'}</span><button onclick="setFelt(${si},null,${ci})" style="background:none;border:1px solid var(--bd);color:var(--mt);font-size:11px;cursor:pointer;padding:4px 10px;border-radius:8px">cambiar</button></div><div class="tips-box" style="margin-top:0">${rd.phrase}${rd.muscle?`<span style="display:block;margin-top:6px">${rd.muscle}</span>`:''}</div></div>`;
     }
@@ -1844,8 +1923,8 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
       <div style="font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;line-height:1.15">${getExName(ex)}</div>
       ${metaLine?`<div style="font-size:11px;color:var(--mt);margin-top:3px;font-weight:500">${metaLine}</div>`:''}
     </div>
-    <button class="icon-btn" onclick="openExInfoSheet(${ci})" title="Más info" aria-label="Más info del ejercicio" style="width:36px;height:36px;font-size:14px;flex-shrink:0;margin-top:-2px">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <button class="icon-btn" onclick="showHist('${eid}')" title="Ver historial / progresión" aria-label="Ver historial completo" style="width:36px;height:36px;font-size:14px;flex-shrink:0;margin-top:-2px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
     </button>
   </div>`;
   // Tip del coach · SIEMPRE visible en pantalla principal si hay ex.notes (pedido del usuario)
@@ -3846,7 +3925,7 @@ function doImport(mode){
 // browser optimiza repaints. Aplicamos clase .is-pressing por touchstart/touchend
 // para forzar el feedback visual. CSS aplica los mismos efectos en :active Y .is-pressing.
 (function(){
-  const SELECTORS = '.btn,.btn-out,.btn-danger,.btn-sm,.icon-btn,.w-btn,.card.b2-tap,.b2-press,.ws-pill-done,.ws-pill-add';
+  const SELECTORS = '.btn,.btn-out,.btn-danger,.btn-sm,.icon-btn,.w-btn,.card.b2-tap,.b2-press,.ws-pill-done,.ws-pill-add,.rpe-btn-min';
   function findPressable(el){
     while(el && el !== document.body){
       if(el.matches && el.matches(SELECTORS)) return el;
