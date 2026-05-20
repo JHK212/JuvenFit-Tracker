@@ -356,8 +356,8 @@ details summary::-webkit-details-marker{display:none;}
 
 <!-- ══ WORKOUT ══ -->
 <div id="work" class="page">
-  <!-- Header de workout · señaliza inequívocamente "estás entrenando" -->
-  <div class="header" style="padding:14px 20px 16px;padding-top:calc(14px + env(safe-area-inset-top));align-items:flex-start;background:linear-gradient(180deg,rgba(251,146,60,0.06) 0%,transparent 100%)">
+  <!-- Header de workout · gradient negro→naranja (continuo con la barra del teléfono arriba) -->
+  <div class="header" style="padding:14px 20px 16px;padding-top:calc(14px + env(safe-area-inset-top));align-items:flex-start;background:linear-gradient(180deg,var(--bg) 0%,var(--bg) 35%,rgba(251,146,60,0.14) 100%)">
     <button class="icon-btn" onclick="confirmExit()" style="margin-top:2px">←</button>
     <div style="flex:1;padding-left:10px;min-width:0">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
@@ -1027,12 +1027,18 @@ function homeDateLabel(){
   return `${dias[d.getUTCDay()]} ${d.getUTCDate()} ${meses[d.getUTCMonth()]}`;
 }
 function homeLast7Trained(){
-  // Array [oldest..newest] de bools — true si entrené ese día. Para mini-barras de racha.
+  // Días de la SEMANA actual (Lun→Dom) con flags trained/isToday/isFuture.
+  // Antes era "últimos 7 días" pero el usuario no entendía qué representaba.
+  // Ahora es la semana de calendario, con labels L M M J V S D abajo de las barras.
   const arr=[];const today=nowBsAs();
-  for(let i=6;i>=0;i--){
-    const d=new Date(today.getTime()-i*24*3600*1000);
+  const dow=today.getUTCDay(); // 0=Dom, 1=Lun, ..., 6=Sab
+  const offsetToMonday = dow===0 ? -6 : 1-dow;
+  const monday=new Date(today.getTime()+offsetToMonday*24*3600*1000);
+  const todayDs=td();
+  for(let i=0;i<7;i++){
+    const d=new Date(monday.getTime()+i*24*3600*1000);
     const ds=d.toISOString().slice(0,10);
-    arr.push(sessions.some(s=>s.date===ds));
+    arr.push({date:ds,trained:sessions.some(s=>s.date===ds),isToday:ds===todayDs,isFuture:ds>todayDs});
   }
   return arr;
 }
@@ -1551,9 +1557,17 @@ function renderHome(){
   $("home-fire").style.display=st>0?"inline-block":"none";
   $("home-sessions").textContent=sessions.length;
   $("home-streak-detail").innerHTML=`Esta semana: <span style="color:${tw>=dpw?'var(--gn)':'var(--tx)'};font-weight:600">${tw}/${dpw}</span>${tw>=dpw?' <span style="color:var(--gn)">✓</span>':''}`;
-  // Barras 7d
-  const last7=homeLast7Trained();
-  $("home-streak-bars").innerHTML=last7.map(v=>`<div style="flex:1;height:${v?'100%':'38%'};background:${v?'var(--yw)':'var(--bd)'};border-radius:2px;opacity:${v?1:0.5};transition:height 0.3s ease"></div>`).join('');
+  // Barras semana actual (L→D) con labels y "hoy" destacado
+  const week=homeLast7Trained();
+  const dowLabels=['L','M','M','J','V','S','D'];
+  $("home-streak-bars").innerHTML=`
+    <div style="display:flex;gap:3px;align-items:flex-end;height:20px;width:100%">
+      ${week.map(d=>`<div style="flex:1;height:${d.trained?'100%':'38%'};background:${d.trained?'var(--yw)':(d.isToday?'transparent':'var(--bd)')};${d.isToday&&!d.trained?'border:1.5px solid var(--yw);':''}border-radius:2px;opacity:${d.trained?1:(d.isFuture?0.25:0.5)};transition:height 0.3s ease"></div>`).join('')}
+    </div>
+    <div style="display:flex;gap:3px;margin-top:5px">
+      ${week.map((d,i)=>`<div style="flex:1;text-align:center;font-size:9px;font-weight:700;color:${d.isToday?'var(--yw)':'var(--mt2)'};letter-spacing:0.5px">${dowLabels[i]}</div>`).join('')}
+    </div>
+  `;
   // Sesiones: "+X últimos 7 días"
   const sevenAgo=new Date(nowBsAs().getTime()-7*24*3600*1000).toISOString().slice(0,10);
   const sessLast7=sessions.filter(s=>s.date>sevenAgo).length;
@@ -1751,14 +1765,16 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
   // números gigantes centrados, dividers internos, RPE segmented sin emojis.
   // ════════════════════════════════════════════════════════════════
   if(focused){
-    // Si está completo (rpe + felt) y aún se renderea acá → es edit mode (dot azul).
-    const isEditingDone = s.rpe!==null && s.felt!==null;
-    const dotColor = isEditingDone ? 'var(--ac)' : 'var(--yw)';
-    const labelText = isEditingDone ? `Editando set ${si+1}` : `Set ${si+1} en curso`;
+    // Edit mode: el usuario tocó un pill done para editar. Dot azul + botón "Salir ✕".
+    // Sin edit mode: el set es el "current natural" del flujo. Dot naranja.
+    const isEditMode = curWorkSetEdit !== null;
+    const dotColor = isEditMode ? 'var(--ac)' : 'var(--yw)';
+    const labelText = isEditMode ? `Editando serie ${si+1}` : `Serie ${si+1} en curso`;
 
     let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:22px;padding:0 4px">
       <span class="b2-pulse-dot" style="background:${dotColor}"></span>
-      <span style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:${dotColor}">${labelText}</span>
+      <span style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:${dotColor};flex:1">${labelText}</span>
+      ${isEditMode?`<button onclick="curWorkSetEdit=null;renderWork()" style="background:none;border:none;color:var(--mt);font-size:10.5px;font-weight:600;letter-spacing:0.3px;cursor:pointer;padding:4px 8px;border-radius:8px">Salir ✕</button>`:''}
     </div>`;
 
     // Campos numéricos centrados, sin caja
@@ -1815,13 +1831,16 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
       <button class="rpe-btn-min ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite',${ci})">Al límite</button>
     </div>`;
 
-    // ¿Sentiste el músculo? aparece solo cuando RPE marcado y felt null
-    if(s.rpe && s.felt==null){
+    // ¿Sentiste el músculo? Aparece SIEMPRE que haya RPE — tanto en flujo normal (felt null)
+    // como en edit mode (felt ya marcado, podés cambiar). Soluciona el "quedo trabado" cuando
+    // volvés a una serie completa: ahora el felt es visible y modificable.
+    if(s.rpe){
+      const feltSet = s.felt!==null;
       html+=`<div style="margin-top:24px;padding-top:18px;border-top:1px dashed var(--bd)">
         <div style="font-size:12px;font-weight:600;color:var(--mt);text-align:center;letter-spacing:0.3px;margin-bottom:12px">¿Sentiste el músculo?</div>
         <div style="display:flex;gap:8px;padding:0 4px">
-          <button class="rpe-btn-min" onclick="setFelt(${si},true,${ci})">✅ Sí</button>
-          <button class="rpe-btn-min" onclick="setFelt(${si},false,${ci})">❌ No</button>
+          <button class="rpe-btn-min ${s.felt===true?'active-gn':''}" onclick="setFelt(${si},true,${ci})">✅ Sí</button>
+          <button class="rpe-btn-min ${s.felt===false?'active-dn':''}" onclick="setFelt(${si},false,${ci})">❌ No</button>
         </div>
       </div>`;
     }
@@ -1910,18 +1929,18 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   // Si hay countdown activo para este ejercicio, mostramos estado C en lugar de set card
   const isCountdownActive = _workCountdown && _workCountdown.ci===ci;
 
-  // HEADER · nombre + meta line con PR / historial / última sesión + botón ⓘ (detalle en sheet)
-  const histLen=hist(eid).length;
+  // HEADER del ejercicio · 3 líneas:
+  //   1. Nombre del ejercicio (17px)
+  //   2. Target de la rutina (sets×reps o segs) — pedido del usuario
+  //   3. PR actual (sin "N sesiones" — el usuario lo sacó)
+  // + botón 📈 a la derecha que va directo al historial.
   const prevSessRec=lastSessionRec(eid,mode);
-  // Meta brief: PR · N sesiones · última sesión (resumen 1 línea si hay)
-  const metaParts=[];
-  if(pr>0) metaParts.push(`🏆 ${formatPR(pr,mode)}`);
-  if(histLen>0) metaParts.push(`${histLen} sesion${histLen===1?'':'es'}`);
-  const metaLine=metaParts.length?metaParts.join(' · '):'';
+  const setsRepsTarget=formatSetsReps(ex);
   let html=`<div class="row mb-12" style="align-items:flex-start;gap:10px">
     <div style="flex:1;min-width:0">
       <div style="font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;line-height:1.15">${getExName(ex)}</div>
-      ${metaLine?`<div style="font-size:11px;color:var(--mt);margin-top:3px;font-weight:500">${metaLine}</div>`:''}
+      ${setsRepsTarget?`<div style="font-size:12px;color:var(--mt);margin-top:4px;font-weight:500">${setsRepsTarget}</div>`:''}
+      ${pr>0?`<div style="font-size:11px;color:var(--mt2);margin-top:2px;font-weight:500">🏆 ${formatPR(pr,mode)}</div>`:''}
     </div>
     <button class="icon-btn" onclick="showHist('${eid}')" title="Ver historial / progresión" aria-label="Ver historial completo" style="width:36px;height:36px;font-size:14px;flex-shrink:0;margin-top:-2px">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
@@ -1952,7 +1971,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     else if(mode==='time') valLabel=`${s.r}s`;
     else valLabel=`×${s.r}`;
     if(isCurrent && !isCountdownActive){
-      html+=`<span class="ws-pill ws-pill-current"><span class="b2-pulse-dot" style="margin-right:2px"></span>S${si+1} en curso</span>`;
+      html+=`<span class="ws-pill ws-pill-current"><span class="b2-pulse-dot" style="margin-right:2px"></span>Serie ${si+1}</span>`;
     } else if(isDone){
       html+=`<button class="ws-pill ws-pill-done" onclick="setForcedSetEdit(${si})" title="Tap para editar"><span style="font-weight:700">S${si+1}</span><span style="opacity:0.85">${valLabel}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>`;
     } else {
@@ -1981,11 +2000,11 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   if(isCountdownActive){
     // Estado C — countdown card grande
     const cd=_workCountdown;
-    const nextLabel=currentSi>=0?`Pasando al set ${currentSi+1}`:'Pasando al siguiente';
+    const nextLabel=currentSi>=0?`Pasando a la serie ${currentSi+1}`:'Pasando a la siguiente';
     const recHtml=cd.rec?cd.rec.replace(/\n/g,'<br>'):'';
     html+=`<div class="cdown-card">
       <div class="cdown-check">✓</div>
-      <div style="font-size:13px;font-weight:500;color:var(--mt);margin-bottom:2px">Set ${cd.si+1} guardado</div>
+      <div style="font-size:13px;font-weight:500;color:var(--mt);margin-bottom:2px">Serie ${cd.si+1} guardada</div>
       ${recHtml?`<div class="cdown-rec">🔹 ${recHtml}</div>`:''}
       <div class="cdown-label">${nextLabel} en</div>
       <div class="cdown-num">${cd.secondsLeft}</div>
