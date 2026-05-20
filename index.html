@@ -115,74 +115,194 @@ body.modal-open .page{overflow:hidden;}
 .acc-tag-bi{background:rgba(167,139,250,0.12);color:#a78bfa;}
 .acc-tag-tri{background:rgba(251,146,60,0.12);color:#fb923c;}
 .note-input{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--tx);width:100%;box-sizing:border-box;resize:none;min-height:36px;margin-top:10px;}
+
+/* ═══════ OAK REDESIGN ═══════ */
+body{-webkit-font-smoothing:antialiased;}
+/* Header del Home estilo Oak */
+.oak-page{padding:24px 0 40px;}
+.oak-header{padding:2px 20px 18px;display:flex;align-items:center;justify-content:space-between;}
+.oak-greet-meta{font-family:var(--fs);font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--mt);}
+.oak-greet{font-family:var(--serif);font-size:26px;color:var(--tx);line-height:1.05;margin-top:4px;font-weight:500;}
+.oak-greet em{color:var(--ac);font-style:italic;}
+.oak-icons{display:flex;gap:6px;}
+/* Icon button Oak — cuadrado con borde fino */
+.oak-icon-btn{width:34px;height:34px;border-radius:8px;background:transparent;border:1px solid var(--bd);color:var(--tx);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,color .15s;font-size:14px;}
+.oak-icon-btn:hover,.oak-icon-btn:active{border-color:var(--ac);color:var(--ac);}
+/* Botones Oak — cuadrados, uppercase tracked */
+.oak-btn{background:var(--ac);color:#FBF6E8;border:none;padding:14px 28px;border-radius:6px;font-family:var(--fs);font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;width:100%;}
+.oak-btn:hover{background:var(--hi);}
+.oak-btn:active{background:#6E5119;}
+.oak-btn-out{background:transparent;color:var(--tx);border:1px solid var(--bd);padding:13px 28px;border-radius:6px;font-family:var(--fs);font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,color .15s;width:100%;}
+.oak-btn-out:hover,.oak-btn-out:active{border-color:var(--ac);color:var(--ac);}
+/* Tracked label estilo Oak (uppercase letter-spacing) */
+.oak-mark{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mt);}
+.oak-mark-ac{color:var(--ac);}
+/* Reglas brass (horizontal) — Oak usa reglas en vez de borders redondeados */
+.oak-rule{height:1px;background:var(--ac);border:none;margin:0;}
+.oak-rule-bd{height:1px;background:var(--bd);border:none;margin:0;}
+/* Display de numerales romanos — Cormorant italic */
+.oak-display{font-family:var(--serif);font-style:italic;font-size:78px;font-weight:500;line-height:0.85;color:var(--tx);letter-spacing:-1px;}
+.oak-display-ac{color:var(--ac);}
+.oak-num-lg{font-family:var(--serif);font-size:42px;font-weight:500;line-height:0.9;color:var(--tx);}
+.oak-num-sm{font-family:var(--serif);font-size:14px;font-weight:600;line-height:1;color:var(--tx);}
+/* Sesión de hoy */
+.oak-today{margin:0 20px 16px;padding:0 4px;}
+.oak-today .oak-rule{margin-bottom:16px;}
+.oak-today-meta{display:flex;align-items:flex-end;gap:14px;margin-top:8px;}
+.oak-today-title{font-family:var(--serif);font-size:26px;color:var(--tx);line-height:1;font-weight:500;}
+.oak-today-mg{font-family:var(--fs);font-size:12px;font-weight:500;color:var(--mt);margin-top:4px;}
+.oak-stats-inline{display:flex;gap:14px;margin-top:14px;font-family:var(--fs);font-size:11px;font-weight:500;color:var(--mt);align-items:baseline;flex-wrap:wrap;}
+.oak-stats-inline > span{display:inline-flex;align-items:baseline;gap:6px;}
+.oak-stats-inline-sep{color:var(--bd);}
+.oak-cta{margin-top:18px;}
+/* Stats grid — Racha + Sesiones */
+.oak-stats{padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:22px;margin-bottom:16px;}
+.oak-stat-cell{padding:12px 16px 16px 4px;}
+.oak-stat-cell.with-divider{border-right:1px solid var(--bd);}
+.oak-stat-cell.right{padding:12px 4px 16px 16px;}
+.oak-stat-row{display:flex;align-items:baseline;gap:6px;margin-top:4px;}
+.oak-stat-row em{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--mt);}
+.oak-stat-bar{display:flex;gap:3px;margin-top:10px;}
+.oak-stat-bar > div{flex:1;height:3px;}
+.oak-stat-foot{font-family:var(--fs);font-size:11px;color:var(--mt);margin-top:12px;}
+.oak-stat-foot b{color:var(--tx);font-weight:600;}
+/* PR box — regla arriba/abajo, sin card */
+.oak-pr{padding:0 20px;margin-bottom:16px;}
+.oak-pr-box{border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);padding:14px 4px;display:flex;align-items:baseline;gap:14px;cursor:pointer;}
+.oak-pr-box:active{opacity:.6;}
+.oak-pr-tag{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ac);}
+.oak-pr-body{flex:1;}
+.oak-pr-title{font-family:var(--serif);font-size:20px;color:var(--tx);font-weight:500;line-height:1.1;}
+.oak-pr-title em{font-style:italic;color:var(--ac);font-weight:500;}
+.oak-pr-meta{font-family:var(--fs);font-size:11px;color:var(--mt);margin-top:2px;}
+/* Otros días — lista con numerales romanos */
+.oak-other{padding:0 20px;margin-top:12px;}
+.oak-other-h{font-family:var(--fs);font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--mt);margin-bottom:12px;}
+.oak-other-row{display:flex;align-items:center;gap:14px;padding:10px 4px;border-bottom:1px solid var(--bd);cursor:pointer;transition:opacity .12s;}
+.oak-other-row:active{opacity:.5;}
+.oak-other-num{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--ac);width:30px;line-height:1;font-weight:500;flex-shrink:0;}
+.oak-other-body{flex:1;min-width:0;}
+.oak-other-title{font-family:var(--serif);font-size:17px;color:var(--tx);line-height:1;font-weight:500;}
+.oak-other-meta{font-family:var(--fs);font-size:11px;color:var(--mt);margin-top:3px;}
+.oak-chev{color:var(--mt);font-size:22px;font-family:var(--serif);}
+/* Welcome screen Oak */
+.oak-welcome{padding:32px 24px;}
+.oak-welcome-h{font-family:var(--serif);font-size:34px;font-weight:500;color:var(--tx);line-height:1.05;margin-bottom:10px;}
+.oak-welcome-h em{font-style:italic;color:var(--ac);}
+.oak-welcome-sub{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--mt);margin-bottom:32px;line-height:1.35;}
+.oak-welcome-card{border-top:1px solid var(--ac);padding:18px 0;margin-bottom:14px;}
+.oak-welcome-card-h{font-family:var(--serif);font-size:18px;color:var(--tx);font-weight:500;margin-bottom:6px;}
+.oak-welcome-card-h em{font-style:italic;color:var(--ac);}
+.oak-welcome-card-p{font-family:var(--fs);font-size:13px;color:var(--mt);line-height:1.5;margin-bottom:14px;}
+.oak-or{text-align:center;font-family:var(--fs);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--mt);margin:18px 0;}
+.oak-or::before,.oak-or::after{content:'';display:inline-block;width:32px;height:1px;background:var(--bd);vertical-align:middle;margin:0 12px;}
 </style>
 </head>
 <body>
 
-<!-- ══ HOME ══ -->
-<div id="home" class="page active">
-  <div class="header">
-    <div style="display:flex;align-items:center;gap:10px"><img src="./shield.png" alt="JuvenFIT" style="height:44px;width:auto;mix-blend-mode:multiply"><div class="logo">TRACKER</div></div>
-    <div class="flex gap-8">
-      <button class="icon-btn" onclick="openImportRoutine()" title="Importar rutina del coach" aria-label="Importar rutina del coach" style="display:inline-flex;align-items:center;justify-content:center;color:var(--ac)">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
-          <rect x="3" y="3" width="7" height="7"/>
-          <rect x="14" y="3" width="7" height="7"/>
-          <rect x="3" y="14" width="7" height="7"/>
-          <rect x="14" y="14" width="3" height="3"/>
-          <rect x="18" y="18" width="3" height="3"/>
-          <rect x="14" y="19" width="3" height="2"/>
-        </svg>
+<!-- ══ HOME (OAK) ══ -->
+<div id="home" class="page active oak-page">
+  <!-- Header: saludo + iconos -->
+  <div class="oak-header">
+    <div style="min-width:0;flex:1">
+      <div id="oak-greet-meta" class="oak-greet-meta">—</div>
+      <div id="oak-greet" class="oak-greet">Hola, <em>vos</em></div>
+    </div>
+    <div class="oak-icons">
+      <button class="oak-icon-btn" onclick="openImportRoutine()" title="Importar rutina del coach" aria-label="Importar rutina">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
       </button>
-      <button class="icon-btn" onclick="showPage('routine')" style="font-size:14px">📋</button>
-      <button class="icon-btn" onclick="showPage('editR')">⚙</button>
+      <button class="oak-icon-btn" onclick="showPage('routine')" title="Ver rutina" aria-label="Ver rutina">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      </button>
+      <button class="oak-icon-btn" onclick="showPage('editR')" title="Ajustes" aria-label="Ajustes">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
     </div>
   </div>
-  <div id="home-welcome" style="display:none">
-    <div class="sec" style="padding-top:32px">
-      <div style="text-align:center;margin-bottom:28px">
-        <div style="font-size:56px;margin-bottom:16px">💪</div>
-        <div style="font-size:24px;font-weight:800;margin-bottom:8px">¡Bienvenido!</div>
-        <div class="text-sm text-mt" style="line-height:1.6;max-width:320px;margin:0 auto">¿Cómo querés empezar?</div>
-      </div>
 
-      <div class="card card-accent" style="cursor:default">
-        <div class="row mb-8" style="align-items:center;gap:10px">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" style="color:var(--ac);flex-shrink:0">
-            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/><rect x="14" y="19" width="3" height="2"/>
-          </svg>
-          <div class="fw-800" style="font-size:16px;color:var(--ac)">Tu coach te pasó una rutina</div>
-        </div>
-        <div class="text-sm text-mt mb-12" style="line-height:1.5">Tocá el botón <strong style="color:var(--ac)">QR</strong> arriba a la derecha (o el botón de abajo) para escanearla, o pegá el código de 8 caracteres que te mandó por WhatsApp.</div>
-        <button class="btn" onclick="openImportRoutine()">📷 Escanear o pegar código</button>
-      </div>
-
-      <div class="text-xs text-mt center mt-20 mb-12" style="letter-spacing:.5px">— O —</div>
-
-      <div class="card" style="cursor:default">
-        <div class="fw-800 mb-8" style="font-size:16px">Armá tu propia rutina</div>
-        <div class="text-sm text-mt mb-12" style="line-height:1.5">Sumá tus días, agregá ejercicios de la biblioteca y empezá a trackear tu progreso. Organizás el entrenamiento por bloques: <strong>Movilidad</strong>, <strong>Principal</strong>, <strong>Complementario</strong> y <strong>Finisher</strong>.</div>
-        <button class="btn-out" onclick="showPage('editR')">⚙ Configurar mi rutina →</button>
-      </div>
+  <!-- Welcome (alumno sin rutina) -->
+  <div id="home-welcome" style="display:none" class="oak-welcome">
+    <div class="oak-welcome-h">Bienvenido a <em>JuvenFIT</em></div>
+    <div class="oak-welcome-sub">¿Cómo querés empezar?</div>
+    <div class="oak-welcome-card">
+      <div class="oak-mark oak-mark-ac" style="margin-bottom:8px">Tu coach te pasó una rutina</div>
+      <div class="oak-welcome-card-h">Importá con un <em>código</em> o QR</div>
+      <div class="oak-welcome-card-p">Pedile a tu coach el código de 8 caracteres o tocá el botón QR arriba a la derecha para escanear.</div>
+      <button class="oak-btn" onclick="openImportRoutine()">Escanear o pegar código</button>
+    </div>
+    <div class="oak-or">o</div>
+    <div class="oak-welcome-card">
+      <div class="oak-mark" style="margin-bottom:8px">Armá tu propia rutina</div>
+      <div class="oak-welcome-card-h"><em>Configurá</em> días y ejercicios</div>
+      <div class="oak-welcome-card-p">Sumá tus días, agregá ejercicios de la biblioteca y empezá a trackear. Organizás por bloques: Movilidad, Principal, Complementario y Finisher.</div>
+      <button class="oak-btn-out" onclick="showPage('editR')">Configurar mi rutina</button>
     </div>
   </div>
+
+  <!-- Main (alumno con rutina) -->
   <div id="home-main">
-    <div id="draft-banner" style="display:none;padding:16px 20px 0"></div>
-    <div class="sec">
-      <div class="flex gap-12">
-        <div class="card flex-1" style="cursor:default"><div class="text-xs text-mt fw-600 mb-8">RACHA</div><div class="flex gap-8" style="align-items:baseline"><span id="home-streak" class="accent-num">0</span><span class="text-sm text-mt">sem</span><span id="home-fire" style="font-size:22px;display:none">🔥</span></div><div id="home-streak-detail" class="text-xs text-mt mt-8"></div></div>
-        <div class="card flex-1" style="cursor:default"><div class="row mb-8"><span class="text-xs text-mt fw-600">SESIONES</span><button class="icon-btn" onclick="window._delHistFrom='home';showPage('delHist')" style="width:26px;height:26px;font-size:12px">✎</button></div><span id="home-sessions" class="big-num">0</span></div>
+    <div id="draft-banner" style="display:none;padding:0 20px 16px"></div>
+
+    <!-- Sesión de hoy -->
+    <div class="oak-today">
+      <hr class="oak-rule">
+      <div class="oak-mark oak-mark-ac" style="margin-top:0">Sesión de hoy</div>
+      <div id="home-suggested"></div>
+    </div>
+
+    <hr class="oak-rule-bd" style="margin:6px 20px 0">
+
+    <!-- Stats grid: Racha + Sesiones -->
+    <div class="oak-stats">
+      <div class="oak-stat-cell with-divider">
+        <div class="oak-mark">Racha</div>
+        <div class="oak-stat-row">
+          <span id="home-streak" class="oak-num-lg">0</span>
+          <em>semanas</em>
+          <span id="home-fire" style="font-size:18px;display:none">🔥</span>
+        </div>
+        <div id="home-streak-bar" class="oak-stat-bar"></div>
+        <div id="home-streak-detail" class="oak-stat-foot"></div>
+      </div>
+      <div class="oak-stat-cell right">
+        <div class="oak-mark">
+          Sesiones
+          <button class="oak-icon-btn" onclick="window._delHistFrom='home';showPage('delHist')" style="width:24px;height:24px;font-size:11px;margin-left:6px;vertical-align:middle">✎</button>
+        </div>
+        <div class="oak-stat-row">
+          <span id="home-sessions" class="oak-num-lg">0</span>
+          <em>en total</em>
+        </div>
+        <div id="home-sessions-foot" class="oak-stat-foot"></div>
       </div>
     </div>
-    <div class="sec" style="padding-top:0"><div class="card" style="cursor:default"><div id="home-calendar"></div></div></div>
-    <div class="sec">
-      <div class="sec-title">Hoy te toca</div><div id="home-suggested" class="card card-accent"></div>
-      <div class="sec-title mt-24">Otros días</div><div id="home-others"></div>
-      <button class="btn-out mt-12" onclick="showPastWorkout()" style="font-size:14px">📅 Registrar entreno anterior</button>
+
+    <!-- Última sesión / PR -->
+    <div id="home-last-sec" class="oak-pr" style="display:none">
+      <div id="home-last" class="oak-pr-box"></div>
     </div>
-    <div id="home-last-sec" class="sec" style="display:none"><div class="sec-title">Última sesión</div><div id="home-last" class="card" style="cursor:default"></div></div>
-    <div id="home-hist-sec" class="sec" style="display:none"><div class="sec-title">Historial por ejercicio</div><div id="home-hist"></div></div>
-    <div id="home-volume-sec" class="sec" style="display:none"><div class="sec-title">Volumen muscular</div><div id="home-volume" class="card" style="cursor:default"></div></div>
+
+    <!-- Otros días -->
+    <div class="oak-other">
+      <div class="oak-other-h">Otros días</div>
+      <div id="home-others"></div>
+      <button class="oak-btn-out" onclick="showPastWorkout()" style="margin-top:16px;font-size:11px">Registrar entreno anterior</button>
+    </div>
+
+    <!-- Secciones extra (calendario, historial, volumen) -->
+    <div class="sec" style="padding:32px 20px 0">
+      <div class="oak-mark" style="margin-bottom:12px">Calendario</div>
+      <div id="home-calendar"></div>
+    </div>
+    <div id="home-hist-sec" class="sec" style="padding:32px 20px 0;display:none">
+      <div class="oak-mark" style="margin-bottom:12px">Historial por ejercicio</div>
+      <div id="home-hist"></div>
+    </div>
+    <div id="home-volume-sec" class="sec" style="padding:32px 20px 0;display:none">
+      <div class="oak-mark" style="margin-bottom:12px">Volumen muscular</div>
+      <div id="home-volume"></div>
+    </div>
   </div>
 </div>
 
@@ -1239,24 +1359,178 @@ function renderCalendar(){
 }
 
 // ══ HOME ══
+// ── OAK helpers ──
+function toRoman(n){
+  if(n==null||n<=0) return '';
+  const map=[[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+  let r='',num=Math.floor(n);
+  for(const [v,s] of map){while(num>=v){r+=s;num-=v;}}
+  return r;
+}
+function oakGreeting(){
+  const d=nowBsAs();
+  const h=d.getUTCHours();
+  if(h>=6&&h<12) return 'Buen día';
+  if(h>=12&&h<19) return 'Buenas tardes';
+  return 'Buenas noches';
+}
+function oakDateMeta(){
+  const d=nowBsAs();
+  const days=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const dow=days[d.getUTCDay()];
+  const day=d.getUTCDate();
+  const mon=months[d.getUTCMonth()];
+  const h=d.getUTCHours().toString().padStart(2,'0');
+  const m=d.getUTCMinutes().toString().padStart(2,'0');
+  return `${dow} · ${day} ${mon} · ${h}:${m}`;
+}
+function relativeDate(dateStr){
+  if(!dateStr) return '';
+  const today=td();
+  if(dateStr===today) return 'hoy';
+  const d=new Date(dateStr+'T12:00:00'),t=new Date(today+'T12:00:00');
+  const diff=Math.round((t-d)/86400000);
+  if(diff===1) return 'ayer';
+  if(diff<7) return `hace ${diff} días`;
+  return fd(dateStr);
+}
+
 function renderHome(){
   const totalExercises=routine.days.reduce((s,d)=>s+getDayExercises(d).length,0);
   if(totalExercises===0){$("home-welcome").style.display="block";$("home-main").style.display="none";return;}
   $("home-welcome").style.display="none";$("home-main").style.display="block";
+
+  // Header greeting
+  if($("oak-greet-meta")) $("oak-greet-meta").textContent=oakDateMeta();
+  if($("oak-greet")) $("oak-greet").innerHTML=`${oakGreeting()}`;
+
+  // Draft banner — estilo Oak (regla brass arriba/abajo)
   const draft=load("gym-draft",null);
   const db=$("draft-banner");
-  if(draft){const dayDef=routine.days.find(d=>d.id===draft.dayId);db.style.display="block";db.innerHTML=`<div class="card card-accent" style="cursor:default"><div class="row mb-8"><span class="fw-700">📋 Borrador sin guardar</span><span class="text-xs text-mt">${fd(draft.date)} · ${dayDef?.name||'?'}</span></div><div class="text-sm text-mt mb-14">Cerraste sin finalizar. ¿Continuás?</div><div class="flex gap-8"><button class="btn" style="flex:1;padding:12px 0" onclick="resumeDraft()">Continuar →</button><button class="btn-out" style="flex:1;padding:12px 0" onclick="discardDraft()">Descartar</button></div></div>`;}
-  else{db.style.display="none";db.innerHTML="";}
-  const sg=sugDay();const sgD=routine.days.find(d=>d.id===sg);const st=streak();const tw=thisWeekSessions();const dpw=config.daysPerWeek||3;
-  $("home-streak").textContent=st;$("home-fire").style.display=st>0?"inline":"none";$("home-sessions").textContent=sessions.length;
-  $("home-streak-detail").innerHTML=`Esta semana: <strong style="color:${tw>=dpw?'var(--gn)':'var(--ac)'}">${tw}/${dpw}</strong>${tw>=dpw?' ✓':''}`;
-  $("home-suggested").innerHTML=`<div class="row" onclick="startWorkout(${sg})" style="cursor:pointer"><div><div style="font-size:20px;font-weight:800;margin-bottom:4px;color:var(--ac)">${sgD.name}</div><div class="text-sm text-mt">${sgD.sub}</div><div class="text-xs text-mt mt-8">${formatDayPreview(sgD)}</div></div><div style="font-size:32px;color:var(--ac)">→</div></div>`;
-  $("home-others").innerHTML=routine.days.filter(d=>d.id!==sg).map(d=>`<div class="card" onclick="startWorkout(${d.id})" style="cursor:pointer"><div class="row"><div><div style="font-size:16px;font-weight:700">${d.name}</div><div class="text-sm text-mt">${d.sub}</div></div><div style="font-size:20px;color:var(--mt)">→</div></div></div>`).join('');
-  renderCalendar();
+  if(draft){
+    const dayDef=routine.days.find(d=>d.id===draft.dayId);
+    db.style.display="block";
+    db.innerHTML=`<div style="border-top:1px solid var(--ac);border-bottom:1px solid var(--ac);padding:14px 4px;cursor:default;margin-top:4px">
+      <div class="oak-mark oak-mark-ac" style="margin-bottom:6px">Borrador sin guardar</div>
+      <div class="oak-pr-title">${dayDef?.name||'?'}</div>
+      <div class="oak-pr-meta">${fd(draft.date)} · cerraste sin finalizar</div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="oak-btn" onclick="resumeDraft()" style="flex:1">Continuar</button>
+        <button class="oak-btn-out" onclick="discardDraft()" style="flex:1">Descartar</button>
+      </div>
+    </div>`;
+  } else {db.style.display="none";db.innerHTML="";}
+
+  // Día sugerido (Sesión de hoy)
+  const sg=sugDay();
+  const sgD=routine.days.find(d=>d.id===sg);
+  const sgIdx=routine.days.findIndex(d=>d.id===sg)+1;
+  const sgRoman=toRoman(sgIdx);
+  const sgExs=getDayExercises(sgD);
+  const sgBlocks=(sgD.blocks||[]).length;
+  $("home-suggested").innerHTML=`
+    <div class="oak-today-meta">
+      <div class="oak-display oak-display-ac">${sgRoman}</div>
+      <div style="flex:1;padding-bottom:6px;min-width:0">
+        <div class="oak-today-title">${sgD.name||'Día'}</div>
+        <div class="oak-today-mg">${sgD.sub||''}</div>
+      </div>
+    </div>
+    <div class="oak-stats-inline">
+      <span><span class="oak-num-sm">${sgExs.length}</span> ejercicios</span>
+      ${sgBlocks?`<span class="oak-stats-inline-sep">·</span><span><span class="oak-num-sm">${sgBlocks}</span> bloques</span>`:''}
+    </div>
+    <button class="oak-btn oak-cta" onclick="startWorkout(${sg})">Comenzar entrenamiento</button>
+  `;
+
+  // Stats: racha (con barras 7 días) + sesiones (con foot "últimos 30 días")
+  const st=streak();const tw=thisWeekSessions();const dpw=config.daysPerWeek||3;
+  $("home-streak").textContent=st;
+  $("home-fire").style.display=st>0?"inline":"none";
+  $("home-sessions").textContent=sessions.length;
+  const bar=$("home-streak-bar");
+  if(bar){
+    bar.innerHTML=Array.from({length:7},(_,i)=>`<div style="background:${i<tw?'var(--ac)':'var(--bd)'}"></div>`).join('');
+  }
+  const streakFoot=$("home-streak-detail");
+  if(streakFoot){
+    const okWeek=tw>=dpw;
+    streakFoot.innerHTML=`Esta semana · <b>${tw}/${dpw}</b>${okWeek?' ✓':''}`;
+  }
+  // Sesiones últimos 30 días
+  const since30=new Date();since30.setDate(since30.getDate()-30);
+  const since30Str=since30.toISOString().slice(0,10);
+  const last30=sessions.filter(s=>s.date>=since30Str).length;
+  const sessionsFoot=$("home-sessions-foot");
+  if(sessionsFoot) sessionsFoot.innerHTML=`Últimos 30 días · <b>${last30}</b>`;
+
+  // Última sesión (slot del PR box en Oak)
   const last=sessions.length?[...sessions].sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
-  if(last){$("home-last-sec").style.display="block";const dayDef=routine.days.find(d=>d.id===last.dayId);$("home-last").innerHTML=`<div class="row mb-8"><span class="text-sm text-mt">${fd(last.date)}${last.time?' · '+last.time:''} — ${dayDef?.name||''}</span><button class="btn-sm" onclick="editSession('${last.id}')" style="font-size:12px">✎ Editar</button></div><div>${(last.exercises||[]).map(ex=>{const name=getExerciseName(ex.eid,allCompounds().find(e=>eidOf(e)===ex.eid)?.name);if(!name) return '';const mode=modeOfEid(ex.eid);const peak=mode==='weight'?Math.max(...(ex.sets||[]).map(s=>s.w||0)):Math.max(...(ex.sets||[]).map(s=>s.r||0));return`<div class="row" style="padding:4px 0;font-size:14px"><span class="text-mt">${name}</span><span class="mono fw-700">${mode==='weight'?(peak+'kg'):formatPR(peak,mode)}</span></div>`;}).join('')}</div>`;}else{$("home-last-sec").style.display="none";}
+  if(last){
+    $("home-last-sec").style.display="block";
+    const dayDef=routine.days.find(d=>d.id===last.dayId);
+    let titleHtml=dayDef?.name||'Entreno';
+    // Resaltar primer ejercicio con peso, estilo "Press banca · 82.5 kg"
+    if(last.exercises&&last.exercises.length){
+      const firstWithW=last.exercises.find(ex=>ex.sets&&ex.sets.some(s=>(s.w||0)>0||(s.r||0)>0));
+      if(firstWithW){
+        const name=getExerciseName(firstWithW.eid)||'';
+        const mode=modeOfEid(firstWithW.eid);
+        const peak=mode==='weight'
+          ?Math.max(...firstWithW.sets.map(s=>s.w||0))
+          :Math.max(...firstWithW.sets.map(s=>s.r||0));
+        if(name&&peak>0){
+          const peakLbl=mode==='weight'?(peak+' kg'):formatPR(peak,mode);
+          titleHtml=`${name} · <em>${peakLbl}</em>`;
+        }
+      }
+    }
+    $("home-last").innerHTML=`
+      <div class="oak-pr-tag">Último entreno</div>
+      <div class="oak-pr-body" onclick="editSession('${last.id}')">
+        <div class="oak-pr-title">${titleHtml}</div>
+        <div class="oak-pr-meta">${relativeDate(last.date)}${last.time?' · '+last.time:''} · ${dayDef?.name||''}</div>
+      </div>
+    `;
+  } else {
+    $("home-last-sec").style.display="none";
+  }
+
+  // Otros días — lista con numerales romanos
+  $("home-others").innerHTML=routine.days.filter(d=>d.id!==sg).map(d=>{
+    const idx=routine.days.findIndex(x=>x.id===d.id)+1;
+    return `<div class="oak-other-row" onclick="startWorkout(${d.id})">
+      <div class="oak-other-num">${toRoman(idx)}</div>
+      <div class="oak-other-body">
+        <div class="oak-other-title">${d.name||'Día'}</div>
+        <div class="oak-other-meta">${d.sub||''}</div>
+      </div>
+      <span class="oak-chev">›</span>
+    </div>`;
+  }).join('');
+
+  renderCalendar();
+
+  // Historial por ejercicio (estilo Oak — fila con regla)
   const histItems=allCompounds().filter(ex=>hist(eidOf(ex)).length>0);
-  if(histItems.length){$("home-hist-sec").style.display="block";$("home-hist").innerHTML=histItems.map(ex=>{const eid=eidOf(ex);const mode=getTrackMode(ex);const h=hist(eid);const pr=prOf(eid,mode);return`<div class="card" onclick="showHist('${eid}')" style="cursor:pointer"><div class="row"><div><div style="font-size:15px;font-weight:700;color:var(--ac)">${getExName(ex)}</div><div class="text-xs text-mt">${h.length} sesiones · PR: ${formatPR(pr,mode)}</div></div><div style="font-size:18px;color:var(--mt)">→</div></div></div>`;}).join('');}else{$("home-hist-sec").style.display="none";}
+  if(histItems.length){
+    $("home-hist-sec").style.display="block";
+    $("home-hist").innerHTML=histItems.map(ex=>{
+      const eid=eidOf(ex);
+      const mode=getTrackMode(ex);
+      const h=hist(eid);
+      const pr=prOf(eid,mode);
+      return `<div class="oak-other-row" onclick="showHist('${eid}')">
+        <div class="oak-other-body">
+          <div class="oak-other-title">${getExName(ex)}</div>
+          <div class="oak-other-meta">${h.length} sesiones · PR <em style="color:var(--ac);font-style:italic">${formatPR(pr,mode)}</em></div>
+        </div>
+        <span class="oak-chev">›</span>
+      </div>`;
+    }).join('');
+  } else {$("home-hist-sec").style.display="none";}
+
   drawMuscleChart();
 }
 
