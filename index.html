@@ -391,7 +391,7 @@ details summary::-webkit-details-marker{display:none;}
       <div id="work-day" style="font-size:18px;font-weight:600;color:var(--tx);letter-spacing:-0.3px;line-height:1.1"></div>
       <div id="work-sub" style="font-size:12px;color:var(--mt);margin-top:2px;font-weight:500"></div>
     </div>
-    <div style="width:44px"></div>
+    <button class="b2-press" onclick="confirmFinishWorkout()" aria-label="Finalizar entrenamiento" style="background:transparent;border:1px solid var(--bd);color:var(--mt);font-size:11px;font-weight:600;letter-spacing:0.3px;cursor:pointer;padding:7px 11px;border-radius:10px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;margin-top:2px;line-height:1"><span style="font-size:13px">🏁</span> Finalizar</button>
   </div>
   <div id="work-content"></div>
   <div id="timer" class="timer-bar">
@@ -1891,6 +1891,87 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
   }
 
   // ════════════════════════════════════════════════════════════════
+  // GROUPED BENTO (biserie/triserie) · visual Bento Tri pero apilando
+  // todas las series como antes (no es focused mode). Card --cd, border
+  // tintado por RPE, inputs --sf, números mono, RPE segmented sin emojis.
+  // ════════════════════════════════════════════════════════════════
+  if(opts.groupedBento){
+    const bcGB = s.rpe
+      ? ({liviano:'rgba(52,211,153,0.40)',justo:'rgba(251,146,60,0.40)',limite:'rgba(248,113,113,0.40)'}[s.rpe])
+      : 'var(--bd)';
+    const valStyle='font-size:26px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-0.6px;line-height:1';
+    const wBtnStyle='width:38px;height:38px;font-size:18px;border-radius:10px;background:var(--sf)';
+    const lblStyle='font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:8px';
+    const unitStyle='font-size:9.5px;color:var(--mt2);margin-top:6px;font-weight:600;letter-spacing:0.5px';
+
+    let fieldsHtml='';
+    if(mode==='weight'){
+      fieldsHtml=`<div style="display:flex;justify-content:center;gap:28px;margin:4px 0 14px;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div style="${lblStyle}">Peso</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjW(${si},-2.5,${ci})">−</button>
+            <div id="val-w-${ci}-${si}" class="mono fw-700" style="${valStyle};min-width:60px" onclick="typeVal(${si},'w',null,${ci})">${s.w}</div>
+            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjW(${si},2.5,${ci})">+</button>
+          </div>
+          <div style="${unitStyle}">kg</div>
+        </div>
+        <div style="text-align:center">
+          <div style="${lblStyle}">Reps</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button>
+            <div id="val-r-${ci}-${si}" class="mono fw-700" style="${valStyle};min-width:42px" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
+            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button>
+          </div>
+        </div>
+      </div>`;
+    } else if(mode==='reps'){
+      fieldsHtml=`<div style="display:flex;justify-content:center;margin:4px 0 14px">
+        <div style="text-align:center">
+          <div style="${lblStyle}">Reps</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button>
+            <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:36px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1;min-width:70px" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
+            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button>
+          </div>
+        </div>
+      </div>`;
+    } else if(mode==='time'){
+      fieldsHtml=`<div style="display:flex;justify-content:center;margin:4px 0 14px">
+        <div style="text-align:center">
+          <div style="${lblStyle}">Tiempo</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},-5,${ci})">−</button>
+            <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:34px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1;min-width:80px" onclick="typeVal(${si},'r','Tiempo (segs)',${ci})">${s.r}</div>
+            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},5,${ci})">+</button>
+          </div>
+          <div style="${unitStyle}">segs</div>
+        </div>
+      </div>`;
+    }
+
+    let html=`<div style="background:var(--cd);border:1px solid ${bcGB};border-radius:var(--r-card);padding:14px;margin-bottom:10px;box-shadow:var(--lift-in);transition:border-color 180ms ease">`;
+    html+=fieldsHtml;
+    html+=`<div style="height:1px;background:var(--bd);margin:0 2px 12px"></div>`;
+    html+=`<div style="display:flex;gap:6px;padding:0 2px">
+      <button class="rpe-btn-min ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano',${ci})">Liviano</button>
+      <button class="rpe-btn-min ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo',${ci})">Justo</button>
+      <button class="rpe-btn-min ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite',${ci})">Al límite</button>
+    </div>`;
+    if(s.rpe){
+      html+=`<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--bd)">
+        <div style="font-size:11.5px;font-weight:600;color:var(--mt);text-align:center;letter-spacing:0.3px;margin-bottom:10px">¿Sentiste el músculo?</div>
+        <div style="display:flex;gap:8px;padding:0 2px">
+          <button class="rpe-btn-min ${s.felt===true?'active-gn':''}" onclick="setFelt(${si},true,${ci})">✅ Sí</button>
+          <button class="rpe-btn-min ${s.felt===false?'active-dn':''}" onclick="setFelt(${si},false,${ci})">❌ No</button>
+        </div>
+      </div>`;
+    }
+    html+=`</div>`;
+    return html;
+  }
+
+  // ════════════════════════════════════════════════════════════════
   // LEGACY · grouped workout (biserie/triserie) — sigue como antes, con caja.
   // ════════════════════════════════════════════════════════════════
   const bc=s.rpe?({liviano:'var(--gn)',justo:'var(--yw)',limite:'var(--dn)'}[s.rpe]+'30'):'var(--bd)';
@@ -2132,8 +2213,25 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
   // Número de vueltas = max sets de los ejercicios del grupo
   const maxSets=Math.max(...indexes.map(ci=>(curSess.exercises[ci]?.sets||[]).length));
   const firstCi=indexes[0];
+  // Detectar vuelta activa: primera vuelta con algún set sin RPE marcado.
+  // Si todas tienen RPE → activeSi=-1 (todas done). Las anteriores a la activa = done; posteriores = pending.
+  let activeSi=-1;
+  for(let si=0;si<maxSets;si++){
+    let hasIncomplete=false;
+    for(const ci of indexes){
+      const sets=curSess.exercises[ci]?.sets||[];
+      if(si<sets.length && sets[si].rpe===null){hasIncomplete=true;break;}
+    }
+    if(hasIncomplete){activeSi=si;break;}
+  }
   for(let si=0;si<maxSets;si++){
     const isLastTurn=si===maxSets-1;
+    // Estado de la vuelta · done (verde) / active (naranja) / pending (gris)
+    const vState = activeSi===-1 ? 'done' : si<activeSi ? 'done' : si===activeSi ? 'active' : 'pending';
+    const vColor = vState==='done' ? 'var(--gn)' : vState==='active' ? 'var(--yw)' : 'var(--mt2)';
+    const vBg    = vState==='done' ? 'rgba(52,211,153,0.10)' : vState==='active' ? 'rgba(251,146,60,0.14)' : 'transparent';
+    const vBdr   = vState==='done' ? 'rgba(52,211,153,0.30)' : vState==='active' ? 'rgba(251,146,60,0.40)' : 'var(--bd)';
+    const vCheck = vState==='done' ? ' ✓' : '';
     // Controles ± solo en la última vuelta (afectan a todo el grupo)
     const addRemoveHtml=isLastTurn
       ?`<div class="flex gap-6" style="align-items:center">
@@ -2141,23 +2239,24 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
           <button class="w-btn" style="width:26px;height:26px;border-radius:8px;font-size:14px" onclick="addWorkSet(${firstCi})">+</button>
         </div>`
       :'';
-    // Header de la vuelta + botones ± + descansar
-    html+=`<div class="row mb-8 mt-16" style="align-items:center;gap:8px">
-      <span style="font-size:12px;font-weight:700;color:var(--yw);letter-spacing:1.5px;text-transform:uppercase">VUELTA ${si+1} / ${maxSets}</span>
+    // Header de la vuelta · pill por estado + ± + descansar
+    html+=`<div class="row mb-10 mt-18" style="align-items:center;gap:8px">
+      <span style="display:inline-flex;align-items:center;padding:6px 11px;border-radius:100px;border:1px solid ${vBdr};background:${vBg};color:${vColor};font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;line-height:1;white-space:nowrap">Vuelta ${si+1}/${maxSets}${vCheck}</span>
       ${addRemoveHtml}
       <span style="flex:1"></span>
-      <button class="btn-sm" onclick="startTimer(${restSec})" style="font-size:11px;padding:6px 14px;background:var(--yw);color:var(--action-tx);font-weight:600;border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.18)">⏱ Descansar</button>
+      <button class="btn-sm b2-press" onclick="startTimer(${restSec})" style="font-size:11px;padding:7px 14px;background:var(--yw);color:var(--action-tx);font-weight:700;border-radius:10px;border:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 1px 2px rgba(0,0,0,0.10)">⏱ Descansar</button>
     </div>`;
-    // Sub-card por ejercicio en esta vuelta
+    // Sub-card por ejercicio en esta vuelta · visual Bento Tri
     indexes.forEach((ci,gi)=>{
       const ex=compounds[ci];
       const sets=curSess.exercises[ci]?.sets||[];
       if(si>=sets.length) return; // este ejercicio no llega a esta vuelta
       const s=sets[si];
       const mode=getTrackMode(ex);
-      // Mini-banner con nombre arriba de la sub-card
-      html+=`<div class="mb-4" style="font-size:13px;font-weight:700;color:var(--ac);padding:0 4px">${gi+1}. ${getExName(ex)}</div>`;
-      html+=renderSetCardHTML(s,si,sets,ex,mode,{ci,allowAddRemove:false});
+      // Mini-banner con nombre arriba de la sub-card · naranja en vuelta activa, gris si no
+      const nameColor = vState==='active' ? 'var(--yw)' : vState==='done' ? 'var(--mt)' : 'var(--mt2)';
+      html+=`<div class="mb-6" style="font-size:12.5px;font-weight:700;color:${nameColor};padding:0 4px;letter-spacing:0.2px">${gi+1}. ${getExName(ex)}</div>`;
+      html+=renderSetCardHTML(s,si,sets,ex,mode,{ci,allowAddRemove:false,groupedBento:true});
     });
   }
   // Rec global y nota por ejercicio del grupo (al final)
@@ -2584,6 +2683,17 @@ function discardDraft(){
 }
 function confirmExit(){$("exit-modal").classList.add('show');}
 function closeExitModal(){$("exit-modal").classList.remove('show');}
+// Chip "🏁 Finalizar" del header del workout · sheet directo sin pasar por exit-modal (Guardar+salir directo).
+// Si querés descartar usá el ← (que abre exit-modal con las 3 opciones).
+function confirmFinishWorkout(){
+  showConfirmSheet({
+    title:'¿Finalizar entrenamiento?',
+    desc:'Los sets incompletos no se guardarán',
+    confirmLabel:'Finalizar',
+    onConfirm:finishWorkout,
+    danger:false
+  });
+}
 
 // ══ TIMER (persistent) ══
 let timerStart=0;
