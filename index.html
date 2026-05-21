@@ -2972,11 +2972,12 @@ function renderWork(){
   if(mobility.length){
     const movDone=mobility.every(m=>curSess.mobility&&curSess.mobility[m.id]);
     const movActive=curSess.mobility&&Object.values(curSess.mobility).some(Boolean);
-    // Tab MOV: drop shadow turquesa (color de Movilidad · paleta categórica).
-    // 0 4px 16px -6px = sombra centrada hacia abajo, blur amplio, spread negativo
-    // para que el halo de color sea más chico que el tab y se difumine.
+    // Tab MOV: dot turquesa en corner top-left (color de Movilidad · paleta categórica).
+    // Reemplaza el drop shadow anterior que generaba un "corte horizontal" entre la fila
+    // de tabs y la zona del ejercicio debajo. El dot puntual no rompe la continuidad vertical.
     const movColor=BLOCK_TYPES.movilidad.color;
-    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="font-size:18px;box-shadow:0 4px 16px -6px ${movColor}">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':(movActive?'<span style="position:absolute;top:-4px;right:-4px;font-size:9px;color:var(--mt)">·</span>':'')}🤸</button>`;
+    const movDot=`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${movColor}"></span>`;
+    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="font-size:18px">${movDot}${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':(movActive?'<span style="position:absolute;top:-4px;right:-4px;font-size:9px;color:var(--mt)">·</span>':'')}🤸</button>`;
   }
   // Construir "units": cada unit es un single compound o un grupo (biserie/triserie).
   // Tabs muestran UN solo botón por unit. Si curExI cae en un grupo, el tab activo es el del primero del grupo.
@@ -3001,16 +3002,16 @@ function renderWork(){
     if(u.type==='group'){
       const done=u.indexes.every(i=>curSess.exercises[i]?.sets?.every(s=>s.rpe!==null));
       const label=u.size===2?'🔗 BI':u.size===3?'🔗 TRI':'🔗 ×'+u.size;
-      // Drop shadow del color del bloque del primer ejercicio del grupo (todos del mismo bloque)
+      // Dot del color del bloque del primer ejercicio del grupo en corner top-left
       const grpColor=blockColorOfEx(compounds[u.firstIdx]);
-      const grpShadow=grpColor?`box-shadow:0 4px 16px -6px ${grpColor};`:'';
-      return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="background:${active?'rgba(251,146,60,0.14)':'transparent'};color:${active?'var(--yw)':'var(--mt)'};border:1px solid ${active?'rgba(251,146,60,0.40)':'var(--bd)'};${grpShadow}min-width:48px;font-size:12px;font-weight:700;padding:0 8px">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':''}${label}</button>`;
+      const grpDot=grpColor?`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${grpColor}"></span>`:'';
+      return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="background:${active?'rgba(251,146,60,0.14)':'transparent'};color:${active?'var(--yw)':'var(--mt)'};border:1px solid ${active?'rgba(251,146,60,0.40)':'var(--bd)'};min-width:48px;font-size:12px;font-weight:700;padding:0 8px">${grpDot}${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':''}${label}</button>`;
     }
     const i=u.firstIdx;
     const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
     const exColor=blockColorOfEx(compounds[i]);
-    const exShadow=exColor?` style="box-shadow:0 4px 16px -6px ${exColor}"`:'';
-    return`<button class="ex-tab${active?' active':''}" onclick="curExI=${i};renderWork()"${exShadow}>${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}${i+1}</button>`;
+    const exDot=exColor?`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${exColor}"></span>`:'';
+    return`<button class="ex-tab${active?' active':''}" onclick="curExI=${i};renderWork()">${exDot}${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}${i+1}</button>`;
   }).join('');
   if(accessories.length) tabsHtml+=`<button class="ex-tab${curExI===compounds.length?' active':''}" onclick="curExI=${compounds.length};renderWork()">ACC</button>`;
 
