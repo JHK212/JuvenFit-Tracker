@@ -415,7 +415,7 @@ details summary::-webkit-details-marker{display:none;}
 <!-- ══ HISTORY ══ -->
 <div id="hist" class="page">
   <div class="header">
-    <button class="icon-btn" onclick="showPage('home')">←</button>
+    <button class="icon-btn" onclick="histBack()">←</button>
     <div id="hist-title" class="fw-700" style="font-size:16px;text-align:center;flex:1;color:var(--ac)"></div>
     <div style="width:44px"></div>
   </div>
@@ -3484,7 +3484,18 @@ function pickPastDate(ds){
 }
 
 // ══ HISTORY ══
+// Recordar de dónde se entró a "hist" para que el ← vuelva a workout/progress/etc.,
+// no siempre a home. Default 'home' por si nada lo setea (ej. carga directa).
+let _histBackTo='home';
+function histBack(){
+  const target=(_histBackTo && _histBackTo!=='hist')?_histBackTo:'home';
+  showPage(target);
+}
 function showHist(eid){
+  // Capturar la página activa actual para que histBack() vuelva ahí.
+  // Si ya estamos en 'hist' (re-entry desde un link), no sobreescribir el origen.
+  const activeId=document.querySelector('.page.active')?.id;
+  if(activeId && activeId!=='hist') _histBackTo=activeId;
   const ex=allCompounds().find(e=>eidOf(e)===eid);
   const mode=modeOfEid(eid);
   const data=hist(eid);
