@@ -480,6 +480,11 @@ details summary::-webkit-details-marker{display:none;}
     </div>
     <div id="editD-blocks"></div>
     <button class="btn-out mt-12" onclick="openAddBlockPicker()">+ Agregar bloque</button>
+    <!-- Acción destructiva separada al final · evita accidentes (movida de la lista de Mi rutina) -->
+    <div style="margin-top:32px;padding-top:18px;border-top:1px dashed var(--bd)">
+      <button class="btn-danger" onclick="deleteCurrentEditDay()" style="font-size:13px">🗑 Borrar este día completo</button>
+      <div style="font-size:11px;color:var(--mt2);font-weight:500;text-align:center;margin-top:8px;line-height:1.4">Borra el día y sus bloques de la rutina.<br>Las sesiones registradas no se afectan.</div>
+    </div>
   </div>
 </div>
 
@@ -557,13 +562,16 @@ const DEFAULT_DAYS=[
 
 // ══ BLOCK TYPES (deben matchear con la app del coach) ══
 const BLOCK_TYPES={
-  // Bento Tri: las etiquetas de bloque son taxonomía, no acción/logro/intensidad → todas gris.
-  // Excepción: Finisher mapea a "intensidad" (esfuerzo final) → naranja.
-  movilidad:{label:'Movilidad',color:'#A1A1AA'},
-  principal:{label:'Principal',color:'#A1A1AA'},
-  complementario:{label:'Complementario',color:'#A1A1AA'},
-  finisher:{label:'Finisher',color:'#FB923C'},
-  custom:{label:'Personalizado',color:'#A1A1AA'}
+  // Código de color semántico (excepción explícita al tri-color estricto):
+  // los bloques son taxonomía estructural de la rutina y diferenciarlos visualmente
+  // ayuda a navegar el editor — donde la regla "color escasea" estorbaba la legibilidad.
+  // En workout/home/progress los acentos azul/verde/naranja siguen dominando porque el
+  // contexto es lectura rápida, no configuración.
+  movilidad:{label:'Movilidad',color:'#60A5FA'},        // azul · preparación / activación
+  principal:{label:'Principal',color:'#FB923C'},        // naranja · lo importante del entreno
+  complementario:{label:'Complementario',color:'#34D399'}, // verde · refuerzo de músculos accesorios
+  finisher:{label:'Finisher',color:'#F87171'},          // rojo · esfuerzo final, al límite
+  custom:{label:'Personalizado',color:'#A78BFA'}        // lila · libre / decorativo
 };
 
 // ══ EXERCISE LIBRARY (v1) ══
@@ -2252,16 +2260,18 @@ function renderProgress(){
       <div style="font-size:11px;color:var(--mt2);font-weight:500">${totalSessYear} sesion${totalSessYear===1?'':'es'}</div>
     </div>
     <div class="card" style="cursor:default;padding:14px 12px">
-      <!-- Row de labels de meses, ancho proporcional a # días, tappable -->
-      <div style="display:flex;gap:2px;margin-bottom:6px">
+      <!-- Row de labels de meses, alineado con grid (padding-left para skip la columna de labels Y) -->
+      <div style="display:flex;gap:2px;margin-bottom:6px;padding-left:18px">
         ${heat.months.map(m=>{
           const isOpen=_progressMonthExpanded===m.idx;
           const txColor=isOpen?'var(--ac)':(m.sessionCount>0?'var(--mt)':'var(--mt2)');
           return `<div class="b2-press" onclick="toggleProgressMonth(${m.idx})" style="flex:${m.days.length};cursor:pointer;text-align:center;font-size:9.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:${txColor};padding:3px 0;border-radius:4px;min-width:0;${isOpen?'background:rgba(96,165,250,0.10)':''}">${m.name}</div>`;
         }).join('')}
       </div>
-      <!-- Grid del año: 7 rows (días de la semana) × totalWeeks cols. Cada día con grid-row/column específico. -->
-      <div style="display:grid;grid-template-columns:repeat(${heat.totalWeeks},1fr);grid-template-rows:repeat(7,1fr);gap:2px;aspect-ratio:${heat.totalWeeks}/7">
+      <!-- Grid del año: col 1 = labels eje Y (L M M J V S D), cols 2+ = días.
+           Cada día con grid-row/column específico. Aspect-ratio:1 en cada cell mantiene el cuadrado. -->
+      <div style="display:grid;grid-template-columns:16px repeat(${heat.totalWeeks},1fr);grid-template-rows:repeat(7,1fr);gap:2px">
+        ${['L','M','M','J','V','S','D'].map((l,i)=>`<div style="grid-row:${i+1};grid-column:1;font-size:8.5px;font-weight:700;color:var(--mt2);letter-spacing:0.3px;display:flex;align-items:center;justify-content:flex-end;padding-right:3px">${l}</div>`).join('')}
         ${heat.days.map(d=>{
           const isMonthOpen=_progressMonthExpanded===d.month;
           const bg=d.trained?'var(--gn)':(d.isFuture?'transparent':'var(--bd)');
@@ -2269,7 +2279,7 @@ function renderProgress(){
           // Cuando hay un mes expandido, el resto se atenúa para resaltar el seleccionado
           const monthOpacity=(_progressMonthExpanded!==null && !isMonthOpen)?0.30:1;
           const border=d.isToday?'box-shadow:inset 0 0 0 1.5px var(--yw);':'';
-          return `<div title="${d.date}" style="grid-row:${d.dowIdx+1};grid-column:${d.weekIdx+1};background:${bg};border-radius:2px;opacity:${opacity*monthOpacity};${border}"></div>`;
+          return `<div title="${d.date}" style="grid-row:${d.dowIdx+1};grid-column:${d.weekIdx+2};aspect-ratio:1;background:${bg};border-radius:2px;opacity:${opacity*monthOpacity};${border}"></div>`;
         }).join('')}
       </div>
       <!-- Leyenda -->
@@ -2344,12 +2354,14 @@ function renderRoutine(){
   routine.days.forEach((d,dayIdx)=>{
     const blocks=d.blocks||[];
     const hasTypedBlocks=blocks.length>1||(blocks[0]&&blocks[0].type!=='principal');
-    // Sec-title con acciones de edit en azul (edit affordance)
+    // Sec-title con acciones de edit en azul (edit affordance).
+    // El botón ✕ "eliminar día" se sacó de acá — era muy accesible y se tappeaba por
+    // accidente. Ahora vive dentro del editor del día (page editD) como acción destructiva
+    // separada, después del listado de bloques.
     const headerActions=`
       <button class="micro-btn" style="font-size:13px;color:var(--ac)" onclick="editDayPrompt(${d.id})" title="Renombrar día">✎</button>
       ${dayIdx>0?`<button class="micro-btn" style="font-size:15px;color:var(--ac)" onclick="moveRoutineDayInList(${dayIdx},-1)" title="Subir">↑</button>`:''}
       ${dayIdx<nDays-1?`<button class="micro-btn" style="font-size:15px;color:var(--ac)" onclick="moveRoutineDayInList(${dayIdx},1)" title="Bajar">↓</button>`:''}
-      ${nDays>1?`<button class="micro-btn" style="color:var(--dn);font-size:15px" onclick="deleteDay(${d.id})" title="Eliminar día">✕</button>`:''}
     `;
     html+=`<div class="sec">
       <div class="row mb-12" style="align-items:center;gap:6px">
@@ -3677,10 +3689,19 @@ function deleteDay(dayId){
     confirmLabel:'Eliminar día',
     onConfirm:()=>{
       routine.days=routine.days.filter(x=>x.id!==dayId);
-      saveRoutine();rerenderRoutineList();
+      saveRoutine();
+      // Si estamos en el editor del día, cerrarlo antes de re-renderear (sino queda fantasma)
+      const editDActive=document.getElementById('editD')?.classList.contains('active');
+      if(editDActive) closeDayBlockEditor();
+      rerenderRoutineList();
       toast('Día eliminado','success');
     }
   });
+}
+// Wrapper para el botón "Borrar este día" dentro del editor — usa la variable global editDayId
+function deleteCurrentEditDay(){
+  if(editDayId==null){toast('Sin día seleccionado','error');return;}
+  deleteDay(editDayId);
 }
 function editDayPrompt(dayId){
   const d=routine.days.find(x=>x.id===dayId);
