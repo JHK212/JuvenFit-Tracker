@@ -175,6 +175,31 @@ body.modal-open .page{overflow:hidden;}
 /* Halo verde detrás del PR modal (cuando llegue) — irradia el momento de logro */
 .b2-pr-halo{box-shadow:0 -20px 40px -10px rgba(0,0,0,0.45),0 0 80px rgba(52,211,153,0.10);}
 
+/* ─── Resumen post-workout · full-screen overlay ─── */
+.summary-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;overflow-y:auto;}
+.summary-overlay.show{display:block;animation:summaryFadeIn 0.4s cubic-bezier(0.2,0.7,0.2,1);}
+@keyframes summaryFadeIn{from{opacity:0}to{opacity:1}}
+.summary-content{max-width:480px;margin:0 auto;padding:32px 20px;padding-top:calc(32px + env(safe-area-inset-top));padding-bottom:calc(40px + env(safe-area-inset-bottom));}
+.summary-hero{text-align:center;padding:24px 0 28px;}
+.summary-check{font-size:64px;color:var(--gn);line-height:1;margin-bottom:10px;animation:summaryCheckPop 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.15s both;}
+@keyframes summaryCheckPop{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.summary-title{font-size:26px;font-weight:700;color:var(--tx);letter-spacing:-0.6px;line-height:1.1;}
+.summary-meta{font-size:13px;color:var(--mt);margin-top:6px;font-weight:500;}
+.summary-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.summary-stat{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);padding:20px 8px;text-align:center;box-shadow:var(--lift-in);}
+.summary-stat-num{display:block;font-size:32px;font-weight:700;color:var(--tx);letter-spacing:-1.2px;line-height:1;font-family:var(--fm);}
+.summary-stat-lbl{display:block;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mt);margin-top:10px;}
+.summary-section{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);padding:16px 18px;margin-bottom:12px;box-shadow:var(--lift-in);}
+.summary-section-title{font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:12px;}
+.summary-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13.5px;color:var(--tx);font-weight:500;gap:10px;}
+.summary-row:last-child{border-bottom:none;}
+.summary-row .val{font-family:var(--fm);font-weight:700;color:var(--gn);}
+.summary-row .delta-gn{color:var(--gn);font-weight:600;margin-left:6px;font-size:11px;font-family:var(--fm);opacity:0.85;}
+.summary-deltas{background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.25);border-radius:14px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;color:var(--tx);text-align:center;line-height:1.5;}
+.summary-deltas strong{color:var(--gn);font-weight:700;font-family:var(--fm);}
+.summary-deltas strong.dn{color:var(--mt);}
+.summary-cta{margin-top:18px;padding:16px;font-size:15.5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;}
+
 /* ─── Bottom sheet (info ejercicio durante workout, Fase 4) ─── */
 .bsheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);backdrop-filter:blur(0);z-index:100;display:none;align-items:flex-end;justify-content:center;transition:background 0.2s ease,backdrop-filter 0.2s ease;}
 .bsheet-overlay.show{display:flex;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);}
@@ -404,7 +429,7 @@ details summary::-webkit-details-marker{display:none;}
       <div style="font-size:18px;font-weight:800;margin-bottom:8px">¿Salir del entrenamiento?</div>
       <div class="text-sm text-mt mb-24">Podés guardar lo que llevas o descartarlo.</div>
       <div class="flex" style="flex-direction:column;gap:10px">
-        <button class="btn" onclick="finishWorkout()">Guardar y salir</button>
+        <button class="btn" onclick="confirmFinishWorkout()">Guardar y salir</button>
         <button class="btn-out" onclick="discardWorkout()">Descartar</button>
         <button class="btn-out" onclick="closeExitModal()">Seguir entrenando</button>
       </div>
@@ -516,6 +541,11 @@ details summary::-webkit-details-marker{display:none;}
     <div style="width:44px"></div>
   </div>
   <div id="progress-content"></div>
+</div>
+
+<!-- Resumen post-workout · full-screen overlay con stats + PRs + deltas -->
+<div id="summary-modal" class="summary-overlay">
+  <div class="summary-content"></div>
 </div>
 
 <!-- ══ Modal ══ -->
@@ -3364,7 +3394,134 @@ function jumpInSuperset(targetIdx){
   renderWork();
   window.scrollTo(0,0);
 }
-function finishWorkout(){sessions.push(curSess);save("gym-s",sessions);clearDraft();stopTimer();closeExitModal();showPage('home');}
+function finishWorkout(){
+  if(!curSess) return;
+  const day=routine.days.find(d=>d.id===curDayId);
+  // Capturar PRs previos ANTES de guardar la sesión actual (sino el "PR previo" ya incluye el actual)
+  const prevPRs={};
+  (curSess.exercises||[]).forEach(ex=>{
+    const compound=allCompounds().find(e=>eidOf(e)===ex.eid);
+    if(!compound) return;
+    const mode=getTrackMode(compound);
+    prevPRs[ex.eid]=prOf(ex.eid,mode);
+  });
+  // Sesión anterior del mismo día (la más reciente, antes de la actual) — para deltas
+  const prevSession=[...sessions]
+    .filter(s=>s.dayId===curSess.dayId)
+    .sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||'')))[0];
+  // Snapshot inmutable de la sesión actual (vamos a pushear y luego limpiar curSess)
+  const sessSnapshot=JSON.parse(JSON.stringify(curSess));
+  // Guardar
+  sessions.push(curSess);save("gym-s",sessions);
+  clearDraft();stopTimer();closeExitModal();
+  // Mostrar resumen post-workout (toma over: el CTA "Volver al inicio" hace el showPage('home'))
+  showWorkoutSummary(sessSnapshot,day,prevPRs,prevSession);
+}
+function showWorkoutSummary(sess,day,prevPRs,prevSession){
+  // Stats top
+  const exDone=(sess.exercises||[]).filter(ex=>(ex.sets||[]).some(s=>s.rpe!=null));
+  const exCount=exDone.length;
+  const setCount=(sess.exercises||[]).reduce((t,ex)=>t+(ex.sets||[]).filter(s=>s.rpe!=null).length,0);
+  // PRs ganados: peak de cada ejercicio en la sesión vs PR previo
+  const prsList=[];
+  (sess.exercises||[]).forEach(ex=>{
+    const compound=allCompounds().find(e=>eidOf(e)===ex.eid);
+    if(!compound) return;
+    const mode=getTrackMode(compound);
+    const peak=mode==='weight'
+      ?Math.max(0,...(ex.sets||[]).map(s=>s.w||0))
+      :Math.max(0,...(ex.sets||[]).map(s=>s.r||0));
+    if(peak<=0) return;
+    const prev=prevPRs[ex.eid]||0;
+    if(peak>prev) prsList.push({name:getExName(compound),value:peak,mode,delta:peak-prev});
+  });
+  const prCount=prsList.length;
+  // Volumen total (solo modo weight)
+  let totalVolume=0;
+  (sess.exercises||[]).forEach(ex=>{
+    const compound=allCompounds().find(e=>eidOf(e)===ex.eid);
+    if(!compound||getTrackMode(compound)!=='weight') return;
+    (ex.sets||[]).forEach(s=>{if(s.rpe!=null) totalVolume+=(s.w||0)*(s.r||0);});
+  });
+  // Tiempo del entreno · diff entre sess.time (hora inicio en BsAs) y ahora
+  let durationLbl='';
+  if(sess.time){
+    const [h,m]=sess.time.split(':').map(n=>parseInt(n,10));
+    // sess.time es UTC-3. Reconstruir el momento de inicio en ms.
+    const start=new Date(sess.date+'T00:00:00Z').getTime()+((h+3)*60+m)*60000;
+    const diffMin=Math.floor((Date.now()-start)/60000);
+    if(diffMin>0&&diffMin<240) durationLbl=`${diffMin} min`;
+  }
+  // Deltas vs sesión previa del mismo día
+  let deltasHtml='';
+  if(prevSession){
+    const prevSetCount=(prevSession.exercises||[]).reduce((t,ex)=>t+(ex.sets||[]).filter(s=>s.rpe!=null).length,0);
+    let prevVolume=0;
+    (prevSession.exercises||[]).forEach(ex=>{
+      const compound=allCompounds().find(e=>eidOf(e)===ex.eid);
+      if(!compound||getTrackMode(compound)!=='weight') return;
+      (ex.sets||[]).forEach(s=>{if(s.rpe!=null) prevVolume+=(s.w||0)*(s.r||0);});
+    });
+    const setsDelta=setCount-prevSetCount;
+    const volDelta=totalVolume-prevVolume;
+    const parts=[];
+    if(setsDelta!==0) parts.push(`<strong${setsDelta<0?' class="dn"':''}>${setsDelta>0?'+':''}${setsDelta}</strong> set${Math.abs(setsDelta)===1?'':'s'}`);
+    if(Math.abs(volDelta)>=5) parts.push(`<strong${volDelta<0?' class="dn"':''}>${volDelta>0?'+':''}${Math.round(volDelta)}</strong> kg volumen`);
+    if(parts.length) deltasHtml=`<div class="summary-deltas">vs última vez · ${parts.join(' · ')}</div>`;
+  }
+  // Subtítulo del hero
+  const dayName=day?(day.name+(day.sub?` · ${day.sub}`:'')):'Entrenamiento';
+  const subtitle=durationLbl?`${dayName} · ${durationLbl}`:dayName;
+  // Formato del delta de PR (con 1 decimal solo si es weight)
+  const fmtDelta=(d,mode)=>mode==='weight'?(d.toFixed(1).replace(/\.0$/,'')+' kg'):`+${d}`;
+  // Render
+  const html=`
+    <div class="summary-hero">
+      <div class="summary-check">✓</div>
+      <div class="summary-title">¡Bien hecho!</div>
+      <div class="summary-meta">${subtitle}</div>
+    </div>
+    <div class="summary-stats">
+      <div class="summary-stat">
+        <span class="summary-stat-num">${exCount}</span>
+        <span class="summary-stat-lbl">Ejercicios</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-num">${setCount}</span>
+        <span class="summary-stat-lbl">Sets</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-stat-num" style="color:${prCount>0?'var(--gn)':'var(--tx)'}">${prCount}</span>
+        <span class="summary-stat-lbl">PRs nuevos</span>
+      </div>
+    </div>
+    ${deltasHtml}
+    ${prsList.length?`
+      <div class="summary-section">
+        <div class="summary-section-title">🏆 PRs del día</div>
+        ${prsList.map(p=>`
+          <div class="summary-row">
+            <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</span>
+            <span style="flex-shrink:0"><span class="val">${formatPR(p.value,p.mode)}</span><span class="delta-gn">+${fmtDelta(p.delta,p.mode)}</span></span>
+          </div>
+        `).join('')}
+      </div>
+    `:''}
+    <button class="btn summary-cta" onclick="closeSummaryAndGoHome()">
+      Volver al inicio
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+    </button>
+  `;
+  $("summary-modal").querySelector('.summary-content').innerHTML=html;
+  $("summary-modal").classList.add('show');
+  document.body.classList.add('modal-open');
+  window.scrollTo(0,0);
+}
+function closeSummaryAndGoHome(){
+  $("summary-modal").classList.remove('show');
+  document.body.classList.remove('modal-open');
+  showPage('home');
+}
 function discardWorkout(){curSess=null;clearDraft();stopTimer();closeExitModal();showPage('home');}
 function resumeDraft(){
   const d=load("gym-draft",null);if(!d)return;
@@ -3392,13 +3549,26 @@ function closeExitModal(){$("exit-modal").classList.remove('show');}
 // Chip "🏁 Finalizar" del header del workout · sheet directo sin pasar por exit-modal (Guardar+salir directo).
 // Si querés descartar usá el ← (que abre exit-modal con las 3 opciones).
 function confirmFinishWorkout(){
-  showConfirmSheet({
-    title:'¿Finalizar entrenamiento?',
-    desc:'Los sets incompletos no se guardarán',
-    confirmLabel:'Finalizar',
-    onConfirm:finishWorkout,
-    danger:false
+  // Si viene del exit-modal, cerrarlo (para que el confirm sheet no se apile sobre él)
+  closeExitModal();
+  if(!curSess){return;}
+  // Contar sets incompletos (sin RPE registrado). Si hay, warning antes de finalizar.
+  let incomplete=0;
+  (curSess.exercises||[]).forEach(ex=>{
+    (ex.sets||[]).forEach(st=>{if(st.rpe==null) incomplete++;});
   });
+  if(incomplete>0){
+    showConfirmSheet({
+      title:`Quedan ${incomplete} set${incomplete===1?'':'s'} sin completar`,
+      desc:'Si finalizás ahora, esos sets no se registran en el historial. ¿Seguir igual?',
+      confirmLabel:'Finalizar igual',
+      danger:false,
+      onConfirm:()=>finishWorkout()
+    });
+  } else {
+    // Todo OK → directo a finalizar (que muestra el resumen post-workout)
+    finishWorkout();
+  }
 }
 
 // ══ TIMER (persistent) ══
