@@ -1819,6 +1819,37 @@ function progressMonthZoneSubMuscles(zoneName){
   const zoneTotal=subs.reduce((s,x)=>s+x.v,0);
   return subs.map(s=>({...s,pct:zoneTotal>0?s.v/zoneTotal*100:0}));
 }
+// Distribución de RPE del año actual · cuenta sets totales por categoría + microcopy diagnóstica.
+// Sirve para ver si la intensidad real coincide con la planeada (la mayoría sobreestima cuánto
+// entrena "al límite" — esto lo revela).
+function progressYearRPEDistribution(){
+  const year=nowBsAs().getUTCFullYear();
+  const yearStart=year+'-01-01';
+  const yearEnd=year+'-12-31';
+  const counts={liviano:0,justo:0,limite:0,total:0};
+  sessions.filter(s=>s.date>=yearStart&&s.date<=yearEnd).forEach(s=>{
+    (s.exercises||[]).forEach(ex=>{
+      (ex.sets||[]).forEach(st=>{
+        if(st.rpe==null) return;
+        if(counts[st.rpe]!==undefined){counts[st.rpe]++;counts.total++;}
+      });
+    });
+  });
+  const pct={
+    liviano:counts.total>0?counts.liviano/counts.total*100:0,
+    justo:counts.total>0?counts.justo/counts.total*100:0,
+    limite:counts.total>0?counts.limite/counts.total*100:0
+  };
+  // Diagnóstico solo si hay al menos 10 sets (muestra significativa)
+  let diagnosis=null;
+  if(counts.total>=10){
+    if(pct.liviano>=50) diagnosis={text:'Tendés a quedarte cómodo · podés subir intensidad',color:'var(--mt)'};
+    else if(pct.limite>=40) diagnosis={text:'Mucho al límite · cuidá la recuperación',color:'var(--yw)'};
+    else if(pct.justo>=50) diagnosis={text:'Distribución sana · intensidad correcta',color:'var(--gn)'};
+    else diagnosis={text:'Buena variación de intensidad',color:'var(--mt)'};
+  }
+  return {counts,pct,diagnosis,year};
+}
 // Grid de los últimos 365 días (oldest→newest) para heatmap GitHub-style.
 // Heatmap del AÑO ACTUAL (no sliding), arranca el 1 de enero.
 // Cada día con su weekIdx (col) y dowIdx (row, Lun=0). Meses con labels y sessionCount.
@@ -2028,6 +2059,53 @@ function renderProgress(){
       </div>
     </div>
   </div>`;
+
+  // ── 1.5 · Distribución de RPE del año ──
+  // Bar stacked horizontal (gn/yw/dn) + 3 chips con # absoluto y % + microcopy diagnóstico.
+  // Solo se muestra si hay al menos 1 set registrado este año.
+  const rpeDist=progressYearRPEDistribution();
+  if(rpeDist.counts.total>0){
+    html+=`<div class="sec" style="padding-top:0;padding-bottom:14px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;padding:0 2px">
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Intensidad del año</div>
+        <div style="font-size:11px;color:var(--mt2);font-weight:500">${rpeDist.counts.total} set${rpeDist.counts.total===1?'':'s'}</div>
+      </div>
+      <div class="card" style="cursor:default;padding:18px">
+        <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--bd);box-shadow:var(--lift-in)">
+          ${rpeDist.pct.liviano>0?`<div style="flex:${rpeDist.pct.liviano};background:var(--gn);transition:flex 0.3s ease"></div>`:''}
+          ${rpeDist.pct.justo>0?`<div style="flex:${rpeDist.pct.justo};background:var(--yw);transition:flex 0.3s ease"></div>`:''}
+          ${rpeDist.pct.limite>0?`<div style="flex:${rpeDist.pct.limite};background:var(--dn);transition:flex 0.3s ease"></div>`:''}
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:10px;margin-top:14px">
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+              <span style="width:8px;height:8px;border-radius:4px;background:var(--gn);flex-shrink:0"></span>
+              <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mt)">Liviano</span>
+            </div>
+            <div style="font-size:20px;font-weight:700;color:var(--tx);letter-spacing:-0.6px;line-height:1">${Math.round(rpeDist.pct.liviano)}<span style="font-size:12px;color:var(--mt);font-weight:500">%</span></div>
+            <div style="font-size:10px;color:var(--mt2);font-weight:500;margin-top:2px">${rpeDist.counts.liviano} sets</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+              <span style="width:8px;height:8px;border-radius:4px;background:var(--yw);flex-shrink:0"></span>
+              <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mt)">Justo</span>
+            </div>
+            <div style="font-size:20px;font-weight:700;color:var(--tx);letter-spacing:-0.6px;line-height:1">${Math.round(rpeDist.pct.justo)}<span style="font-size:12px;color:var(--mt);font-weight:500">%</span></div>
+            <div style="font-size:10px;color:var(--mt2);font-weight:500;margin-top:2px">${rpeDist.counts.justo} sets</div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+              <span style="width:8px;height:8px;border-radius:4px;background:var(--dn);flex-shrink:0"></span>
+              <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mt)">Al límite</span>
+            </div>
+            <div style="font-size:20px;font-weight:700;color:var(--tx);letter-spacing:-0.6px;line-height:1">${Math.round(rpeDist.pct.limite)}<span style="font-size:12px;color:var(--mt);font-weight:500">%</span></div>
+            <div style="font-size:10px;color:var(--mt2);font-weight:500;margin-top:2px">${rpeDist.counts.limite} sets</div>
+          </div>
+        </div>
+        ${rpeDist.diagnosis?`<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--bd);font-size:12px;color:${rpeDist.diagnosis.color};font-weight:500;text-align:center;line-height:1.4">${rpeDist.diagnosis.text}</div>`:''}
+      </div>
+    </div>`;
+  }
 
   // ── 2 · Historial por ejercicio ──
   html+=`<div class="sec" style="padding-top:0;padding-bottom:14px">
