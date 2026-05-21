@@ -524,6 +524,7 @@ details summary::-webkit-details-marker{display:none;}
 </div>
 
 <!-- ══ Bottom Sheet · info del ejercicio durante workout (Bento Tri · Fase 4) ══ -->
+<!-- Bottom sheet de info por ejercicio · Único caller: tarjeta "Última sesión" en renderEx (workout) -->
 <div id="ex-info-sheet" class="bsheet-overlay" onclick="closeExInfoSheet()">
   <div class="bsheet" onclick="event.stopPropagation()">
     <div class="bsheet-handle"></div>
@@ -2386,6 +2387,7 @@ function nextSetNow(){
 }
 
 // Bottom sheet · info del ejercicio (3 tabs: coach / historial / última sesión)
+// Único caller activo: tarjeta "Última sesión" en renderEx (workout) — ver onclick "openExInfoSheet(...)" más arriba.
 function openExInfoSheet(ci){
   _infoSheetCi=ci;_infoSheetTab='coach';
   const day=routine.days.find(d=>d.id===curDayId);
@@ -2805,47 +2807,6 @@ function rerenderRoutineList(){
   if(active==='routine') renderRoutine();
   else if(active==='editR') renderEditR();
   else if(active==='home') renderHome();
-}
-
-// Stub para preservar referencias antiguas a $("editR-content"). Ya no se usa, los días
-// editables ahora viven en "Mi rutina" (renderRoutine).
-function _legacyEditRContent_DISABLED(){
-  return routine.days.map((d,dayIdx)=>{
-    const blocks=d.blocks||[];
-    const hasMultiBlocks=blocks.length>1||(blocks[0]&&blocks[0].type!=='principal');
-    let blocksHtml='';
-    if(hasMultiBlocks){
-      // Rutina del coach: render por bloques con tag de tipo
-      blocksHtml=blocks.map(b=>{
-        const bt=BLOCK_TYPES[b.type]||BLOCK_TYPES.custom;
-        const bLabel=b.type==='custom'&&b.label?b.label:bt.label;
-        const exHtml=(b.exercises||[]).map(ex=>renderEditExCard(d.id,ex)).join('');
-        return `<div style="background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin-bottom:10px">
-          <div class="row mb-8"><span class="badge" style="background:${bt.color};color:var(--action-tx);font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px">${bLabel}</span></div>
-          ${exHtml||'<div class="text-xs text-mt center" style="padding:6px 0">Sin ejercicios</div>'}
-        </div>`;
-      }).join('');
-    } else {
-      // Modo legacy: lista plana del bloque principal
-      const exs=getDayExercises(d);
-      blocksHtml=exs.map(ex=>renderEditExCard(d.id,ex)).join('');
-    }
-    const nDays=routine.days.length;
-    const headerActions=`
-      <button class="micro-btn" style="font-size:14px" onclick="editDayPrompt(${d.id})" title="Renombrar día">✎</button>
-      ${dayIdx>0?`<button class="micro-btn" style="font-size:16px" onclick="moveRoutineDayInList(${dayIdx},-1)" title="Subir">↑</button>`:''}
-      ${dayIdx<nDays-1?`<button class="micro-btn" style="font-size:16px" onclick="moveRoutineDayInList(${dayIdx},1)" title="Bajar">↓</button>`:''}
-      ${nDays>1?`<button class="micro-btn" style="color:var(--dn);font-size:16px" onclick="deleteDay(${d.id})" title="Eliminar día">✕</button>`:''}
-    `;
-    return `<div class="sec">
-      <div class="row mb-12" style="align-items:center;gap:6px">
-        <div class="sec-title" style="margin-bottom:0;flex:1;min-width:0">${d.name}${d.sub?' — '+d.sub:''}</div>
-        ${headerActions}
-      </div>
-      ${blocksHtml}
-      <button class="btn-sm mt-8" style="width:100%;background:var(--ac);color:var(--action-tx);font-weight:700;padding:10px" onclick="openDayBlockEditor(${d.id})">✎ Editar día</button>
-    </div>`;
-  }).join('')+`<div class="sec"><button class="btn-out" onclick="addDay()">+ Agregar día de entrenamiento</button></div>`;
 }
 
 // Reordenar días en la rutina activa (replicado del coach)
