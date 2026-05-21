@@ -2720,13 +2720,18 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   // + botón 📈 a la derecha que va directo al historial.
   const prevSessRec=lastSessionRec(eid,mode);
   const setsRepsTarget=formatSetsReps(ex);
-  let html=`<div class="row mb-12" style="align-items:flex-start;gap:10px">
+  // Color del bloque (paleta categórica): barra vertical 3px a la izquierda del header como
+  // detalle de identidad sin contaminar el set card minimalista.
+  const exBlock=blockOfExercise(day,ex.id);
+  const exBlockColor=(exBlock&&exBlock.type)?(BLOCK_TYPES[exBlock.type]||BLOCK_TYPES.custom).color:null;
+  let html=`<div class="row mb-12" style="align-items:stretch;gap:10px">
+    ${exBlockColor?`<div style="width:3px;background:${exBlockColor};border-radius:2px;flex-shrink:0;align-self:stretch"></div>`:''}
     <div style="flex:1;min-width:0">
       <div style="font-size:22px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;line-height:1.1">${getExName(ex)}</div>
       ${setsRepsTarget?`<div style="font-size:13px;color:var(--mt);margin-top:5px;font-weight:500">${setsRepsTarget}</div>`:''}
       ${pr>0?`<div style="font-size:11.5px;color:var(--mt2);margin-top:2px;font-weight:500">🏆 ${formatPR(pr,mode)}</div>`:''}
     </div>
-    <button class="icon-btn" onclick="showHist('${eid}')" title="Ver historial / progresión" aria-label="Ver historial completo" style="width:36px;height:36px;font-size:14px;flex-shrink:0;margin-top:-2px">
+    <button class="icon-btn" onclick="showHist('${eid}')" title="Ver historial / progresión" aria-label="Ver historial completo" style="width:36px;height:36px;font-size:14px;flex-shrink:0;align-self:flex-start;margin-top:-2px">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
     </button>
   </div>`;
@@ -2952,7 +2957,9 @@ function renderWork(){
   if(mobility.length){
     const movDone=mobility.every(m=>curSess.mobility&&curSess.mobility[m.id]);
     const movActive=curSess.mobility&&Object.values(curSess.mobility).some(Boolean);
-    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="font-size:18px">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':(movActive?'<span style="position:absolute;top:-4px;right:-4px;font-size:9px;color:var(--mt)">·</span>':'')}🤸</button>`;
+    // Tab MOV: detalle turquesa (color del bloque Movilidad de la paleta categórica)
+    const movColor=BLOCK_TYPES.movilidad.color;
+    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="font-size:18px;box-shadow:inset 0 -3px 0 0 ${movColor}">${movDone?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':(movActive?'<span style="position:absolute;top:-4px;right:-4px;font-size:9px;color:var(--mt)">·</span>':'')}🤸</button>`;
   }
   // Construir "units": cada unit es un single compound o un grupo (biserie/triserie).
   // Tabs muestran UN solo botón por unit. Si curExI cae en un grupo, el tab activo es el del primero del grupo.
@@ -2965,16 +2972,28 @@ function renderWork(){
   });
   // Índice "lógico" de la unit activa
   const activeUnitIdx=units.findIndex(u=>u.indexes.includes(curExI));
+  // Helper para resolver el color del bloque de un ejercicio (paleta categórica).
+  // Devuelve string vacío si no hay bloque tipado — sin detalle de color.
+  const blockColorOfEx=(exObj)=>{
+    const b=blockOfExercise(day,exObj.id);
+    if(!b||!b.type) return '';
+    return (BLOCK_TYPES[b.type]||BLOCK_TYPES.custom).color;
+  };
   tabsHtml+=units.map((u,ui)=>{
     const active=ui===activeUnitIdx;
     if(u.type==='group'){
       const done=u.indexes.every(i=>curSess.exercises[i]?.sets?.every(s=>s.rpe!==null));
       const label=u.size===2?'🔗 BI':u.size===3?'🔗 TRI':'🔗 ×'+u.size;
-      return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="background:${active?'rgba(251,146,60,0.14)':'transparent'};color:${active?'var(--yw)':'var(--mt)'};border:1px solid ${active?'rgba(251,146,60,0.40)':'var(--bd)'};min-width:48px;font-size:12px;font-weight:700;padding:0 8px">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':''}${label}</button>`;
+      // Color del bloque del primer ejercicio del grupo (todos del mismo bloque dentro de un superset)
+      const grpColor=blockColorOfEx(compounds[u.firstIdx]);
+      const grpShadow=grpColor?`box-shadow:inset 0 -3px 0 0 ${grpColor};`:'';
+      return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="background:${active?'rgba(251,146,60,0.14)':'transparent'};color:${active?'var(--yw)':'var(--mt)'};border:1px solid ${active?'rgba(251,146,60,0.40)':'var(--bd)'};${grpShadow}min-width:48px;font-size:12px;font-weight:700;padding:0 8px">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':''}${label}</button>`;
     }
     const i=u.firstIdx;
     const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
-    return`<button class="ex-tab${active?' active':''}" onclick="curExI=${i};renderWork()">${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}${i+1}</button>`;
+    const exColor=blockColorOfEx(compounds[i]);
+    const exShadow=exColor?` style="box-shadow:inset 0 -3px 0 0 ${exColor}"`:'';
+    return`<button class="ex-tab${active?' active':''}" onclick="curExI=${i};renderWork()"${exShadow}>${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px">✓</span>':''}${i+1}</button>`;
   }).join('');
   if(accessories.length) tabsHtml+=`<button class="ex-tab${curExI===compounds.length?' active':''}" onclick="curExI=${compounds.length};renderWork()">ACC</button>`;
 
