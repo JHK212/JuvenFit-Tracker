@@ -1820,17 +1820,47 @@ function progressMonthZoneSubMuscles(zoneName){
   return subs.map(s=>({...s,pct:zoneTotal>0?s.v/zoneTotal*100:0}));
 }
 // Grid de los últimos 365 días (oldest→newest) para heatmap GitHub-style.
+// Heatmap del AÑO ACTUAL (no sliding), arranca el 1 de enero.
+// Cada día con su weekIdx (col) y dowIdx (row, Lun=0). Meses con labels y sessionCount.
 function progressYearHeatmap(){
   const today=td();
   const trained=new Set(sessions.map(s=>s.date));
-  const todayDate=new Date(today+'T12:00:00');
-  const out=[];
-  for(let i=364;i>=0;i--){
-    const d=new Date(todayDate.getTime()-i*24*3600*1000);
+  const year=nowBsAs().getUTCFullYear();
+  const yearStart=new Date(Date.UTC(year,0,1));
+  const yearEnd=new Date(Date.UTC(year,11,31));
+  const totalDays=Math.round((yearEnd-yearStart)/(24*3600*1000))+1;
+  const days=[];
+  let weekIdx=0;
+  for(let i=0;i<totalDays;i++){
+    const d=new Date(yearStart.getTime()+i*24*3600*1000);
     const ds=d.toISOString().slice(0,10);
-    out.push({date:ds,trained:trained.has(ds),isToday:ds===today});
+    const dow=(d.getUTCDay()+6)%7; // 0=Lun ... 6=Dom
+    if(i>0 && dow===0) weekIdx++;
+    days.push({
+      date:ds,
+      trained:trained.has(ds),
+      isToday:ds===today,
+      isFuture:ds>today,
+      weekIdx,
+      dowIdx:dow,
+      month:d.getUTCMonth(),
+      day:d.getUTCDate()
+    });
   }
-  return out;
+  const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const months=monthNames.map((name,m)=>{
+    const monthDays=days.filter(d=>d.month===m);
+    return {
+      name,
+      idx:m,
+      days:monthDays,
+      sessionCount:monthDays.filter(d=>d.trained).length
+    };
+  });
+  const totalWeeks=weekIdx+1;
+  // Día de la semana del 1 de enero (para placeholder de cells previas en la primera columna)
+  const dowJan1=(yearStart.getUTCDay()+6)%7;
+  return {year,days,months,totalWeeks,dowJan1};
 }
 // Sparkline SVG 60×22. Verde si PR en últimos 7d, gris si no. < 3 puntos → placeholder.
 function progressSparklineSVG(data,recentPR){
@@ -1942,6 +1972,18 @@ function toggleProgressMuscle(name){
 function toggleProgressSubMuscle(m){
   _progressSubMuscleExpanded=_progressSubMuscleExpanded===m?null:m;
   renderProgress();
+}
+// Heatmap: qué mes está expandido en el detalle de calendario (null = ninguno)
+let _progressMonthExpanded=null;
+function toggleProgressMonth(m){_progressMonthExpanded=_progressMonthExpanded===m?null:m;renderProgress();}
+// Tap en un día entrenado del calendario expandido → muestra info compacta vía toast.
+function progressShowDayDetail(date){
+  const sess=sessions.find(s=>s.date===date);
+  if(!sess){toast('Descanso · sin sesión','warning');return;}
+  const day=routine.days.find(d=>d.id===sess.dayId);
+  const exCount=(sess.exercises||[]).filter(ex=>(ex.sets||[]).some(st=>st.rpe!=null)).length;
+  const setCount=(sess.exercises||[]).reduce((s,ex)=>s+(ex.sets||[]).filter(st=>st.rpe!=null).length,0);
+  toast(`${relativeDate(date)} · ${day?.name||'?'} · ${exCount} ej · ${setCount} sets`,'success');
 }
 function renderProgress(){
   const root=$("progress-content");
@@ -2123,30 +2165,80 @@ function renderProgress(){
   }
 
   // ── 4 · Heatmap anual ──
+  // Año actual (1 ene → 31 dic), labels de meses tappables arriba. Tap en un mes → expande
+  // un calendario tradicional del mes debajo con días grandes (tap en un día entrenado → toast con detalle).
+  const totalSessYear=heat.days.filter(d=>d.trained).length;
   html+=`<div class="sec" style="padding-top:0;padding-bottom:14px">
-    <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px;padding:0 2px">Año entrenado</div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;padding:0 2px">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Año ${heat.year}</div>
+      <div style="font-size:11px;color:var(--mt2);font-weight:500">${totalSessYear} sesion${totalSessYear===1?'':'es'}</div>
+    </div>
     <div class="card" style="cursor:default;padding:14px 12px">
-      <div style="display:grid;grid-template-columns:repeat(53,1fr);grid-auto-rows:1fr;gap:2px;width:100%">
-        ${heat.map(c=>{
-          const bg=c.trained?'var(--gn)':'var(--bd)';
-          const border=c.isToday?'box-shadow:inset 0 0 0 1.5px var(--yw)':'';
-          const opacity=c.trained?1:0.42;
-          return `<div title="${c.date}" style="aspect-ratio:1;background:${bg};border-radius:2px;opacity:${opacity};${border}"></div>`;
+      <!-- Row de labels de meses, ancho proporcional a # días, tappable -->
+      <div style="display:flex;gap:2px;margin-bottom:6px">
+        ${heat.months.map(m=>{
+          const isOpen=_progressMonthExpanded===m.idx;
+          const txColor=isOpen?'var(--ac)':(m.sessionCount>0?'var(--mt)':'var(--mt2)');
+          return `<div class="b2-press" onclick="toggleProgressMonth(${m.idx})" style="flex:${m.days.length};cursor:pointer;text-align:center;font-size:9.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:${txColor};padding:3px 0;border-radius:4px;min-width:0;${isOpen?'background:rgba(96,165,250,0.10)':''}">${m.name}</div>`;
         }).join('')}
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:10.5px;color:var(--mt2);font-weight:600;letter-spacing:0.3px">
-        <span>Últimos 365 días</span>
-        <span style="display:flex;align-items:center;gap:6px">
-          <span style="width:8px;height:8px;border-radius:2px;background:var(--bd);opacity:0.42"></span>
-          <span>Descanso</span>
-          <span style="width:8px;height:8px;border-radius:2px;background:var(--gn);margin-left:6px"></span>
-          <span>Entrenado</span>
-          <span style="width:8px;height:8px;border-radius:2px;background:transparent;box-shadow:inset 0 0 0 1.5px var(--yw);margin-left:6px"></span>
-          <span>Hoy</span>
-        </span>
+      <!-- Grid del año: 7 rows (días de la semana) × totalWeeks cols. Cada día con grid-row/column específico. -->
+      <div style="display:grid;grid-template-columns:repeat(${heat.totalWeeks},1fr);grid-template-rows:repeat(7,1fr);gap:2px;aspect-ratio:${heat.totalWeeks}/7">
+        ${heat.days.map(d=>{
+          const isMonthOpen=_progressMonthExpanded===d.month;
+          const bg=d.trained?'var(--gn)':(d.isFuture?'transparent':'var(--bd)');
+          const opacity=d.trained?1:(d.isFuture?0.10:0.42);
+          // Cuando hay un mes expandido, el resto se atenúa para resaltar el seleccionado
+          const monthOpacity=(_progressMonthExpanded!==null && !isMonthOpen)?0.30:1;
+          const border=d.isToday?'box-shadow:inset 0 0 0 1.5px var(--yw);':'';
+          return `<div title="${d.date}" style="grid-row:${d.dowIdx+1};grid-column:${d.weekIdx+1};background:${bg};border-radius:2px;opacity:${opacity*monthOpacity};${border}"></div>`;
+        }).join('')}
       </div>
-    </div>
-  </div>`;
+      <!-- Leyenda -->
+      <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:12px;font-size:10.5px;color:var(--mt2);font-weight:600;letter-spacing:0.3px">
+        <span style="width:8px;height:8px;border-radius:2px;background:var(--bd);opacity:0.42"></span>
+        <span>Descanso</span>
+        <span style="width:8px;height:8px;border-radius:2px;background:var(--gn);margin-left:6px"></span>
+        <span>Entrenado</span>
+        <span style="width:8px;height:8px;border-radius:2px;background:transparent;box-shadow:inset 0 0 0 1.5px var(--yw);margin-left:6px"></span>
+        <span>Hoy</span>
+      </div>
+    </div>`;
+  // Panel del mes expandido · calendario tradicional 7×~5 con días grandes
+  if(_progressMonthExpanded!==null){
+    const m=heat.months[_progressMonthExpanded];
+    if(m){
+      // Calcular en qué dowIdx (0=Lun ... 6=Dom) cae el día 1 del mes → cuántas celdas vacías al principio
+      const firstDow=m.days[0]?m.days[0].dowIdx:0;
+      const totalCells=firstDow+m.days.length;
+      const totalRows=Math.ceil(totalCells/7);
+      html+=`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r-card);margin-top:10px;padding:14px 16px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:15px;font-weight:600;color:var(--tx);letter-spacing:-0.2px">${m.name} ${heat.year}</div>
+          <div style="font-size:11px;color:var(--mt);font-weight:500">${m.sessionCount} sesion${m.sessionCount===1?'':'es'}</div>
+        </div>
+        <!-- Header L M M J V S D -->
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
+          ${['L','M','M','J','V','S','D'].map(l=>`<div style="text-align:center;font-size:9.5px;font-weight:700;color:var(--mt2);letter-spacing:0.5px">${l}</div>`).join('')}
+        </div>
+        <!-- Grid de días del mes -->
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(${totalRows},1fr);gap:4px">
+          ${Array.from({length:firstDow}).map(()=>`<div></div>`).join('')}
+          ${m.days.map(d=>{
+            const bg=d.trained?'var(--gn)':(d.isFuture?'transparent':'var(--sf)');
+            const fg=d.trained?'var(--action-tx)':(d.isFuture?'var(--mt2)':'var(--mt)');
+            const border=d.isToday?'box-shadow:inset 0 0 0 1.5px var(--yw);':(!d.trained && !d.isFuture?'border:1px solid var(--bd);':'');
+            const opacity=d.isFuture?0.30:1;
+            const cursor=d.trained?'cursor:pointer':'cursor:default';
+            const onclick=d.trained?`onclick="progressShowDayDetail('${d.date}')"`:'';
+            const cls=d.trained?'b2-press':'';
+            return `<div ${onclick} class="${cls}" style="aspect-ratio:1;background:${bg};color:${fg};${border}border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;opacity:${opacity};${cursor}">${d.day}</div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+  }
+  html+=`</div>`;
 
   root.innerHTML=html;
 }
