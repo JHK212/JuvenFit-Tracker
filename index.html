@@ -373,15 +373,7 @@ details summary::-webkit-details-marker{display:none;}
       <div class="card" style="cursor:default"><div id="home-calendar"></div></div>
     </div>
 
-    <!-- LEGACY: Historial por ejercicio + Volumen muscular (irán a "Mi progreso" en handoff de features) -->
-    <div id="home-hist-sec" class="sec" style="display:none;padding-top:0;padding-bottom:14px">
-      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);padding-left:2px;margin-bottom:12px">Historial por ejercicio</div>
-      <div id="home-hist"></div>
-    </div>
-    <div id="home-volume-sec" class="sec" style="display:none;padding-top:0;padding-bottom:14px">
-      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);padding-left:2px;margin-bottom:12px">Volumen muscular</div>
-      <div id="home-volume" class="card" style="cursor:default"></div>
-    </div>
+    <!-- Historial por ejercicio + Volumen muscular movidos a "Mi progreso" (📊 en header) -->
   </div>
 </div>
 
@@ -1684,25 +1676,8 @@ function renderHome(){
     `;
   } else {$("home-last-sec").style.display="none";}
 
-  // HISTORIAL POR EJERCICIO (legacy abajo · va a "Mi progreso" en handoff de features)
-  const histItems=allCompounds().filter(ex=>hist(eidOf(ex)).length>0);
-  if(histItems.length){
-    $("home-hist-sec").style.display="block";
-    $("home-hist").innerHTML=histItems.map(ex=>{
-      const eid=eidOf(ex);const mode=getTrackMode(ex);const h=hist(eid);const pr=prOf(eid,mode);
-      return`<div class="card b2-tap" onclick="showHist('${eid}')" style="cursor:pointer">
-        <div class="row">
-          <div>
-            <div style="font-size:15px;font-weight:600;color:var(--tx);letter-spacing:-0.2px">${getExName(ex)}</div>
-            <div style="font-size:11px;color:var(--mt);margin-top:3px;font-weight:500">${h.length} sesion${h.length===1?'':'es'} · PR: <span style="color:var(--gn);font-weight:600">${formatPR(pr,mode)}</span></div>
-          </div>
-          <div style="font-size:18px;color:var(--mt2)">→</div>
-        </div>
-      </div>`;
-    }).join('');
-  } else {$("home-hist-sec").style.display="none";}
-
-  drawMuscleChart();
+  // Historial por ejercicio + chart de volumen muscular fueron movidos a "Mi progreso" (📊).
+  // El Home queda más foco-en-hoy: hero + stats + última + otros días + calendario y listo.
 }
 
 // ══ PROGRESS · "Mi progreso" ══
@@ -1831,7 +1806,18 @@ function progressMonthMuscleVolume(){
   });
   const total=Object.values(zones).reduce((s,v)=>s+v,0);
   const segments=Object.entries(zones).map(([name,v])=>({name,v,pct:total>0?v/total*100:0})).sort((a,b)=>b.v-a.v);
-  return {segments,total,hasAnyMapping};
+  // muscleTotals expuesto para drill-down a sub-músculos (ver progressMonthZoneSubMuscles)
+  return {segments,total,hasAnyMapping,muscleTotals};
+}
+// Sub-músculos de una zona con su vol y % DENTRO de la zona, ordenados desc.
+// Ej: zoneName="Hombros" → [{m:'delt_ant',label:'Delt. anterior',v:1200,pct:48}, ...]
+function progressMonthZoneSubMuscles(zoneName){
+  const {muscleTotals}=progressMonthMuscleVolume();
+  const zone=BODY_ZONES[zoneName];
+  if(!zone) return [];
+  const subs=zone.muscles.map(m=>({m,label:MUSCLE_LABELS[m]||m,v:muscleTotals[m]||0})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+  const zoneTotal=subs.reduce((s,x)=>s+x.v,0);
+  return subs.map(s=>({...s,pct:zoneTotal>0?s.v/zoneTotal*100:0}));
 }
 // Grid de los últimos 365 días (oldest→newest) para heatmap GitHub-style.
 function progressYearHeatmap(){
@@ -1898,11 +1884,13 @@ function progressDonutSVG(segments,total){
   </svg>`;
 }
 // Drill-down de volumen muscular: ejercicios del mes que aportaron a una zona, orden vol desc.
-function progressMonthMuscleExercises(zoneName){
+// Ejercicios del mes que aportan a una zona O a un sub-músculo específico.
+// Si muscleId está, filtra solo a ese músculo (más granular). Si no, agrega toda la zona.
+function progressMonthMuscleExercises(zoneName,muscleId){
   const today=td();
   const monthStart=today.slice(0,7)+'-01';
-  const zoneMuscles=BODY_ZONES[zoneName]?.muscles||[];
-  if(!zoneMuscles.length) return [];
+  const targetMuscles=muscleId?[muscleId]:(BODY_ZONES[zoneName]?.muscles||[]);
+  if(!targetMuscles.length) return [];
   const exMap={};
   sessions.filter(s=>s.date>=monthStart&&s.date<=today).forEach(s=>{
     (s.exercises||[]).forEach(ex=>{
@@ -1910,7 +1898,7 @@ function progressMonthMuscleExercises(zoneName){
       if(!lib||!lib.muscleActivation) return;
       let zonePct=0;
       Object.entries(lib.muscleActivation).forEach(([m,pct])=>{
-        if(zoneMuscles.includes(m)) zonePct+=pct;
+        if(targetMuscles.includes(m)) zonePct+=pct;
       });
       if(zonePct<=0) return;
       const compound=allCompounds().find(e=>eidOf(e)===ex.eid);
@@ -1942,7 +1930,19 @@ let _progressExpanded=false;
 function toggleProgressExercises(){_progressExpanded=!_progressExpanded;renderProgress();}
 // Drill-down: qué zona muscular está expandida en la card de volumen (null = ninguna)
 let _progressMuscleExpanded=null;
-function toggleProgressMuscle(name){_progressMuscleExpanded=_progressMuscleExpanded===name?null:name;renderProgress();}
+// Nivel 2 del drill-down: qué sub-músculo (delt_ant / delt_lat / etc.) está expandido dentro de la zona
+let _progressSubMuscleExpanded=null;
+function toggleProgressMuscle(name){
+  // Al cambiar de zona, resetear el sub-músculo expandido (no tiene sentido mantenerlo de otra zona)
+  if(_progressMuscleExpanded!==name) _progressSubMuscleExpanded=null;
+  _progressMuscleExpanded=_progressMuscleExpanded===name?null:name;
+  if(_progressMuscleExpanded===null) _progressSubMuscleExpanded=null;
+  renderProgress();
+}
+function toggleProgressSubMuscle(m){
+  _progressSubMuscleExpanded=_progressSubMuscleExpanded===m?null:m;
+  renderProgress();
+}
 function renderProgress(){
   const root=$("progress-content");
   // Empty state
@@ -2051,17 +2051,25 @@ function renderProgress(){
       </div>
     </div>`;
     html+=`</div>`;
-    // Panel drill-down inline: ejercicios del mes que aportaron a la zona seleccionada
+    // Panel drill-down inline · 3 niveles:
+    //   Zona (Hombros) → Sub-músculos (delt_ant/lat/post) → Ejercicios que aportan a cada uno.
+    // Si la zona tiene 1 solo sub-músculo con datos, salteamos el nivel 2 y mostramos ejercicios directo.
     if(_progressMuscleExpanded){
-      const drillExs=progressMonthMuscleExercises(_progressMuscleExpanded);
-      html+=`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r-card);margin-top:10px;overflow:hidden">
-        <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--bd)">
-          <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);flex:1">${_progressMuscleExpanded} · ejercicios del mes</span>
-          <span style="font-size:11px;color:var(--mt2);font-weight:500">${drillExs.length}</span>
-        </div>`;
-      if(!drillExs.length){
+      const subs=progressMonthZoneSubMuscles(_progressMuscleExpanded);
+      const subPalette=['var(--ac)','var(--gn)','var(--yw)','var(--mt)','var(--mt2)'];
+      html+=`<div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r-card);margin-top:10px;overflow:hidden">`;
+      // Header del panel
+      const headerLabel=subs.length>1?`${_progressMuscleExpanded} · sub-músculos`:`${_progressMuscleExpanded} · ejercicios del mes`;
+      const headerCount=subs.length>1?subs.length:progressMonthMuscleExercises(_progressMuscleExpanded).length;
+      html+=`<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--bd)">
+        <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);flex:1">${headerLabel}</span>
+        <span style="font-size:11px;color:var(--mt2);font-weight:500">${headerCount}</span>
+      </div>`;
+      if(!subs.length){
         html+=`<div style="text-align:center;color:var(--mt2);font-size:13px;padding:18px">Sin ejercicios registrados este mes.</div>`;
-      } else {
+      } else if(subs.length===1){
+        // 1 sub-músculo → no metemos un nivel innecesario, mostramos ejercicios directo
+        const drillExs=progressMonthMuscleExercises(_progressMuscleExpanded);
         drillExs.forEach((ex,idx)=>{
           const border=idx<drillExs.length-1?'border-bottom:1px solid var(--bd)':'';
           html+=`<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;${border}">
@@ -2071,6 +2079,42 @@ function renderProgress(){
             </div>
             <div style="font-size:12.5px;font-weight:700;color:var(--tx);font-family:var(--fm);flex-shrink:0">${fmtMuscleExVolume(ex.volume,ex.mode)}</div>
           </div>`;
+        });
+      } else {
+        // 2+ sub-músculos → lista tappable; tap en uno expande sus ejercicios
+        subs.forEach((sub,subIdx)=>{
+          const isOpen=_progressSubMuscleExpanded===sub.m;
+          const chevColor=isOpen?'var(--ac)':'var(--mt2)';
+          const borderSub=(subIdx<subs.length-1 && !isOpen)?'border-bottom:1px solid var(--bd)':'';
+          html+=`<div class="b2-press" onclick="toggleProgressSubMuscle('${sub.m}')" style="display:flex;align-items:center;gap:10px;padding:11px 16px;${borderSub};cursor:pointer">
+            <span style="width:8px;height:8px;border-radius:4px;background:${subPalette[subIdx%subPalette.length]};flex-shrink:0"></span>
+            <span style="font-size:13px;font-weight:600;color:var(--tx);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${sub.label}</span>
+            <span style="font-size:12.5px;font-weight:700;color:var(--mt);font-family:var(--fm);flex-shrink:0">${Math.round(sub.pct)}%</span>
+            <span style="font-size:11px;color:${chevColor};transition:transform 140ms ease;transform:rotate(${isOpen?'180deg':'0deg'});flex-shrink:0;line-height:1">▾</span>
+          </div>`;
+          if(isOpen){
+            // Ejercicios filtrados a este sub-músculo
+            const subExs=progressMonthMuscleExercises(_progressMuscleExpanded,sub.m);
+            const subTotal=subExs.reduce((s,e)=>s+e.volume,0);
+            const wrapBorder=subIdx<subs.length-1?'border-bottom:1px solid var(--bd)':'';
+            html+=`<div style="background:var(--bg);${wrapBorder}">`;
+            if(!subExs.length){
+              html+=`<div style="text-align:center;color:var(--mt2);font-size:12px;padding:14px 16px">Sin ejercicios para este músculo.</div>`;
+            } else {
+              subExs.forEach((ex,exIdx)=>{
+                const exBorder=exIdx<subExs.length-1?'border-bottom:1px solid var(--bd)':'';
+                const pctOfSub=subTotal>0?Math.round(ex.volume/subTotal*100):0;
+                html+=`<div style="display:flex;align-items:center;gap:12px;padding:10px 16px 10px 32px;${exBorder}">
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:12.5px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ex.name}</div>
+                    <div style="font-size:10.5px;color:var(--mt);margin-top:2px;font-weight:500">${ex.sets} set${ex.sets===1?'':'s'} · ${fmtMuscleExVolume(ex.volume,ex.mode)}</div>
+                  </div>
+                  <div style="font-size:12px;font-weight:700;color:var(--mt);font-family:var(--fm);flex-shrink:0">${pctOfSub}%</div>
+                </div>`;
+              });
+            }
+            html+=`</div>`;
+          }
         });
       }
       html+=`</div>`;
