@@ -175,6 +175,29 @@ body.modal-open .page{overflow:hidden;}
 /* Halo verde detrás del PR modal (cuando llegue) — irradia el momento de logro */
 .b2-pr-halo{box-shadow:0 -20px 40px -10px rgba(0,0,0,0.45),0 0 80px rgba(52,211,153,0.10);}
 
+/* ─── Onboarding 3 pantallas post-import ─── */
+.onboarding-overlay{position:fixed;inset:0;background:var(--bg);z-index:205;display:none;flex-direction:column;}
+.onboarding-overlay.show{display:flex;animation:summaryFadeIn 0.4s cubic-bezier(0.2,0.7,0.2,1);}
+.onboarding-skip-wrap{display:flex;justify-content:flex-end;padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top));flex-shrink:0;}
+.onboarding-skip-wrap button{background:none;border:none;color:var(--mt);font-size:13px;font-weight:600;cursor:pointer;padding:8px 12px;border-radius:8px;font-family:var(--fs);}
+.onboarding-content-wrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px;overflow-y:auto;max-width:480px;width:100%;margin:0 auto;box-sizing:border-box;}
+.onboarding-dots{display:flex;justify-content:center;gap:8px;padding:20px;padding-bottom:calc(28px + env(safe-area-inset-bottom));flex-shrink:0;}
+.ob-dot{width:8px;height:8px;border-radius:4px;background:var(--bd);transition:background 0.3s ease,transform 0.3s ease;}
+.ob-dot.active{background:var(--ac);transform:scaleX(2.2);border-radius:3px;}
+.ob-hero{text-align:center;margin-bottom:24px;}
+.ob-check{font-size:60px;color:var(--gn);line-height:1;margin-bottom:14px;animation:summaryCheckPop 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;}
+.ob-title{font-size:26px;font-weight:600;color:var(--tx);letter-spacing:-0.5px;line-height:1.15;}
+.ob-sub{font-size:13.5px;color:var(--mt);margin-top:8px;font-weight:500;line-height:1.5;max-width:340px;margin-left:auto;margin-right:auto;}
+.ob-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+.ob-stats > div{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);padding:18px 8px;text-align:center;box-shadow:var(--lift-in);}
+.ob-stats .num{display:block;font-size:30px;font-weight:700;color:var(--tx);letter-spacing:-1px;line-height:1;font-family:var(--fm);}
+.ob-stats .lbl{display:block;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mt);margin-top:8px;}
+.ob-list{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);padding:18px;margin-bottom:20px;box-shadow:var(--lift-in);}
+.ob-list-title{font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:12px;}
+.ob-list-row{font-size:13.5px;color:var(--tx);padding:5px 0;font-weight:500;}
+.ob-list-more{font-size:11.5px;color:var(--mt2);padding-top:8px;border-top:1px dashed var(--bd);margin-top:6px;font-weight:500;}
+.ob-cta{padding:16px;font-size:15.5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;}
+
 /* ─── PR achievement modal · bottom sheet con halo verde ─── */
 .pr-bsheet{box-shadow:0 -20px 40px -10px rgba(0,0,0,0.45),0 0 100px rgba(52,211,153,0.20),inset 0 1px 0 rgba(255,255,255,0.04);position:relative;}
 .pr-trophy{font-size:60px;text-align:center;line-height:1;animation:prTrophyPop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;}
@@ -578,6 +601,17 @@ details summary::-webkit-details-marker{display:none;}
     <div id="pr-modal-content"></div>
     <div id="pr-progress" class="pr-progress"></div>
   </div>
+</div>
+
+<!-- Onboarding 3 pantallas post-import (solo primera vez) -->
+<div id="onboarding-modal" class="onboarding-overlay">
+  <div class="onboarding-skip-wrap">
+    <button class="b2-press" onclick="skipOnboarding()">Saltar</button>
+  </div>
+  <div class="onboarding-content-wrap">
+    <div id="onboarding-content"></div>
+  </div>
+  <div id="onboarding-dots" class="onboarding-dots"></div>
 </div>
 
 <!-- ══ Modal ══ -->
@@ -3604,6 +3638,109 @@ function closePRModal(){
   $("pr-modal").classList.remove('show');
   document.body.classList.remove('modal-open');
 }
+// ══ ONBOARDING 3 pantallas post-import (solo primera vez) ══
+let _obStep=0;
+function shouldShowOnboarding(){return !localStorage.getItem('gym-onboarded-once');}
+function markOnboarded(){try{localStorage.setItem('gym-onboarded-once','1');}catch{}}
+function startOnboarding(){
+  if(!shouldShowOnboarding()) return;
+  if(!routine||!routine.days||!routine.days.length) return;
+  _obStep=0;
+  renderOnboarding();
+  $("onboarding-modal").classList.add('show');
+  document.body.classList.add('modal-open');
+}
+function renderOnboarding(){
+  const content=$("onboarding-content");
+  const dotsArr=['','',''];
+  if(_obStep===0){
+    // Pantalla 1 · "Rutina cargada" + stats
+    const dayCount=routine.days.length;
+    let exCount=0,blockCount=0;
+    routine.days.forEach(d=>{
+      const blocks=d.blocks||[{exercises:d.exercises||[]}];
+      blockCount+=blocks.length;
+      blocks.forEach(b=>{exCount+=(b.exercises||[]).length;});
+    });
+    content.innerHTML=`
+      <div class="ob-hero">
+        <div class="ob-check">✓</div>
+        <div class="ob-title">Rutina cargada</div>
+        <div class="ob-sub">${routine.name||'Tu rutina personalizada'}</div>
+      </div>
+      <div class="ob-stats">
+        <div><span class="num">${dayCount}</span><span class="lbl">Día${dayCount===1?'':'s'}</span></div>
+        <div><span class="num">${exCount}</span><span class="lbl">Ejercicios</span></div>
+        <div><span class="num">${blockCount}</span><span class="lbl">Bloques</span></div>
+      </div>
+      <button class="btn ob-cta" onclick="obNext()">Siguiente →</button>
+    `;
+    dotsArr[0]='active';
+  } else if(_obStep===1){
+    // Pantalla 2 · "Hoy te tocaría" + preview de ejercicios del día sugerido
+    const sg=sugDay();
+    const sgD=routine.days.find(d=>d.id===sg);
+    const preview=formatDayPreview(sgD)||'';
+    const meta=homeDayMeta(sgD);
+    const blocks=sgD.blocks||[{exercises:sgD.exercises||[]}];
+    const exNames=[];
+    blocks.forEach(b=>(b.exercises||[]).forEach(ex=>{
+      if(ex.name) exNames.push(ex.name);
+      else if(ex.items) ex.items.forEach(it=>exNames.push(it.name));
+    }));
+    const exShown=exNames.slice(0,6);
+    content.innerHTML=`
+      <div class="ob-hero">
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:8px">Hoy te tocaría</div>
+        <div class="ob-title">${sgD.name}${sgD.sub?` <span style="color:var(--mt);font-weight:500">· ${sgD.sub}</span>`:''}</div>
+        ${preview?`<div class="ob-sub">${preview}</div>`:''}
+      </div>
+      <div class="ob-list">
+        <div class="ob-list-title">Ejercicios del día (${meta.ex})</div>
+        ${exShown.map(name=>`<div class="ob-list-row">• ${name}</div>`).join('')}
+        ${exNames.length>6?`<div class="ob-list-more">+ ${exNames.length-6} más</div>`:''}
+      </div>
+      <button class="btn ob-cta" onclick="obNext()">Siguiente →</button>
+    `;
+    dotsArr[1]='active';
+  } else if(_obStep===2){
+    // Pantalla 3 · ¿Listo? · dos CTAs (entrenar o diferir)
+    content.innerHTML=`
+      <div class="ob-hero" style="padding-top:24px">
+        <div style="font-size:56px;line-height:1;margin-bottom:18px">💪</div>
+        <div class="ob-title">¿Listo para tu primer<br>entrenamiento?</div>
+        <div class="ob-sub" style="max-width:300px">Podés empezar ahora o dejarlo para más tarde. La rutina queda guardada.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn ob-cta" onclick="obStartWorkout()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>
+          Empezar entrenamiento
+        </button>
+        <button class="btn-out" onclick="obGoHome()" style="font-size:14px;padding:14px 0">Lo dejo para mañana</button>
+      </div>
+    `;
+    dotsArr[2]='active';
+  }
+  $("onboarding-dots").innerHTML=dotsArr.map(s=>`<span class="ob-dot${s?' active':''}"></span>`).join('');
+}
+function obNext(){
+  _obStep++;
+  if(_obStep>2){obGoHome();return;}
+  renderOnboarding();
+}
+function obGoHome(){endOnboarding();showPage('home');}
+function obStartWorkout(){
+  endOnboarding();
+  const sg=sugDay();
+  if(sg!=null) startWorkout(sg);
+  else showPage('home');
+}
+function skipOnboarding(){endOnboarding();showPage('home');}
+function endOnboarding(){
+  markOnboarded();
+  $("onboarding-modal").classList.remove('show');
+  document.body.classList.remove('modal-open');
+}
 function discardWorkout(){curSess=null;clearDraft();stopTimer();closeExitModal();showPage('home');}
 function resumeDraft(){
   const d=load("gym-draft",null);if(!d)return;
@@ -4934,6 +5071,8 @@ function applyImportedRoutine(mode){
   closeModal();
   toast('✓ Rutina importada','success');
   renderHome();
+  // Dispara onboarding solo la primera vez (chequea flag gym-onboarded-once en localStorage)
+  startOnboarding();
   if(document.getElementById('editR')&&document.getElementById('editR').classList.contains('active')) renderEditR();
   // La rutina del coach puede traer ejercicios (movilidades, custom) que la biblioteca local todavía no conoce.
   // Forzamos un sync para resolver los nombres correctamente.
