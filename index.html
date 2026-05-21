@@ -328,31 +328,43 @@ details summary::-webkit-details-marker{display:none;}
     </div>
   </div>
   <div id="home-welcome" style="display:none">
-    <div class="sec" style="padding-top:32px">
-      <div style="text-align:center;margin-bottom:28px">
-        <div style="font-size:56px;margin-bottom:16px">💪</div>
-        <div style="font-size:24px;font-weight:800;margin-bottom:8px">¡Bienvenido!</div>
-        <div class="text-sm text-mt" style="line-height:1.6;max-width:320px;margin:0 auto">¿Cómo querés empezar?</div>
-      </div>
+    <!-- Brand header sutil · shield chico + "JuvenFIT" tracked -->
+    <div class="header" style="padding:18px 20px 8px;padding-top:calc(18px + env(safe-area-inset-top));justify-content:flex-start;gap:10px;background:transparent">
+      <img src="./shield.png" alt="" style="height:28px;width:auto;flex-shrink:0">
+      <span style="font-family:var(--fm);font-size:12.5px;font-weight:700;letter-spacing:1.8px;color:var(--mt)">JUVENFIT</span>
+    </div>
 
-      <div class="card card-accent" style="cursor:default">
-        <div class="row mb-8" style="align-items:center;gap:10px">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" style="color:var(--ac);flex-shrink:0">
-            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/><rect x="14" y="19" width="3" height="2"/>
-          </svg>
-          <div class="fw-800" style="font-size:16px;color:var(--ac)">Tu coach te pasó una rutina</div>
+    <!-- Hero saludo · "Bienvenido" grande + microcopy direccional -->
+    <div class="sec" style="padding-top:42px;text-align:center;padding-bottom:8px">
+      <div style="font-size:32px;font-weight:600;color:var(--tx);letter-spacing:-0.6px;line-height:1.1;margin-bottom:10px">Bienvenido</div>
+      <div style="font-size:14px;color:var(--mt);font-weight:500;line-height:1.55;max-width:280px;margin:0 auto">Empecemos importando<br>la rutina de tu coach.</div>
+    </div>
+
+    <!-- Card principal · CTA QR azul · QR icon grande arriba como visual lock -->
+    <div class="sec" style="padding-top:14px;padding-bottom:8px">
+      <div class="card" style="cursor:default;padding:26px 22px;box-shadow:var(--lift-in)">
+        <div style="display:flex;justify-content:center;margin-bottom:16px">
+          <div style="width:68px;height:68px;border-radius:18px;background:rgba(96,165,250,0.10);border:1px solid rgba(96,165,250,0.25);display:flex;align-items:center;justify-content:center;color:var(--ac);box-shadow:var(--lift-in)">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
+              <rect x="18" y="18" width="3" height="3"/><rect x="14" y="19" width="3" height="2"/>
+            </svg>
+          </div>
         </div>
-        <div class="text-sm text-mt mb-12" style="line-height:1.5">Tocá el botón <strong style="color:var(--ac)">QR</strong> arriba a la derecha (o el botón de abajo) para escanearla, o pegá el código de 8 caracteres que te mandó por WhatsApp.</div>
-        <button class="btn" onclick="openImportRoutine()">📷 Escanear o pegar código</button>
+        <div style="text-align:center;font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;margin-bottom:6px">Importar rutina del coach</div>
+        <div style="text-align:center;font-size:12.5px;color:var(--mt);font-weight:500;line-height:1.55;margin-bottom:20px">Escaneá el QR que te mandó<br>o pegá el código de 8 caracteres.</div>
+        <button class="btn" onclick="openImportRoutine()" style="display:flex;align-items:center;justify-content:center;gap:8px">
+          <span style="font-size:15px;line-height:1">📷</span>
+          Escanear QR de mi coach
+        </button>
       </div>
+    </div>
 
-      <div class="text-xs text-mt center mt-20 mb-12" style="letter-spacing:.5px">— O —</div>
-
-      <div class="card" style="cursor:default">
-        <div class="fw-800 mb-8" style="font-size:16px">Armá tu propia rutina</div>
-        <div class="text-sm text-mt mb-12" style="line-height:1.5">Sumá tus días, agregá ejercicios de la biblioteca y empezá a trackear tu progreso. Organizás el entrenamiento por bloques: <strong>Movilidad</strong>, <strong>Principal</strong>, <strong>Complementario</strong> y <strong>Finisher</strong>.</div>
-        <button class="btn-out" onclick="showPage('editR')">⚙ Configurar mi rutina →</button>
-      </div>
+    <!-- CTA secundario · armar manual (link · no card) -->
+    <div class="sec" style="padding-top:14px;text-align:center">
+      <div style="font-size:11.5px;color:var(--mt2);font-weight:500;margin-bottom:6px;letter-spacing:0.2px">¿No tenés coach?</div>
+      <button class="b2-press" onclick="showPage('editR')" style="background:none;border:none;color:var(--ac);font-size:13px;font-weight:600;cursor:pointer;padding:8px 14px;border-radius:8px">Armar mi rutina manualmente →</button>
     </div>
   </div>
   <div id="home-main">
