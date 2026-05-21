@@ -562,16 +562,30 @@ const DEFAULT_DAYS=[
 
 // ══ BLOCK TYPES (deben matchear con la app del coach) ══
 const BLOCK_TYPES={
-  // Código de color semántico (excepción explícita al tri-color estricto):
-  // los bloques son taxonomía estructural de la rutina y diferenciarlos visualmente
-  // ayuda a navegar el editor — donde la regla "color escasea" estorbaba la legibilidad.
-  // En workout/home/progress los acentos azul/verde/naranja siguen dominando porque el
-  // contexto es lectura rápida, no configuración.
-  movilidad:{label:'Movilidad',color:'#60A5FA'},        // azul · preparación / activación
-  principal:{label:'Principal',color:'#FB923C'},        // naranja · lo importante del entreno
-  complementario:{label:'Complementario',color:'#34D399'}, // verde · refuerzo de músculos accesorios
-  finisher:{label:'Finisher',color:'#F87171'},          // rojo · esfuerzo final, al límite
-  custom:{label:'Personalizado',color:'#A78BFA'}        // lila · libre / decorativo
+  // ════════════════════════════════════════════════════════════════
+  // PALETA CATEGÓRICA (Bento Tri · sistema dual)
+  //
+  // El sistema Bento Tri tiene DOS paletas funcionando en paralelo:
+  //   1) PALETA DE ESTADO (feedback semántico, dominante en workout/home/progress)
+  //      Azul #60A5FA = acción, Verde #34D399 = logro, Naranja #FB923C = intensidad,
+  //      Rojo #F87171 = danger.
+  //   2) PALETA CATEGÓRICA (taxonomía, dominante en editor)
+  //      Turquesa, Violeta, Mostaza, Magenta, Gris claro — colores ELEGIDOS para NO
+  //      chocar con los de estado (turquesa ≠ azul, magenta ≠ rojo, mostaza ≠ naranja).
+  //
+  // Por qué dual: si Movilidad fuera "azul" (paleta vieja), un alumno podría confundir
+  // el badge del bloque con "edit affordance" o "CTA". La separación de paletas evita
+  // contaminación semántica. Las dos pueden coexistir en la misma pantalla porque viven
+  // en lugares distintos (estado = dots/bordes/CTAs, categoría = badges/tags).
+  //
+  // Esta paleta categórica se REUSA en otras apps del sistema (ej. Alimentacion-tracker
+  // → escenarios mañana/tarde/descanso/fútbol también toman estos colores).
+  // ════════════════════════════════════════════════════════════════
+  movilidad:{label:'Movilidad',color:'#14B8A6'},        // turquesa · preparación / activación
+  principal:{label:'Principal',color:'#8B5CF6'},        // violeta · foco / lo más importante
+  complementario:{label:'Complementario',color:'#EAB308'}, // mostaza · refuerzo accesorio
+  finisher:{label:'Finisher',color:'#EC4899'},          // magenta · intensidad final
+  custom:{label:'Personalizado',color:'#9CA3AF'}        // gris claro · libre / neutral
 };
 
 // ══ EXERCISE LIBRARY (v1) ══
