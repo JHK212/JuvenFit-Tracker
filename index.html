@@ -175,6 +175,17 @@ body.modal-open .page{overflow:hidden;}
 /* Halo verde detrás del PR modal (cuando llegue) — irradia el momento de logro */
 .b2-pr-halo{box-shadow:0 -20px 40px -10px rgba(0,0,0,0.45),0 0 80px rgba(52,211,153,0.10);}
 
+/* ─── PR achievement modal · bottom sheet con halo verde ─── */
+.pr-bsheet{box-shadow:0 -20px 40px -10px rgba(0,0,0,0.45),0 0 100px rgba(52,211,153,0.20),inset 0 1px 0 rgba(255,255,255,0.04);position:relative;}
+.pr-trophy{font-size:60px;text-align:center;line-height:1;animation:prTrophyPop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.1s both;}
+@keyframes prTrophyPop{from{transform:scale(0) rotate(-20deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.pr-title{text-align:center;font-size:24px;font-weight:700;color:var(--gn);letter-spacing:-0.4px;margin-top:10px;}
+.pr-ex{text-align:center;font-size:14px;color:var(--mt);margin-top:4px;font-weight:500;}
+.pr-value{text-align:center;font-size:44px;font-weight:700;color:var(--tx);letter-spacing:-1.6px;margin-top:20px;line-height:1;font-family:var(--fm);}
+.pr-delta{text-align:center;font-size:13px;color:var(--gn);margin-top:8px;font-weight:600;}
+.pr-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--gn);border-radius:0 0 20px 20px;width:100%;transform-origin:right center;animation:prProgressShrink 4s linear forwards;}
+@keyframes prProgressShrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+
 /* ─── Resumen post-workout · full-screen overlay ─── */
 .summary-overlay{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;overflow-y:auto;}
 .summary-overlay.show{display:block;animation:summaryFadeIn 0.4s cubic-bezier(0.2,0.7,0.2,1);}
@@ -546,6 +557,15 @@ details summary::-webkit-details-marker{display:none;}
 <!-- Resumen post-workout · full-screen overlay con stats + PRs + deltas -->
 <div id="summary-modal" class="summary-overlay">
   <div class="summary-content"></div>
+</div>
+
+<!-- PR achievement modal · bottom sheet con halo verde -->
+<div id="pr-modal" class="bsheet-overlay" onclick="closePRModal()">
+  <div class="bsheet pr-bsheet" onclick="event.stopPropagation()">
+    <div class="bsheet-handle"></div>
+    <div id="pr-modal-content"></div>
+    <div id="pr-progress" class="pr-progress"></div>
+  </div>
 </div>
 
 <!-- ══ Modal ══ -->
@@ -3377,10 +3397,30 @@ function checkPR(si,ci){
 }
 function setRpe(si,v,ci){
   ci=(ci==null)?curExI:ci;
+  // Detectar si es el primer setRpe del set (sino, re-editar no debe disparar PR modal de nuevo)
+  const wasNullBefore=curSess.exercises[ci].sets[si].rpe==null;
   curSess.exercises[ci].sets[si].rpe=v;
   const day=routine.days.find(d=>d.id===curDayId);
   const compounds=getCompounds(day);
   const ex=compounds[ci];
+  // PR check · solo en la primera vez que se marca RPE (no en cambios de RPE)
+  if(wasNullBefore){
+    const mode=getTrackMode(ex);
+    const s=curSess.exercises[ci].sets[si];
+    const setValue=mode==='weight'?(s.w||0):(s.r||0);
+    if(setValue>0){
+      // Effective PR del momento = max(PR previo de sessions, peak de sets ya completados en esta sesión)
+      const prevPR=prOf(eidOf(ex),mode);
+      const sessPeakBefore=Math.max(0,...curSess.exercises[ci].sets
+        .slice(0,si)
+        .filter(s2=>s2.rpe!=null)
+        .map(s2=>mode==='weight'?(s2.w||0):(s2.r||0)));
+      const effectivePR=Math.max(prevPR,sessPeakBefore);
+      if(setValue>effectivePR){
+        showPRModal(getExName(ex),setValue,mode,setValue-effectivePR);
+      }
+    }
+  }
   const grp=groupOfCompoundIdx(compounds,ci);
   // En grupos el timer se arranca manualmente al terminar la vuelta (botón "Descansar" por vuelta)
   if(!timerRef&&!grp) startTimer(restAsSeconds(ex.rest));
@@ -3521,6 +3561,36 @@ function closeSummaryAndGoHome(){
   $("summary-modal").classList.remove('show');
   document.body.classList.remove('modal-open');
   showPage('home');
+}
+// ══ PR achievement modal ══
+let _prModalTimer=null;
+function showPRModal(name,value,mode,delta){
+  const valLbl=formatPR(value,mode);
+  const deltaLbl=mode==='weight'
+    ?`+${delta.toFixed(1).replace(/\.0$/,'')} kg`
+    :(mode==='time'?`+${delta} segundos`:`+${delta} reps`);
+  const html=`
+    <div class="pr-trophy">🏆</div>
+    <div class="pr-title">¡Nuevo PR!</div>
+    <div class="pr-ex">${name}</div>
+    <div class="pr-value">${valLbl}</div>
+    <div class="pr-delta">${deltaLbl} sobre tu anterior</div>
+    <button class="btn-out" style="width:100%;margin-top:24px;font-size:14px;padding:12px 0" onclick="closePRModal()">Seguir entrenando</button>
+  `;
+  $("pr-modal-content").innerHTML=html;
+  // Resetear la animación del progress bar (sino mantiene state previo si modal se reabre rápido)
+  const progress=$("pr-progress");
+  if(progress){progress.style.animation='none';void progress.offsetWidth;progress.style.animation='';}
+  $("pr-modal").classList.add('show');
+  document.body.classList.add('modal-open');
+  // Auto-dismiss en 4s (cancelable si el usuario hace tap)
+  if(_prModalTimer) clearTimeout(_prModalTimer);
+  _prModalTimer=setTimeout(()=>closePRModal(),4000);
+}
+function closePRModal(){
+  if(_prModalTimer){clearTimeout(_prModalTimer);_prModalTimer=null;}
+  $("pr-modal").classList.remove('show');
+  document.body.classList.remove('modal-open');
 }
 function discardWorkout(){curSess=null;clearDraft();stopTimer();closeExitModal();showPage('home');}
 function resumeDraft(){
