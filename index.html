@@ -2720,6 +2720,21 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   // + botón 📈 a la derecha que va directo al historial.
   const prevSessRec=lastSessionRec(eid,mode);
   const setsRepsTarget=formatSetsReps(ex);
+  // Descanso entre series (de la rutina) — formato compacto: "90s" o "2m 30s" o "3 min"
+  const restSec=restAsSeconds(ex.rest);
+  const restLbl=restSec
+    ?(restSec<60?`${restSec}s`:(restSec%60===0?`${restSec/60} min`:`${Math.floor(restSec/60)}m ${restSec%60}s`))
+    :'';
+  // Línea meta: target + descanso ("3 × 8-10 · 90s desc")
+  const metaParts=[];
+  if(setsRepsTarget) metaParts.push(setsRepsTarget);
+  if(restLbl) metaParts.push(`${restLbl} desc`);
+  const metaLine=metaParts.join(' · ');
+  // Línea PR + objetivo ("🏆 80 kg · 🎯 RIR 1")
+  const prObjParts=[];
+  if(pr>0) prObjParts.push(`🏆 ${formatPR(pr,mode)}`);
+  if(ex.objective) prObjParts.push(`🎯 ${ex.objective}`);
+  const prObjLine=prObjParts.join(' · ');
   // Color del bloque (paleta categórica): barra vertical 3px a la izquierda del header como
   // detalle de identidad sin contaminar el set card minimalista.
   const exBlock=blockOfExercise(day,ex.id);
@@ -2728,8 +2743,8 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     ${exBlockColor?`<div style="width:3px;background:${exBlockColor};border-radius:2px;flex-shrink:0;align-self:stretch"></div>`:''}
     <div style="flex:1;min-width:0">
       <div style="font-size:22px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;line-height:1.1">${getExName(ex)}</div>
-      ${setsRepsTarget?`<div style="font-size:13px;color:var(--mt);margin-top:5px;font-weight:500">${setsRepsTarget}</div>`:''}
-      ${pr>0?`<div style="font-size:11.5px;color:var(--mt2);margin-top:2px;font-weight:500">🏆 ${formatPR(pr,mode)}</div>`:''}
+      ${metaLine?`<div style="font-size:13px;color:var(--mt);margin-top:5px;font-weight:500">${metaLine}</div>`:''}
+      ${prObjLine?`<div style="font-size:11.5px;color:var(--mt2);margin-top:2px;font-weight:500">${prObjLine}</div>`:''}
     </div>
     <button class="icon-btn" onclick="showHist('${eid}')" title="Ver historial / progresión" aria-label="Ver historial completo" style="width:36px;height:36px;font-size:14px;flex-shrink:0;align-self:flex-start;margin-top:-2px">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
