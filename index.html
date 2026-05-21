@@ -270,6 +270,13 @@ details summary::-webkit-details-marker{display:none;}
           <rect x="18" y="18" width="3" height="3"/><rect x="14" y="19" width="3" height="2"/>
         </svg>
       </button>
+      <button class="icon-btn" onclick="showPage('progress')" title="Mi progreso" aria-label="Mi progreso">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6" y1="20" x2="6" y2="14"/>
+        </svg>
+      </button>
       <button class="icon-btn" onclick="showPage('routine')" title="Ver rutina" aria-label="Ver rutina">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
@@ -500,6 +507,18 @@ details summary::-webkit-details-marker{display:none;}
 <div id="delHist" class="page">
   <div class="header"><button class="icon-btn" onclick="showPage(window._delHistFrom||'editR')">←</button><div class="fw-700" style="font-size:16px;text-align:center;flex:1">Borrar Sesiones</div><div style="width:44px"></div></div>
   <div class="sec"><div class="text-sm text-mt mb-12">Tocá las sesiones que querés eliminar</div><div id="del-list"></div><button id="del-btn" class="btn-danger mt-20" onclick="deleteSelected()" style="display:none">Eliminar</button><button class="btn-out mt-12" onclick="selectAllSessions()">Seleccionar todas</button></div>
+</div>
+
+<!-- ══ PROGRESS ══ -->
+<div id="progress" class="page">
+  <div class="header">
+    <button class="icon-btn" onclick="showPage('home')" aria-label="Volver">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    </button>
+    <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;text-align:center;flex:1;color:var(--tx)">Mi progreso</div>
+    <div style="width:44px"></div>
+  </div>
+  <div id="progress-content"></div>
 </div>
 
 <!-- ══ Modal ══ -->
@@ -1255,6 +1274,7 @@ function showPage(id){
   if(id==='editR') renderEditR();
   if(id==='delHist') renderDelHist();
   if(id==='routine') renderRoutine();
+  if(id==='progress') renderProgress();
 }
 function closeModal(){$("modal").classList.remove('show');}
 // Sincronizar clase 'modal-open' del body cuando el modal abre/cierra → bloquea scroll del fondo
@@ -1683,6 +1703,379 @@ function renderHome(){
   } else {$("home-hist-sec").style.display="none";}
 
   drawMuscleChart();
+}
+
+// ══ PROGRESS · "Mi progreso" ══
+// Racha en semanas: semanas consecutivas (L→D) con ≥1 sesión. La semana actual cuenta si ya entrenó al menos 1 vez.
+function progressStreakWeeks(){
+  if(!sessions.length) return 0;
+  const weekKey=ds=>{
+    const d=new Date(ds+'T12:00:00');
+    const dow=(d.getDay()+6)%7; // 0=Mon
+    d.setDate(d.getDate()-dow);
+    return d.toISOString().slice(0,10);
+  };
+  const weeks=new Set(sessions.map(s=>weekKey(s.date)));
+  // Cursor en lunes de la semana actual
+  const cur=nowBsAs();
+  const dow=(cur.getDay()+6)%7;
+  cur.setDate(cur.getDate()-dow);
+  cur.setHours(12,0,0,0);
+  let count=0;
+  while(weeks.has(cur.toISOString().slice(0,10))){
+    count++;
+    cur.setDate(cur.getDate()-7);
+  }
+  return count;
+}
+// Peak de un ejercicio dentro de una sesión, según modo. 0 si no hay set válido.
+function progressSessionPeak(exSets,mode){
+  if(!exSets||!exSets.length) return 0;
+  return mode==='weight'
+    ?Math.max(0,...exSets.map(s=>s.w||0))
+    :Math.max(0,...exSets.map(s=>s.r||0));
+}
+// Conteo total acumulado de PRs históricos. Cada vez que el running-max de un eid sube, suma 1 (incluye la primera vez que se carga).
+function progressPRTotal(){
+  const maxes={};
+  let count=0;
+  [...sessions].sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''))).forEach(s=>{
+    (s.exercises||[]).forEach(ex=>{
+      const compound=allCompounds().find(e=>eidOf(e)===ex.eid);
+      if(!compound) return;
+      const mode=getTrackMode(compound);
+      const peak=progressSessionPeak(ex.sets,mode);
+      if(peak<=0) return;
+      if(!maxes[ex.eid]||peak>maxes[ex.eid]){maxes[ex.eid]=peak;count++;}
+    });
+  });
+  return count;
+}
+// Timeline de PRs (más reciente primero). Cada entrada = un instante donde subió el record para ese ejercicio.
+function progressPRTimeline(){
+  const maxes={};
+  const out=[];
+  [...sessions].sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''))).forEach(s=>{
+    (s.exercises||[]).forEach(ex=>{
+      const compound=allCompounds().find(e=>eidOf(e)===ex.eid);
+      if(!compound) return;
+      const mode=getTrackMode(compound);
+      const peak=progressSessionPeak(ex.sets,mode);
+      if(peak<=0) return;
+      if(!maxes[ex.eid]||peak>maxes[ex.eid]){
+        maxes[ex.eid]=peak;
+        out.push({date:s.date,time:s.time||'',name:getExName(compound),value:peak,mode,eid:ex.eid});
+      }
+    });
+  });
+  return out.reverse();
+}
+// Fecha (timestamp ms) en la que se fijó el PR actual del ejercicio. 0 si nunca.
+function progressPRAt(eid,mode){
+  let max=0,at=0;
+  [...sessions].sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||''))).forEach(s=>{
+    const ex=s.exercises?.find(x=>x.eid===eid);
+    if(!ex?.sets?.length) return;
+    const p=progressSessionPeak(ex.sets,mode);
+    if(p>max){max=p;at=new Date(s.date+'T12:00:00').getTime();}
+  });
+  return at;
+}
+// Últimas 8 sesiones del ejercicio (orden cronológico, peak por sesión).
+function progressSparklineData(eid,mode){
+  const data=[];
+  sessions.forEach(s=>{
+    const ex=s.exercises?.find(e=>e.eid===eid);
+    if(!ex?.sets?.length) return;
+    const v=progressSessionPeak(ex.sets,mode);
+    if(v>0) data.push({date:s.date,v});
+  });
+  data.sort((a,b)=>a.date.localeCompare(b.date));
+  return data.slice(-8);
+}
+// Top ejercicios para la lista. Rank: PR reciente (7d) → # sesiones últimos 30d → alfabético.
+function progressTopExercises(){
+  const now=Date.now();
+  const sevenAgo=now-7*24*3600*1000;
+  const thirtyAgo=new Date(now-30*24*3600*1000).toISOString().slice(0,10);
+  const items=allCompounds().filter(ex=>hist(eidOf(ex)).length>0).map(ex=>{
+    const eid=eidOf(ex);
+    const mode=getTrackMode(ex);
+    const prAt=progressPRAt(eid,mode);
+    const recentPR=prAt>0&&prAt>=sevenAgo;
+    const sess30=sessions.filter(s=>s.date>=thirtyAgo&&(s.exercises||[]).some(e=>e.eid===eid&&e.sets?.length)).length;
+    const sessTotal=hist(eid).length;
+    return {ex,eid,mode,recentPR,sess30,sessTotal,name:getExName(ex),pr:prOf(eid,mode)};
+  });
+  items.sort((a,b)=>{
+    if(a.recentPR!==b.recentPR) return a.recentPR?-1:1;
+    if(a.sess30!==b.sess30) return b.sess30-a.sess30;
+    return a.name.localeCompare(b.name);
+  });
+  return items;
+}
+// Volumen muscular del mes calendario actual, agregado por BODY_ZONES.
+// Volumen por set: peso×reps para weight, reps solo para reps/time. Reparte por muscleActivation%.
+function progressMonthMuscleVolume(){
+  const today=td();
+  const monthStart=today.slice(0,7)+'-01';
+  const muscleTotals={};
+  let hasAnyMapping=false;
+  sessions.filter(s=>s.date>=monthStart&&s.date<=today).forEach(s=>{
+    (s.exercises||[]).forEach(ex=>{
+      const lib=getExercise(ex.eid);
+      if(!lib||!lib.muscleActivation) return;
+      const compound=allCompounds().find(e=>eidOf(e)===ex.eid);
+      const mode=compound?getTrackMode(compound):'weight';
+      const setVol=(ex.sets||[]).reduce((acc,st)=>{
+        if(st.rpe==null) return acc; // set no registrado
+        if(mode==='weight') return acc+(st.w||0)*(st.r||0);
+        return acc+(st.r||0);
+      },0);
+      if(setVol<=0) return;
+      hasAnyMapping=true;
+      Object.entries(lib.muscleActivation).forEach(([m,pct])=>{
+        muscleTotals[m]=(muscleTotals[m]||0)+setVol*pct/100;
+      });
+    });
+  });
+  const zones={};
+  Object.entries(muscleTotals).forEach(([m,v])=>{
+    for(const [zoneName,zone] of Object.entries(BODY_ZONES)){
+      if(zone.muscles.includes(m)){
+        zones[zoneName]=(zones[zoneName]||0)+v;
+        break;
+      }
+    }
+  });
+  const total=Object.values(zones).reduce((s,v)=>s+v,0);
+  const segments=Object.entries(zones).map(([name,v])=>({name,v,pct:total>0?v/total*100:0})).sort((a,b)=>b.v-a.v);
+  return {segments,total,hasAnyMapping};
+}
+// Grid de los últimos 365 días (oldest→newest) para heatmap GitHub-style.
+function progressYearHeatmap(){
+  const today=td();
+  const trained=new Set(sessions.map(s=>s.date));
+  const todayDate=new Date(today+'T12:00:00');
+  const out=[];
+  for(let i=364;i>=0;i--){
+    const d=new Date(todayDate.getTime()-i*24*3600*1000);
+    const ds=d.toISOString().slice(0,10);
+    out.push({date:ds,trained:trained.has(ds),isToday:ds===today});
+  }
+  return out;
+}
+// Sparkline SVG 60×22. Verde si PR en últimos 7d, gris si no. < 3 puntos → placeholder.
+function progressSparklineSVG(data,recentPR){
+  if(data.length<3) return `<span style="color:var(--mt2);font-size:13px">—</span>`;
+  const W=60,H=22,P=2;
+  const vs=data.map(d=>d.v);
+  const min=Math.min(...vs),max=Math.max(...vs);
+  const range=max-min||1;
+  const stepX=(W-2*P)/(data.length-1);
+  const points=data.map((d,i)=>{
+    const x=P+i*stepX;
+    const y=H-P-((d.v-min)/range)*(H-2*P);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const color=recentPR?'var(--gn)':'var(--mt2)';
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;flex-shrink:0"><polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+// Donut 120×120 con hasta 5 segmentos.
+function progressDonutSVG(segments,total){
+  const cx=60,cy=60,r=50,sw=18;
+  const C=2*Math.PI*r;
+  const palette=['var(--ac)','var(--gn)','var(--yw)','var(--mt)','var(--mt2)'];
+  if(!segments.length||total<=0){
+    return `<svg width="120" height="120" viewBox="0 0 120 120"><circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bd)" stroke-width="${sw}"/><text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="20" font-weight="700" fill="var(--mt2)" font-family="var(--fs)">—</text><text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--mt2)" letter-spacing="1.2" font-family="var(--fs)">% MES</text></svg>`;
+  }
+  const top=segments.slice(0,5);
+  const shownTotal=top.reduce((s,x)=>s+x.v,0);
+  const topPct=shownTotal/total*100;
+  let cum=0;
+  const arcs=top.map((seg,i)=>{
+    const pct=seg.v/total; // % sobre TOTAL (para que el "missing" sea visible si hay >5 segmentos)
+    const len=pct*C;
+    const dash=`${len.toFixed(2)} ${(C-len).toFixed(2)}`;
+    const offset=(-cum*C).toFixed(2);
+    cum+=pct;
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${palette[i]}" stroke-width="${sw}" stroke-dasharray="${dash}" stroke-dashoffset="${offset}" transform="rotate(-90 ${cx} ${cy})"/>`;
+  }).join('');
+  // Segmento faltante (resto). Sólo visible si hay más zonas que no entran en top 5.
+  const missing=total-shownTotal;
+  const missingArc=missing>0
+    ?`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bd)" stroke-width="${sw}" stroke-dasharray="${(missing/total*C).toFixed(2)} ${C}" stroke-dashoffset="${(-cum*C).toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>`
+    :'';
+  // Centro: top segment pct
+  const centerPct=Math.round(top[0].pct);
+  return `<svg width="120" height="120" viewBox="0 0 120 120">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--bd)" stroke-width="${sw}" opacity="0.35"/>
+    ${arcs}
+    ${missingArc}
+    <text x="${cx}" y="${cy-2}" text-anchor="middle" font-size="20" font-weight="700" fill="var(--tx)" font-family="var(--fs)">${centerPct}</text>
+    <text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--mt)" letter-spacing="1.2" font-family="var(--fs)">% MES</text>
+  </svg>`;
+}
+// Toggle de "ver todos" en lista de ejercicios
+let _progressExpanded=false;
+function toggleProgressExercises(){_progressExpanded=!_progressExpanded;renderProgress();}
+function renderProgress(){
+  const root=$("progress-content");
+  // Empty state
+  if(!sessions.length){
+    root.innerHTML=`<div class="sec"><div class="card" style="cursor:default;text-align:center;padding:36px 20px">
+      <div style="font-size:42px;margin-bottom:12px">📊</div>
+      <div style="font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;margin-bottom:6px">Sin sesiones todavía</div>
+      <div class="text-sm text-mt" style="line-height:1.5">Tu primer entreno aparecerá acá.<br>Empezá hoy desde el home.</div>
+    </div></div>`;
+    return;
+  }
+  const prTotal=progressPRTotal();
+  const stWeeks=progressStreakWeeks();
+  const topAll=progressTopExercises();
+  const topShown=_progressExpanded?topAll:topAll.slice(0,6);
+  const muscle=progressMonthMuscleVolume();
+  const prTimeline=progressPRTimeline();
+  const heat=progressYearHeatmap();
+
+  // ── 1 · Stats grid ──
+  const sessNumColor='var(--tx)';
+  const prNumColor=prTotal>0?'var(--gn)':'var(--mt2)';
+  const prSubColor=prTotal>0?'var(--mt)':'var(--mt2)';
+  const prSubText=prTotal>0?'logrados':'aún no';
+  const stNumColor=stWeeks>0?'var(--yw)':'var(--mt2)';
+  let html=`<div class="sec" style="padding-top:6px;padding-bottom:14px">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+      <div class="card" style="cursor:default;padding:14px 10px;text-align:center;margin-bottom:0">
+        <div style="font-size:26px;font-weight:700;letter-spacing:-0.9px;color:${sessNumColor};line-height:1">${sessions.length}</div>
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mt);margin-top:8px">Sesiones</div>
+        <div style="font-size:10px;font-weight:500;color:var(--mt2);margin-top:2px">totales</div>
+      </div>
+      <div class="card" style="cursor:default;padding:14px 10px;text-align:center;margin-bottom:0">
+        <div style="font-size:26px;font-weight:700;letter-spacing:-0.9px;color:${prNumColor};line-height:1">${prTotal}</div>
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mt);margin-top:8px">PRs</div>
+        <div style="font-size:10px;font-weight:500;color:${prSubColor};margin-top:2px">${prSubText}</div>
+      </div>
+      <div class="card" style="cursor:default;padding:14px 10px;text-align:center;margin-bottom:0">
+        <div style="font-size:26px;font-weight:700;letter-spacing:-0.9px;color:${stNumColor};line-height:1">${stWeeks}${stWeeks>0?' <span style="font-size:18px">🔥</span>':''}</div>
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mt);margin-top:8px">Racha</div>
+        <div style="font-size:10px;font-weight:500;color:var(--mt2);margin-top:2px">semanas</div>
+      </div>
+    </div>
+  </div>`;
+
+  // ── 2 · Historial por ejercicio ──
+  html+=`<div class="sec" style="padding-top:0;padding-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 2px">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Historial por ejercicio</div>
+      <div style="font-size:11px;color:var(--mt2);font-weight:500">${topAll.length} ejercicio${topAll.length===1?'':'s'}</div>
+    </div>`;
+  if(!topAll.length){
+    html+=`<div class="card" style="cursor:default;text-align:center;color:var(--mt2);padding:20px;font-size:13px">Sin ejercicios registrados.</div>`;
+  } else {
+    html+=`<div class="card" style="cursor:default;padding:0;margin-bottom:0">`;
+    topShown.forEach((it,idx)=>{
+      const last=hist(it.eid).slice(-1)[0];
+      const lastBadge=last?(it.mode==='weight'?`${last.peso||0}×${last.peakR||0}`:`${last.peakR||0} ${it.mode==='time'?'segs':'reps'}`):'—';
+      const prBadge=it.pr>0?`PR <span style="font-weight:700;color:${it.recentPR?'var(--gn)':'var(--tx)'}">${formatPR(it.pr,it.mode)}</span>${it.recentPR?' <span style="color:var(--gn);font-size:11px">↑</span>':''}`:'';
+      const spark=progressSparklineSVG(progressSparklineData(it.eid,it.mode),it.recentPR);
+      const border=idx<topShown.length-1?'border-bottom:1px solid var(--bd)':'';
+      html+=`<div class="b2-tap" onclick="showHist('${it.eid}')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;${border};cursor:pointer">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${it.name}</div>
+          <div style="font-size:11px;color:var(--mt);margin-top:4px;font-weight:500;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span>Últ. ${lastBadge}</span>
+            ${prBadge?`<span style="color:var(--bd)">·</span><span>${prBadge}</span>`:''}
+          </div>
+        </div>
+        ${spark}
+        <div style="font-size:20px;color:var(--ac);font-weight:400;line-height:1;flex-shrink:0">›</div>
+      </div>`;
+    });
+    html+=`</div>`;
+    if(topAll.length>6){
+      html+=`<div style="text-align:right;margin-top:10px"><button onclick="toggleProgressExercises()" style="background:none;border:none;color:var(--ac);font-size:13px;font-weight:600;cursor:pointer;padding:6px 2px">${_progressExpanded?'Mostrar menos ↑':'Ver todos →'}</button></div>`;
+    }
+  }
+  html+=`</div>`;
+
+  // ── 3 · Volumen muscular ──
+  html+=`<div class="sec" style="padding-top:0;padding-bottom:14px">
+    <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px;padding:0 2px">Volumen muscular</div>
+    <div class="card" style="cursor:default;padding:18px">`;
+  if(!muscle.hasAnyMapping||!muscle.segments.length){
+    html+=`<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0">
+      ${progressDonutSVG([],0)}
+      <div class="text-sm text-mt" style="text-align:center;line-height:1.5">Sin datos del mes.<br><span style="color:var(--mt2);font-size:12px">Registrá sesiones o mapea ejercicios en Settings</span></div>
+    </div>`;
+  } else {
+    const palette=['var(--ac)','var(--gn)','var(--yw)','var(--mt)','var(--mt2)'];
+    const top=muscle.segments.slice(0,5);
+    html+=`<div style="display:flex;align-items:center;gap:18px">
+      <div style="flex-shrink:0">${progressDonutSVG(muscle.segments,muscle.total)}</div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+        ${top.map((s,i)=>`<div style="display:flex;align-items:center;gap:8px">
+          <span style="width:8px;height:8px;border-radius:4px;background:${palette[i]};flex-shrink:0"></span>
+          <span style="font-size:12.5px;font-weight:500;color:var(--tx);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</span>
+          <span style="font-size:12.5px;font-weight:600;color:var(--mt);font-family:var(--fm)">${Math.round(s.pct)}%</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+  html+=`</div></div>`;
+
+  // ── 4 · PRs cronológicos + heatmap ──
+  html+=`<div class="sec" style="padding-top:0;padding-bottom:14px">
+    <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px;padding:0 2px">PRs · cronología</div>
+    <div class="card" style="cursor:default;padding:${prTimeline.length?'0':'18px'}">`;
+  if(!prTimeline.length){
+    html+=`<div style="text-align:center;color:var(--mt2);font-size:13px;padding:6px 0">Sin PRs registrados.</div>`;
+  } else {
+    prTimeline.slice(0,12).forEach((pr,idx)=>{
+      const border=idx<Math.min(prTimeline.length,12)-1?'border-bottom:1px solid var(--bd)':'';
+      html+=`<div class="b2-tap" onclick="showHist('${pr.eid}')" style="display:flex;align-items:center;gap:12px;padding:12px 16px;${border};cursor:pointer">
+        <div style="width:32px;height:32px;border-radius:9px;background:rgba(52,211,153,0.14);color:var(--gn);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px">🏆</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pr.name}</div>
+          <div style="font-size:11px;color:var(--mt);margin-top:2px;font-weight:500">${fd(pr.date)}${pr.time?' · '+pr.time:''}</div>
+        </div>
+        <div style="font-size:14px;font-weight:700;color:var(--gn);font-family:var(--fm);flex-shrink:0">${formatPR(pr.value,pr.mode)}</div>
+      </div>`;
+    });
+    if(prTimeline.length>12){
+      html+=`<div style="text-align:center;font-size:11px;color:var(--mt2);padding:10px;border-top:1px solid var(--bd)">+${prTimeline.length-12} PRs más</div>`;
+    }
+  }
+  html+=`</div>`;
+
+  // Heatmap anual
+  html+=`<div style="margin-top:18px">
+    <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px;padding:0 2px">Año entrenado</div>
+    <div class="card" style="cursor:default;padding:14px 12px">
+      <div style="display:grid;grid-template-columns:repeat(53,1fr);grid-auto-rows:1fr;gap:2px;width:100%">
+        ${heat.map(c=>{
+          const bg=c.trained?'var(--gn)':'var(--bd)';
+          const border=c.isToday?'box-shadow:inset 0 0 0 1.5px var(--yw)':'';
+          const opacity=c.trained?1:0.42;
+          return `<div title="${c.date}" style="aspect-ratio:1;background:${bg};border-radius:2px;opacity:${opacity};${border}"></div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;font-size:10.5px;color:var(--mt2);font-weight:600;letter-spacing:0.3px">
+        <span>Últimos 365 días</span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <span style="width:8px;height:8px;border-radius:2px;background:var(--bd);opacity:0.42"></span>
+          <span>Descanso</span>
+          <span style="width:8px;height:8px;border-radius:2px;background:var(--gn);margin-left:6px"></span>
+          <span>Entrenado</span>
+          <span style="width:8px;height:8px;border-radius:2px;background:transparent;box-shadow:inset 0 0 0 1.5px var(--yw);margin-left:6px"></span>
+          <span>Hoy</span>
+        </span>
+      </div>
+    </div>
+  </div>`;
+  html+=`</div>`;
+
+  root.innerHTML=html;
 }
 
 // ══ ROUTINE VIEW ══
