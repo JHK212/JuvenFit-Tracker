@@ -227,6 +227,30 @@ details summary::-webkit-details-marker{display:none;}
 .ws-pill-add{cursor:pointer;color:var(--mt);padding:7px 9px;}
 .ws-pill-add:hover{background:var(--sf);color:var(--tx);border-color:var(--mt2);}
 .ws-pill-add:active,.ws-pill-add.is-pressing{transform:scale(0.90);filter:brightness(0.85);background:var(--sf);}
+
+/* ═══════════════════════════════════════════════════════════════
+   Fase 5 · Toast global + Confirm sheet · botón danger sólido
+   ═══════════════════════════════════════════════════════════════ */
+/* Toast host vive fuera del flujo, anclado abajo. z>nav (90) y z>modal (100) — flota sobre todo. */
+.toast-host{position:fixed;left:0;right:0;bottom:calc(96px + env(safe-area-inset-bottom));z-index:200;display:flex;justify-content:center;pointer-events:none;padding:0 16px;}
+.toast{min-width:200px;max-width:92vw;border-radius:14px;padding:13px 18px 0;font-size:14px;font-weight:600;color:var(--tx);background:var(--cd);border:1px solid var(--bd);box-shadow:0 14px 38px -10px rgba(0,0,0,0.65),var(--lift-in);transform:translateY(18px);opacity:0;transition:transform 220ms cubic-bezier(0.2,0.7,0.2,1),opacity 200ms ease;pointer-events:auto;overflow:hidden;text-align:center;letter-spacing:-0.1px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-msg{padding-bottom:11px;line-height:1.35;}
+.toast-bar{height:3px;background:rgba(0,0,0,0.18);margin:0 -18px;transform-origin:left center;animation:toast-bar-shrink 2500ms linear forwards;}
+@keyframes toast-bar-shrink{from{transform:scaleX(1);}to{transform:scaleX(0);}}
+.toast-success{background:var(--gn);color:var(--action-tx);border-color:transparent;}
+.toast-warning{background:var(--yw);color:var(--action-tx);border-color:transparent;}
+.toast-error{background:var(--dn);color:var(--action-tx);border-color:transparent;}
+.toast-success .toast-bar,.toast-warning .toast-bar,.toast-error .toast-bar{background:rgba(0,0,0,0.32);}
+
+/* Confirm sheet apilable encima de modales (z:110 vs modal:100) */
+#confirm-sheet{z-index:110;}
+
+/* Botón destructivo SÓLIDO (rojo lleno + texto oscuro) — reservado al CTA confirm del sheet */
+.btn-dn{background:var(--dn);color:var(--action-tx);border:none;border-radius:var(--r-btn);padding:16px 24px;font-size:16px;font-weight:600;cursor:pointer;width:100%;text-align:center;letter-spacing:-0.2px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 1px 2px rgba(0,0,0,0.10);transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),filter 110ms ease,box-shadow 110ms ease;}
+.btn-dn:hover{filter:brightness(1.10);}
+.btn-dn:active,.btn-dn.is-pressing{transform:scale(0.95);filter:brightness(0.84);box-shadow:inset 0 2px 4px rgba(0,0,0,0.20),inset 0 1px 0 rgba(255,255,255,0.08);}
+.btn-dn:focus-visible{outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 0 0 3px rgba(248,113,113,0.45);}
 </style>
 </head>
 <body>
@@ -481,6 +505,22 @@ details summary::-webkit-details-marker{display:none;}
 <!-- ══ Modal ══ -->
 <div id="modal" class="modal-overlay" onclick="closeModal()">
   <div class="modal" onclick="event.stopPropagation()"><div id="modal-content"></div></div>
+</div>
+
+<!-- ══ Toast host global (Fase 5) ══ -->
+<div id="toast-host" class="toast-host" aria-live="polite" aria-atomic="true"></div>
+
+<!-- ══ Confirm Sheet · acción destructiva reusable (Fase 5) ══ -->
+<div id="confirm-sheet" class="bsheet-overlay" onclick="closeConfirmSheet()">
+  <div class="bsheet" onclick="event.stopPropagation()">
+    <div class="bsheet-handle"></div>
+    <div id="cs-title" class="bsheet-title" style="font-size:19px;font-weight:700;margin-bottom:8px"></div>
+    <div id="cs-desc" class="text-sm text-mt mb-20" style="line-height:1.5"></div>
+    <div class="flex" style="flex-direction:column;gap:10px">
+      <button id="cs-confirm" class="btn-dn" onclick="_csConfirm()"></button>
+      <button class="btn-out" onclick="closeConfirmSheet()">Cancelar</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ Bottom Sheet · info del ejercicio durante workout (Bento Tri · Fase 4) ══ -->
@@ -2529,7 +2569,17 @@ function resumeDraft(){
   curExI=movPending?-1:0;
   showPage('work');renderWork();
 }
-function discardDraft(){clearDraft();renderHome();}
+function discardDraft(){
+  showConfirmSheet({
+    title:'¿Descartar el borrador?',
+    desc:'Se borra el entrenamiento en curso. Lo que ya cargaste no queda guardado en el historial.',
+    confirmLabel:'Descartar borrador',
+    onConfirm:()=>{
+      clearDraft();renderHome();
+      toast('Borrador descartado','success');
+    }
+  });
+}
 function confirmExit(){$("exit-modal").classList.add('show');}
 function closeExitModal(){$("exit-modal").classList.remove('show');}
 
@@ -2720,7 +2770,20 @@ function addExToSess(sid){
   $("modal-content").innerHTML=html;$("modal").classList.add('show');
 }
 function doAddExToSess(sid,eid){const s=sessions.find(x=>x.id===sid);if(!s)return;const def=allCompounds().find(e=>eidOf(e)===eid);if(!def)return;s.exercises.push({eid,sets:Array.from({length:parseInt(def.sets)||1},()=>({w:0,r:repsAsNumber(def.reps)||10,rpe:null})),note:''});save("gym-s",sessions);editSession(sid);}
-function deleteSess(sid){sessions=sessions.filter(s=>s.id!==sid);save("gym-s",sessions);showPage('home');}
+function deleteSess(sid){
+  const s=sessions.find(x=>x.id===sid);
+  const dayDef=s?routine.days.find(d=>d.id===s.dayId):null;
+  showConfirmSheet({
+    title:'¿Eliminar sesión?',
+    desc:s?`Se borra la sesión del ${fd(s.date)}${s.time?' · '+s.time:''}${dayDef?' — '+dayDef.name:''}. No se puede deshacer.`:'Se borra la sesión seleccionada.',
+    confirmLabel:'Eliminar sesión',
+    onConfirm:()=>{
+      sessions=sessions.filter(x=>x.id!==sid);save("gym-s",sessions);
+      showPage('home');
+      toast('Sesión eliminada','success');
+    }
+  });
+}
 
 // ══ SETTINGS ══
 function renderEditR(){
@@ -2898,7 +2961,20 @@ function filterPicker(q){
 }
 function addAccEx(dayId){const d=routine.days.find(x=>x.id===dayId);getOrCreatePrincipalBlock(d).exercises.push({id:uid(),name:"Nueva biserie",type:"biserie",sets:3,rest:60,notes:"",items:[{name:"Ejercicio A",reps:"12"},{name:"Ejercicio B",reps:"12"}]});saveRoutine();renderEditR();}
 function addDay(){routine.days.push({id:Date.now(),name:"Día "+(routine.days.length+1),sub:"Nuevo día",blocks:[{id:uid(),type:'principal',label:'',exercises:[]}]});saveRoutine();rerenderRoutineList();}
-function deleteDay(dayId){if(routine.days.length<=1)return;routine.days=routine.days.filter(d=>d.id!==dayId);saveRoutine();rerenderRoutineList();}
+function deleteDay(dayId){
+  if(routine.days.length<=1){toast('Tenés que mantener al menos un día','warning');return;}
+  const d=routine.days.find(x=>x.id===dayId);
+  showConfirmSheet({
+    title:'¿Eliminar este día?',
+    desc:`Se borra "${d?.name||'el día'}" y todos sus bloques de la rutina. Las sesiones registradas no se afectan.`,
+    confirmLabel:'Eliminar día',
+    onConfirm:()=>{
+      routine.days=routine.days.filter(x=>x.id!==dayId);
+      saveRoutine();rerenderRoutineList();
+      toast('Día eliminado','success');
+    }
+  });
+}
 function editDayPrompt(dayId){
   const d=routine.days.find(x=>x.id===dayId);
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:16px">Editar día</div>`;
@@ -2908,12 +2984,31 @@ function editDayPrompt(dayId){
   html+=`<button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>`;
   $("modal-content").innerHTML=html;$("modal").classList.add('show');
 }
-function resetRoutine(){routine.days=JSON.parse(JSON.stringify(DEFAULT_DAYS));saveRoutine();rerenderRoutineList();}
+function resetRoutine(){
+  showConfirmSheet({
+    title:'¿Borrar toda la rutina?',
+    desc:'Se eliminan todos los días, bloques y ejercicios. Vuelve al estado inicial con un solo día vacío. Esta acción no se puede deshacer.',
+    confirmLabel:'Borrar rutina',
+    onConfirm:()=>{
+      routine.days=JSON.parse(JSON.stringify(DEFAULT_DAYS));
+      saveRoutine();rerenderRoutineList();
+      toast('Rutina reseteada','success');
+    }
+  });
+}
 
 // ══ DIAGNÓSTICO (sin trigger UI — accesible solo desde consola del browser) ══
 // window.loadDemoRoutine() carga una rutina demo si querés inspeccionar el formato de bloques.
 function loadDemoRoutine(){
-  if(!confirm('Esto agrega una rutina demo con bloques (movilidad, principal, finisher) al listado y la pone activa.\n\nTu rutina actual queda intacta — podés volver con "Cambiar rutina activa".\n\n¿Continuar?')) return;
+  showConfirmSheet({
+    title:'¿Cargar rutina demo?',
+    desc:'Se agrega una rutina demo con bloques (movilidad, principal, finisher) al listado y se pone activa. Tu rutina actual queda intacta — podés volver desde "Cambiar rutina activa".',
+    confirmLabel:'Cargar demo',
+    danger:false,
+    onConfirm:()=>_doLoadDemoRoutine()
+  });
+}
+function _doLoadDemoRoutine(){
   const demoId='demo-bloques-'+Date.now().toString(36);
   const demoRoutine={
     id:demoId,
@@ -2997,14 +3092,22 @@ function switchRoutine(id){
   renderHome();
 }
 function deleteRoutineFromStore(id){
-  if(!confirm('¿Eliminar esta rutina del store? No afecta sesiones registradas.')) return;
-  routineStore.list=routineStore.list.filter(x=>x.id!==id);
-  if(routineStore.active===id&&routineStore.list.length){routineStore.active=routineStore.list[0].id;routine=routineStore.list[0];}
-  save("gym-r",routineStore);
+  const r=(routineStore.list||[]).find(x=>x.id===id);
+  // Cerramos el modal "Cambiar rutina activa" antes de abrir el sheet — evita stack visual confuso.
   closeModal();
-  toast('Rutina eliminada','success');
-  renderEditR();
-  renderHome();
+  showConfirmSheet({
+    title:'¿Eliminar esta rutina?',
+    desc:`Se borra "${r?.name||'la rutina'}" del store. Las sesiones registradas no se afectan.`,
+    confirmLabel:'Eliminar rutina',
+    onConfirm:()=>{
+      routineStore.list=routineStore.list.filter(x=>x.id!==id);
+      if(routineStore.active===id&&routineStore.list.length){routineStore.active=routineStore.list[0].id;routine=routineStore.list[0];}
+      save("gym-r",routineStore);
+      toast('Rutina eliminada','success');
+      renderEditR();
+      renderHome();
+    }
+  });
 }
 // ══ DAY BLOCKS EDITOR (A3) ══
 let editingDayState=null;
@@ -3435,10 +3538,19 @@ function moveBlock(bi,dir){
 }
 
 function removeBlock(bi){
-  if(!confirm('¿Eliminar este bloque y todos sus ejercicios?')) return;
-  editingDayState.blocks.splice(bi,1);
-  if(expandedExBE&&expandedExBE.bi===bi) expandedExBE=null;
-  renderDayBlocksContainer();
+  const blk=editingDayState?.blocks?.[bi];
+  const exCount=(blk?.exercises||[]).length;
+  showConfirmSheet({
+    title:'¿Eliminar este bloque?',
+    desc:exCount?`Se borra el bloque y sus ${exCount} ejercicio${exCount===1?'':'s'}. No afecta sesiones registradas.`:'Se borra el bloque vacío.',
+    confirmLabel:'Eliminar bloque',
+    onConfirm:()=>{
+      editingDayState.blocks.splice(bi,1);
+      if(expandedExBE&&expandedExBE.bi===bi) expandedExBE=null;
+      renderDayBlocksContainer();
+      toast('Bloque eliminado','success');
+    }
+  });
 }
 
 function moveExercise(bi,ei,dir){
@@ -3454,9 +3566,18 @@ function moveExercise(bi,ei,dir){
 }
 
 function removeExerciseFromBlock(bi,ei){
-  editingDayState.blocks[bi].exercises.splice(ei,1);
-  if(expandedExBE&&expandedExBE.bi===bi&&expandedExBE.ei===ei) expandedExBE=null;
-  renderDayBlocksContainer();
+  const ex=editingDayState?.blocks?.[bi]?.exercises?.[ei];
+  showConfirmSheet({
+    title:'¿Eliminar ejercicio?',
+    desc:ex?.name?`Se borra "${ex.name}" del bloque. No afecta sesiones registradas.`:'Se borra el ejercicio del bloque.',
+    confirmLabel:'Eliminar ejercicio',
+    onConfirm:()=>{
+      editingDayState.blocks[bi].exercises.splice(ei,1);
+      if(expandedExBE&&expandedExBE.bi===bi&&expandedExBE.ei===ei) expandedExBE=null;
+      renderDayBlocksContainer();
+      toast('Ejercicio eliminado','success');
+    }
+  });
 }
 
 function openAddBlockPicker(){
@@ -3790,19 +3911,59 @@ function checkUrlImport(){
   }catch(e){}
 }
 
+// ══ TOAST GLOBAL (Fase 5) ══
+// kind: 'success' | 'warning' | 'error' | undefined (info neutro)
+// Barra de progreso animada 2.5s · auto-dismiss · uno a la vez · fuera del flujo (#toast-host)
 function toast(msg,kind){
-  // Toast minimal: usamos console + alert si no hay UI específica
-  // (la app no tiene toast container — uso un mini overlay temporal)
-  let t=document.getElementById('_toast');
-  if(!t){
-    t=document.createElement('div');t.id='_toast';
-    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--cd);color:var(--tx);border:1px solid var(--bd);box-shadow:var(--lift-in),0 10px 28px -8px rgba(0,0,0,0.5);padding:10px 18px;border-radius:12px;font-size:14px;font-weight:500;z-index:1000;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center';
-    document.body.appendChild(t);
-  }
-  t.textContent=msg;
-  t.style.background=kind==='error'?'var(--dn)':kind==='success'?'var(--gn)':'var(--tx)';
-  t.style.opacity='1';
-  clearTimeout(t._tm);t._tm=setTimeout(()=>{t.style.opacity='0';},2200);
+  const host=$("toast-host");
+  if(!host) return;
+  // Solo un toast vivo: si llega uno nuevo, retiramos el anterior limpio
+  while(host.firstChild){host.firstChild.remove();}
+  const t=document.createElement('div');
+  const cls=kind==='error'?'toast-error':kind==='warning'?'toast-warning':kind==='success'?'toast-success':'';
+  t.className='toast'+(cls?' '+cls:'');
+  // innerHTML controlado: msg llega de strings literales de la app, no de input directo del usuario.
+  t.innerHTML=`<div class="toast-msg">${msg}</div><div class="toast-bar"></div>`;
+  host.appendChild(t);
+  // rAF: garantizar que el frame inicial (opacity:0, translateY:18px) pinte antes del .show
+  // si no, el transition se pierde y el toast aparece sin animación.
+  requestAnimationFrame(()=>{t.classList.add('show');});
+  t._tm=setTimeout(()=>{
+    t.classList.remove('show');
+    setTimeout(()=>{if(t.parentNode) t.remove();},230);
+  },2500);
+}
+
+// ══ CONFIRM SHEET reusable (Fase 5) ══
+// Bottom sheet genérico para acciones destructivas / irreversibles.
+// Params: {title, desc, confirmLabel, onConfirm, danger=true}
+// danger=false → CTA usa .btn (azul) en vez de .btn-dn (rojo).
+let _csCallback=null;
+function showConfirmSheet({title,desc,confirmLabel,onConfirm,danger=true}={}){
+  const sheet=$("confirm-sheet");
+  if(!sheet) return;
+  $("cs-title").textContent=title||'¿Confirmar?';
+  const descEl=$("cs-desc");
+  if(desc){descEl.textContent=desc;descEl.style.display='';}
+  else{descEl.textContent='';descEl.style.display='none';}
+  const btn=$("cs-confirm");
+  btn.textContent=confirmLabel||(danger?'Eliminar':'Confirmar');
+  btn.className=danger?'btn-dn':'btn';
+  _csCallback=typeof onConfirm==='function'?onConfirm:null;
+  sheet.classList.add('show');
+  document.body.classList.add('modal-open');
+}
+function closeConfirmSheet(){
+  const sheet=$("confirm-sheet");
+  if(!sheet) return;
+  sheet.classList.remove('show');
+  document.body.classList.remove('modal-open');
+  _csCallback=null;
+}
+function _csConfirm(){
+  const cb=_csCallback;
+  closeConfirmSheet();
+  if(cb){try{cb();}catch(e){console.error('[confirm-sheet] callback error:',e);toast('Algo falló','error');}}
 }
 
 // ══ EDIT EXERCISE ══
@@ -3855,8 +4016,21 @@ function saveEditEx(){
 }
 function deleteEx(){
   const d=routine.days.find(x=>x.id===editDayId);
-  (d.blocks||[]).forEach(b=>{b.exercises=(b.exercises||[]).filter(e=>e.id!==editExId);});
-  saveRoutine();showPage('editR');
+  if(!d) return;
+  const found=findExInDay(d,editExId);
+  const exName=found?.ex?.name||'el ejercicio';
+  // Cerramos el modal de edit antes de mostrar el sheet — evita doble overlay visual.
+  closeModal();
+  showConfirmSheet({
+    title:'¿Eliminar ejercicio?',
+    desc:`Se borra "${exName}" de la rutina. No afecta sesiones registradas.`,
+    confirmLabel:'Eliminar ejercicio',
+    onConfirm:()=>{
+      (d.blocks||[]).forEach(b=>{b.exercises=(b.exercises||[]).filter(e=>e.id!==editExId);});
+      saveRoutine();showPage('editR');
+      toast('Ejercicio eliminado','success');
+    }
+  });
 }
 function addEditItem(){
   const d=routine.days.find(x=>x.id===editDayId);const found=findExInDay(d,editExId);if(!found)return;const ex=found.ex;
@@ -3887,7 +4061,20 @@ function renderDelHist(){
 function toggleDel(id){if(selectedDel.has(id)){selectedDel.delete(id);$("chk-"+id).classList.remove('checked');$("chk-"+id).innerHTML='';}else{selectedDel.add(id);$("chk-"+id).classList.add('checked');$("chk-"+id).innerHTML='✕';}updateDelBtn();}
 function selectAllSessions(){if(selectedDel.size===sessions.length){selectedDel=new Set();document.querySelectorAll('.del-check').forEach(c=>{c.classList.remove('checked');c.innerHTML='';});}else{sessions.forEach(s=>selectedDel.add(s.id));document.querySelectorAll('.del-check').forEach(c=>{c.classList.add('checked');c.innerHTML='✕';});}updateDelBtn();}
 function updateDelBtn(){const b=$("del-btn");if(selectedDel.size>0){b.style.display="block";b.textContent=`Eliminar ${selectedDel.size} sesión${selectedDel.size>1?'es':''}`;}else{b.style.display="none";}}
-function deleteSelected(){sessions=sessions.filter(s=>!selectedDel.has(s.id));save("gym-s",sessions);selectedDel=new Set();renderDelHist();}
+function deleteSelected(){
+  const n=selectedDel.size;
+  if(!n) return;
+  showConfirmSheet({
+    title:`¿Eliminar ${n} sesión${n>1?'es':''}?`,
+    desc:'Se borran del historial de forma definitiva. La racha y los PR se recalculan sin esas sesiones.',
+    confirmLabel:`Eliminar ${n} sesión${n>1?'es':''}`,
+    onConfirm:()=>{
+      sessions=sessions.filter(s=>!selectedDel.has(s.id));save("gym-s",sessions);
+      selectedDel=new Set();renderDelHist();
+      toast(`${n} sesión${n>1?'es eliminadas':' eliminada'}`,'success');
+    }
+  });
+}
 
 // ══ EXPORT / IMPORT ══
 function exportData(){
@@ -3944,7 +4131,7 @@ function doImport(mode){
 // browser optimiza repaints. Aplicamos clase .is-pressing por touchstart/touchend
 // para forzar el feedback visual. CSS aplica los mismos efectos en :active Y .is-pressing.
 (function(){
-  const SELECTORS = '.btn,.btn-out,.btn-danger,.btn-sm,.icon-btn,.w-btn,.card.b2-tap,.b2-press,.ws-pill-done,.ws-pill-add,.rpe-btn-min';
+  const SELECTORS = '.btn,.btn-dn,.btn-out,.btn-danger,.btn-sm,.icon-btn,.w-btn,.card.b2-tap,.b2-press,.ws-pill-done,.ws-pill-add,.rpe-btn-min';
   function findPressable(el){
     while(el && el !== document.body){
       if(el.matches && el.matches(SELECTORS)) return el;
