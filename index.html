@@ -1873,15 +1873,19 @@ function progressYearRPEDistribution(){
   return {counts,pct,diagnosis,year};
 }
 // Grid de los últimos 365 días (oldest→newest) para heatmap GitHub-style.
-// Heatmap del AÑO ACTUAL (no sliding), arranca el 1 de enero.
-// Cada día con su weekIdx (col) y dowIdx (row, Lun=0). Meses con labels y sessionCount.
+// Heatmap del AÑO ACTUAL (no sliding), arranca el 1 de enero y termina HOY.
+// Antes el grid renderaba hasta el 31 de diciembre con días futuros transparentes,
+// pero los labels de meses futuros se mostraban "sobre nada" — se veía desalineado.
+// Ahora truncamos cells + labels al mes actual: el grid crece mes a mes durante el año.
 function progressYearHeatmap(){
   const today=td();
   const trained=new Set(sessions.map(s=>s.date));
-  const year=nowBsAs().getUTCFullYear();
+  const now=nowBsAs();
+  const year=now.getUTCFullYear();
   const yearStart=new Date(Date.UTC(year,0,1));
-  const yearEnd=new Date(Date.UTC(year,11,31));
-  const totalDays=Math.round((yearEnd-yearStart)/(24*3600*1000))+1;
+  // Truncar hasta el día actual (inclusive) — no renderear futuros
+  const todayDate=new Date(Date.UTC(year,now.getUTCMonth(),now.getUTCDate()));
+  const totalDays=Math.round((todayDate-yearStart)/(24*3600*1000))+1;
   const days=[];
   let weekIdx=0;
   for(let i=0;i<totalDays;i++){
@@ -1893,7 +1897,7 @@ function progressYearHeatmap(){
       date:ds,
       trained:trained.has(ds),
       isToday:ds===today,
-      isFuture:ds>today,
+      isFuture:false, // ya no rendereamos futuros — todos los días del array son pasado o presente
       weekIdx,
       dowIdx:dow,
       month:d.getUTCMonth(),
@@ -1901,7 +1905,9 @@ function progressYearHeatmap(){
     });
   }
   const monthNames=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  const months=monthNames.map((name,m)=>{
+  const currentMonth=now.getUTCMonth();
+  // Solo meses hasta el actual inclusive — sin "Diciembre" colgando si estamos en mayo
+  const months=monthNames.slice(0,currentMonth+1).map((name,m)=>{
     const monthDays=days.filter(d=>d.month===m);
     return {
       name,
@@ -2278,7 +2284,8 @@ function renderProgress(){
       <div style="display:flex;gap:2px;margin-bottom:6px;padding-left:18px">
         ${heat.months.map(m=>{
           const isOpen=_progressMonthExpanded===m.idx;
-          const txColor=isOpen?'var(--ac)':(m.sessionCount>0?'var(--mt)':'var(--mt2)');
+          // Meses con sesiones · letra blanca off-white para que "salten" sobre los sin training
+          const txColor=isOpen?'var(--ac)':(m.sessionCount>0?'var(--tx)':'var(--mt2)');
           return `<div class="b2-press" onclick="toggleProgressMonth(${m.idx})" style="flex:${m.days.length};cursor:pointer;text-align:center;font-size:9.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:${txColor};padding:3px 0;border-radius:4px;min-width:0;${isOpen?'background:rgba(96,165,250,0.10)':''}">${m.name}</div>`;
         }).join('')}
       </div>
