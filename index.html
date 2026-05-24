@@ -1348,8 +1348,260 @@ function groupOfCompoundIdx(compounds,idx){
   const gid=cur.groupId;
   const indexes=[];
   for(let i=0;i<compounds.length;i++){if(compounds[i].groupId===gid) indexes.push(i);}
-  if(indexes.length<2) return null;
-  return {groupId:gid,indexes,size:indexes.length,isFirst:idx===indexes[0],isLast:idx===indexes[indexes.length-1],position:indexes.indexOf(idx)};
+  // Singleton: aceptamos si el grupo es metabólico (AMRAP/EMOM de 1 ej.). Sino, no es grupo.
+  if(indexes.length<2 && !isMetabolicFormat(cur.format)) return null;
+  return {
+    groupId:gid,indexes,size:indexes.length,
+    isFirst:idx===indexes[0],isLast:idx===indexes[indexes.length-1],
+    position:indexes.indexOf(idx),
+    format:cur.format||'normal',
+    formatConfig:cur.formatConfig||null,
+    isMetabolic:isMetabolicFormat(cur.format)
+  };
+}
+
+// ══ AMRAP/EMOM helpers ══
+function isMetabolicFormat(fmt){return fmt==='amrap'||fmt==='emom';}
+function fmtMMSS(totalSecs){
+  totalSecs=Math.max(0,Math.round(totalSecs));
+  const m=Math.floor(totalSecs/60), s=totalSecs%60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+function metabolicTotalSecs(fmt,cfg,nEx){
+  if(!cfg) return 0;
+  if(fmt==='amrap'){
+    const w=parseInt(cfg.workSecs)||0, r=parseInt(cfg.restSecs)||0, n=parseInt(cfg.rounds)||0;
+    return n*nEx*(w+r);
+  }
+  if(fmt==='emom'){
+    const it=parseInt(cfg.interval)||60, n=parseInt(cfg.rounds)||0;
+    return n*nEx*it;
+  }
+  return 0;
+}
+function metabolicHeaderLabel(fmt,cfg,nEx){
+  if(!cfg) return fmt.toUpperCase();
+  if(fmt==='amrap'){
+    const w=cfg.workSecs||'?', r=cfg.restSecs!=null?cfg.restSecs:'?', n=cfg.rounds||'?';
+    return `🔥 AMRAP ${w}s/${r}s × ${n} vuelta${n===1?'':'s'}`+(nEx>1?` · ${nEx} ej.`:'');
+  }
+  if(fmt==='emom'){
+    const n=cfg.rounds||'?', it=cfg.interval||60;
+    return `⏱ EMOM ${n} vuelta${n===1?'':'s'} × ${it}s`+(nEx>1?` · ${nEx} ej.`:'');
+  }
+  return fmt.toUpperCase();
+}
+
+// ══ Audio cues (Web Audio API, sin assets) ══
+let _mbAudioCtx=null;
+function _mbEnsureAudio(){
+  if(_mbAudioCtx) return _mbAudioCtx;
+  try{_mbAudioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}
+  return _mbAudioCtx;
+}
+function mbBeep(freq,durMs,vol){
+  const ctx=_mbEnsureAudio(); if(!ctx) return;
+  try{
+    const osc=ctx.createOscillator(), gain=ctx.createGain();
+    osc.frequency.value=freq; osc.type='sine';
+    gain.gain.value=vol||0.25;
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime+durMs/1000);
+  }catch(e){}
+}
+function mbVibrate(pattern){try{if(navigator.vibrate) navigator.vibrate(pattern);}catch(e){}}
+function mbCueWorkStart(){mbBeep(880,180,0.3); mbVibrate(180);}
+function mbCueRestStart(){mbBeep(440,250,0.25); mbVibrate(120);}
+function mbCueRoundStart(){mbBeep(880,140,0.3); setTimeout(()=>mbBeep(880,140,0.3),200); mbVibrate([150,80,150]);}
+function mbCueCountdown(){mbBeep(660,80,0.18);}
+function mbCueFinish(){mbBeep(880,150,0.35); setTimeout(()=>mbBeep(1100,150,0.35),200); setTimeout(()=>mbBeep(1320,300,0.35),400); mbVibrate([200,100,200,100,400]);}
+
+// ══ Metabolic timer state (uno solo activo a la vez) ══
+// _mbState = {groupId, phaseIdx, phaseStartedAt, totalPausedMs, pausedAt, phases:[...], cfg, fmt, nEx, exIndexes}
+let _mbState=null;
+let _mbTickHandle=null;
+let _mbLastBeepedSec=null;
+
+function mbBuildPhases(fmt,cfg,exIndexes){
+  // Linealiza todas las fases del bloque metabólico en una sola lista.
+  const phases=[];
+  const nEx=exIndexes.length;
+  const rounds=parseInt(cfg.rounds)||0;
+  if(fmt==='amrap'){
+    const w=parseInt(cfg.workSecs)||0, r=parseInt(cfg.restSecs)||0;
+    for(let round=0;round<rounds;round++){
+      for(let ei=0;ei<nEx;ei++){
+        phases.push({kind:'work',round,ei,exIdx:exIndexes[ei],durationMs:w*1000,isFirstOfRound:ei===0});
+        if(r>0) phases.push({kind:'rest',round,ei,exIdx:exIndexes[ei],durationMs:r*1000,isFirstOfRound:false});
+      }
+    }
+  } else if(fmt==='emom'){
+    const it=parseInt(cfg.interval)||60;
+    for(let round=0;round<rounds;round++){
+      for(let ei=0;ei<nEx;ei++){
+        phases.push({kind:'interval',round,ei,exIdx:exIndexes[ei],durationMs:it*1000,isFirstOfRound:ei===0});
+      }
+    }
+  }
+  return phases;
+}
+
+function mbStart(grp,compounds){
+  const cfg=grp.formatConfig||{};
+  const phases=mbBuildPhases(grp.format,cfg,grp.indexes);
+  if(!phases.length){toast('Bloque sin configuración válida','error');return;}
+  _mbState={
+    groupId:grp.groupId, fmt:grp.format, cfg, nEx:grp.size, exIndexes:grp.indexes,
+    phases, phaseIdx:0,
+    phaseStartedAt:Date.now(), totalPausedMs:0, pausedAt:null,
+    completedAt:null
+  };
+  _mbLastBeepedSec=null;
+  saveMbState();
+  mbCueRoundStart(); // arranque
+  mbStartTick();
+  renderWork();
+}
+function mbPause(){
+  if(!_mbState||_mbState.pausedAt||_mbState.completedAt) return;
+  _mbState.pausedAt=Date.now();
+  saveMbState();
+  mbStopTick();
+  renderWork();
+}
+function mbResume(){
+  if(!_mbState||!_mbState.pausedAt) return;
+  _mbState.totalPausedMs+=Date.now()-_mbState.pausedAt;
+  _mbState.pausedAt=null;
+  saveMbState();
+  mbStartTick();
+  renderWork();
+}
+function mbReset(){
+  if(!_mbState) return;
+  if(!confirm('¿Reiniciar el AMRAP/EMOM? Se pierde el progreso del timer.')) return;
+  mbStopTick();
+  clearMbState();
+  renderWork();
+}
+function mbAdvancePhase(){
+  if(!_mbState) return;
+  _mbState.phaseIdx++;
+  _mbLastBeepedSec=null;
+  if(_mbState.phaseIdx>=_mbState.phases.length){
+    // Bloque completado
+    _mbState.completedAt=Date.now();
+    mbStopTick();
+    mbCueFinish();
+    if(curSess){
+      curSess.metabolic=curSess.metabolic||{};
+      curSess.metabolic[_mbState.groupId]={
+        completedAt:_mbState.completedAt,
+        totalSecs:metabolicTotalSecs(_mbState.fmt,_mbState.cfg,_mbState.nEx),
+        format:_mbState.fmt,
+        cfg:_mbState.cfg
+      };
+      saveDraft();
+    }
+    saveMbState();
+    renderWork();
+    return;
+  }
+  const ph=_mbState.phases[_mbState.phaseIdx];
+  _mbState.phaseStartedAt=Date.now();
+  _mbState.totalPausedMs=0;
+  // Cue audio según fase entrante
+  if(ph.kind==='work') ph.isFirstOfRound?mbCueRoundStart():mbCueWorkStart();
+  else if(ph.kind==='rest') mbCueRestStart();
+  else if(ph.kind==='interval') ph.isFirstOfRound?mbCueRoundStart():mbCueWorkStart();
+  saveMbState();
+}
+function mbStartTick(){
+  mbStopTick();
+  _mbTickHandle=setInterval(mbTick,100);
+}
+function mbStopTick(){
+  if(_mbTickHandle){clearInterval(_mbTickHandle);_mbTickHandle=null;}
+}
+function mbTick(){
+  if(!_mbState||_mbState.pausedAt||_mbState.completedAt) return;
+  const ph=_mbState.phases[_mbState.phaseIdx]; if(!ph) return;
+  const elapsed=Date.now()-_mbState.phaseStartedAt-_mbState.totalPausedMs;
+  const remaining=ph.durationMs-elapsed;
+  if(remaining<=0){
+    mbAdvancePhase();
+    renderWork();
+    return;
+  }
+  // Countdown audio en últimos 3 segundos
+  const secsLeft=Math.ceil(remaining/1000);
+  if(secsLeft<=3 && secsLeft>=1 && secsLeft!==_mbLastBeepedSec){
+    _mbLastBeepedSec=secsLeft;
+    mbCueCountdown();
+  }
+  // Update solo el contador para evitar full re-render cada 100ms
+  const tEl=document.getElementById('mb-timer-display');
+  if(tEl) tEl.textContent=fmtMMSS(remaining/1000);
+}
+function mbResyncOnVisible(){
+  // Cuando la PWA vuelve de background el setInterval estaba throttled.
+  // Si hay timer activo, recalcular phase actual desde timestamps absolutos.
+  if(!_mbState||_mbState.completedAt||_mbState.pausedAt) return;
+  const ph=_mbState.phases[_mbState.phaseIdx]; if(!ph) return;
+  let elapsed=Date.now()-_mbState.phaseStartedAt-_mbState.totalPausedMs;
+  let advanced=false;
+  while(_mbState.phaseIdx<_mbState.phases.length && elapsed>=_mbState.phases[_mbState.phaseIdx].durationMs){
+    elapsed-=_mbState.phases[_mbState.phaseIdx].durationMs;
+    _mbState.phaseIdx++;
+    advanced=true;
+    _mbLastBeepedSec=null;
+  }
+  if(_mbState.phaseIdx>=_mbState.phases.length){
+    _mbState.completedAt=Date.now()-elapsed;
+    mbStopTick();
+    saveMbState();
+    if(curSess){
+      curSess.metabolic=curSess.metabolic||{};
+      curSess.metabolic[_mbState.groupId]={
+        completedAt:_mbState.completedAt,
+        totalSecs:metabolicTotalSecs(_mbState.fmt,_mbState.cfg,_mbState.nEx),
+        format:_mbState.fmt, cfg:_mbState.cfg
+      };
+      saveDraft();
+    }
+    renderWork();
+    return;
+  }
+  if(advanced){
+    _mbState.phaseStartedAt=Date.now()-elapsed;
+    _mbState.totalPausedMs=0;
+    saveMbState();
+    renderWork();
+  }
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible') mbResyncOnVisible();});
+function saveMbState(){if(_mbState) save('gym-mb-state',_mbState); else localStorage.removeItem('gym-mb-state');}
+function clearMbState(){_mbState=null; localStorage.removeItem('gym-mb-state'); _mbLastBeepedSec=null;}
+function loadMbStateForGroup(gid){
+  const saved=load('gym-mb-state',null);
+  if(!saved||saved.groupId!==gid) return null;
+  // Si estaba corriendo (no pausado, no completado), recalcular si el tiempo ya pasó alguna fase
+  if(saved.completedAt||saved.pausedAt){_mbState=saved; return saved;}
+  const ph=saved.phases[saved.phaseIdx];
+  if(ph){
+    let elapsed=Date.now()-saved.phaseStartedAt-saved.totalPausedMs;
+    // Si pasó más tiempo que la phase actual, avanzar (puede haber pasado varias)
+    while(ph && elapsed>=saved.phases[saved.phaseIdx].durationMs){
+      elapsed-=saved.phases[saved.phaseIdx].durationMs;
+      saved.phaseIdx++;
+      if(saved.phaseIdx>=saved.phases.length){saved.completedAt=Date.now()-elapsed;break;}
+    }
+    if(!saved.completedAt){saved.phaseStartedAt=Date.now()-elapsed;saved.totalPausedMs=0;}
+  }
+  _mbState=saved;
+  if(!saved.completedAt&&!saved.pausedAt) mbStartTick();
+  return saved;
 }
 
 // ══ INIT ══
@@ -2552,8 +2804,11 @@ function startWorkout(dayId,customDate){
       })),note:''};
     }),
     accessories:accessories.reduce((o,a)=>{o[a.id]=false;return o;},{}),
-    mobility:mobility.reduce((o,m)=>{o[m.id]=false;return o;},{})
+    mobility:mobility.reduce((o,m)=>{o[m.id]=false;return o;},{}),
+    metabolic:{}  // por groupId: {completedAt, totalSecs, format, cfg}
   };
+  // Cualquier timer metabólico colgado de una sesión anterior se descarta al abrir una nueva
+  clearMbState();
   saveDraft();showPage('work');renderWork();
 }
 
@@ -2976,6 +3231,108 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
 }
 
 // Vista unificada de un grupo (biserie/triserie): vueltas con sub-cards anidadas
+// ══ AMRAP / EMOM workout view ══
+function mbStartByGroupId(gid){
+  const day=routine.days.find(d=>d.id===curDayId);
+  if(!day) return;
+  const compounds=getCompounds(day);
+  const idx=compounds.findIndex(e=>e.groupId===gid);
+  if(idx<0) return;
+  const grp=groupOfCompoundIdx(compounds,idx);
+  if(!grp||!grp.isMetabolic) return;
+  // Si había un timer corriendo de otro grupo, descartar
+  if(_mbState&&_mbState.groupId!==gid){mbStopTick();clearMbState();}
+  mbStart(grp,compounds);
+}
+
+function renderMetabolicUnitHTML(grp,compounds,day){
+  const fmt=grp.format, cfg=grp.formatConfig||{};
+  const exObjs=grp.indexes.map(i=>compounds[i]);
+  const totalSecs=metabolicTotalSecs(fmt,cfg,grp.size);
+  const header=metabolicHeaderLabel(fmt,cfg,grp.size);
+  const completed=curSess.metabolic&&curSess.metabolic[grp.groupId];
+  // Hidratar _mbState si hay state persistido para este grupo
+  if(!_mbState||_mbState.groupId!==grp.groupId){
+    if(!completed) loadMbStateForGroup(grp.groupId);
+  }
+  const active=_mbState&&_mbState.groupId===grp.groupId&&!_mbState.completedAt;
+  const paused=!!(active&&_mbState.pausedAt);
+  let html='';
+  html+=`<div style="background:rgba(234,88,12,0.08);border:1px solid rgba(234,88,12,0.35);border-radius:14px;padding:18px;text-align:center">`;
+  html+=`<div style="font-size:12px;color:#9a3412;font-weight:800;letter-spacing:.5px;margin-bottom:12px">${header}</div>`;
+  if(completed){
+    html+=`<div style="font-size:48px;margin:16px 0">✅</div>
+      <div style="font-size:20px;font-weight:800;color:var(--gn);margin-bottom:6px">Bloque completado</div>
+      <div class="text-sm text-mt mb-16">Duración programada: <span class="mono">${fmtMMSS(totalSecs)}</span></div>
+      <button class="btn-out" onclick="mbResetCompleted('${grp.groupId}')" style="font-size:13px">↻ Reiniciar AMRAP/EMOM</button>`;
+  } else if(active){
+    const ph=_mbState.phases[_mbState.phaseIdx];
+    const exObj=compounds[ph.exIdx]||{};
+    const exName=getExName(exObj);
+    const reps=exObj.reps||'';
+    let phColor,phLabel;
+    if(ph.kind==='work'){phColor='#ea580c';phLabel='TRABAJO';}
+    else if(ph.kind==='rest'){phColor='#2563eb';phLabel='DESCANSO';}
+    else{phColor='#eab308';phLabel='INTERVALO';}
+    const refMs=paused?(_mbState.pausedAt-_mbState.phaseStartedAt-_mbState.totalPausedMs):(Date.now()-_mbState.phaseStartedAt-_mbState.totalPausedMs);
+    const remainingSec=Math.max(0,(ph.durationMs-refMs)/1000);
+    const totalRounds=parseInt(cfg.rounds)||0;
+    html+=`<div style="background:${phColor};color:white;border-radius:12px;padding:14px 12px;margin:8px 0 14px">
+      <div style="font-size:12px;font-weight:800;letter-spacing:2px;opacity:.9">${phLabel}${paused?' · PAUSADO':''}</div>
+      <div id="mb-timer-display" style="font-size:64px;font-weight:800;font-family:var(--fm);line-height:1.05;margin-top:2px;letter-spacing:-2px">${fmtMMSS(remainingSec)}</div>
+    </div>`;
+    html+=`<div style="font-size:14px;font-weight:600;color:var(--mt);margin-bottom:2px">Vuelta ${ph.round+1}/${totalRounds}${grp.size>1?` · Ej. ${ph.ei+1}/${grp.size}`:''}</div>`;
+    html+=`<div style="font-size:22px;font-weight:800;color:var(--tx);margin-bottom:4px">${exName}</div>`;
+    if(reps) html+=`<div class="text-sm text-mt">Objetivo: <span class="fw-700" style="color:var(--ac)">${reps}</span></div>`;
+    const nextPh=_mbState.phases[_mbState.phaseIdx+1];
+    if(nextPh){
+      const nextEx=compounds[nextPh.exIdx]||{};
+      let nextLabel;
+      if(nextPh.kind==='rest') nextLabel=`⏸ Descanso ${fmtMMSS(nextPh.durationMs/1000)}`;
+      else if(nextPh.isFirstOfRound) nextLabel=`🔁 Vuelta ${nextPh.round+1}: ${getExName(nextEx)}`;
+      else nextLabel=`→ ${getExName(nextEx)}`;
+      html+=`<div class="text-xs text-mt mt-12" style="font-style:italic">Próximo: ${nextLabel}</div>`;
+    } else {
+      html+=`<div class="text-xs text-mt mt-12" style="font-style:italic">Próximo: 🏁 Fin del bloque</div>`;
+    }
+    html+=`<div class="flex gap-8 mt-16">`;
+    if(paused){
+      html+=`<button class="btn" onclick="mbResume()" style="flex:2;background:var(--gn);font-size:18px;padding:14px">▶ Continuar</button>`;
+    } else {
+      html+=`<button class="btn" onclick="mbPause()" style="flex:2;background:var(--mt);font-size:18px;padding:14px">⏸ Pausar</button>`;
+    }
+    html+=`<button class="btn-out" onclick="mbReset()" style="flex:1;font-size:18px;padding:14px">↻</button>`;
+    html+=`</div>`;
+  } else {
+    // No iniciado — preview del bloque
+    html+=`<div style="font-size:13px;color:var(--mt);margin-bottom:4px">Duración total programada</div>`;
+    html+=`<div style="font-size:44px;font-weight:800;font-family:var(--fm);color:var(--tx);line-height:1;letter-spacing:-2px">${fmtMMSS(totalSecs)}</div>`;
+    html+=`<div class="mt-16" style="text-align:left;background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:12px">`;
+    html+=`<div class="text-xs text-mt fw-700 mb-8" style="letter-spacing:.5px">CYCLE${grp.size>1?` · ${grp.size} ej. × ${cfg.rounds||'?'} vuelta${cfg.rounds===1?'':'s'}`:` × ${cfg.rounds||'?'} vuelta${cfg.rounds===1?'':'s'}`}</div>`;
+    exObjs.forEach((e,i)=>{
+      const r=e.reps||(fmt==='amrap'?'libre':'');
+      html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0"><span class="fw-700" style="color:var(--tx)">${i+1}. ${getExName(e)}</span><span class="mono text-mt" style="font-size:13px">${r}</span></div>`;
+    });
+    html+=`</div>`;
+    if(fmt==='amrap'){
+      html+=`<div class="text-xs text-mt mt-8" style="font-style:italic">Trabajo ${cfg.workSecs}s · Descanso ${cfg.restSecs}s · Máximas reps durante el trabajo</div>`;
+    } else {
+      html+=`<div class="text-xs text-mt mt-8" style="font-style:italic">Hacé las reps al inicio de cada intervalo (${cfg.interval}s), descansá lo que sobre</div>`;
+    }
+    html+=`<button class="btn mt-16" onclick="mbStartByGroupId('${grp.groupId}')" style="background:#ea580c;font-size:20px;padding:18px;width:100%">▶ Empezar</button>`;
+    html+=`<div class="text-xs text-mt mt-8" style="font-style:italic">El timer guía las vueltas. Audio y vibración al cambiar de fase.</div>`;
+  }
+  html+=`</div>`;
+  return html;
+}
+
+function mbResetCompleted(gid){
+  if(!confirm('¿Reiniciar este bloque? Vas a poder volver a darle play.')) return;
+  if(curSess&&curSess.metabolic){delete curSess.metabolic[gid];saveDraft();}
+  clearMbState();
+  renderWork();
+}
+
 function renderGroupedWorkoutHTML(grp,compounds,day){
   const indexes=grp.indexes;
   const firstEx=compounds[indexes[0]];
@@ -3088,7 +3445,11 @@ function renderWork(){
   compounds.forEach((e,i)=>{
     if(seenIdx.has(i)) return;
     const grp=groupOfCompoundIdx(compounds,i);
-    if(grp){grp.indexes.forEach(idx=>seenIdx.add(idx));units.push({type:'group',indexes:grp.indexes,firstIdx:grp.indexes[0],size:grp.size});}
+    if(grp){
+      grp.indexes.forEach(idx=>seenIdx.add(idx));
+      units.push({type:'group',indexes:grp.indexes,firstIdx:grp.indexes[0],size:grp.size,
+        groupId:grp.groupId,format:grp.format,isMetabolic:grp.isMetabolic,formatConfig:grp.formatConfig});
+    }
     else{seenIdx.add(i);units.push({type:'single',indexes:[i],firstIdx:i});}
   });
   // Índice "lógico" de la unit activa
@@ -3103,9 +3464,15 @@ function renderWork(){
   tabsHtml+=units.map((u,ui)=>{
     const active=ui===activeUnitIdx;
     if(u.type==='group'){
+      if(u.isMetabolic){
+        const done=!!(curSess.metabolic&&curSess.metabolic[u.groupId]);
+        const label=u.format==='amrap'?'🔥 AMRAP':'⏱ EMOM';
+        const mbColor=u.format==='amrap'?'#ea580c':'#2563eb';
+        const mbDot=`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${mbColor}"></span>`;
+        return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="background:${active?(u.format==='amrap'?'rgba(234,88,12,0.14)':'rgba(37,99,235,0.14)'):'transparent'};color:${active?mbColor:'var(--mt)'};border:1px solid ${active?mbColor:'var(--bd)'};min-width:64px;font-size:11px;font-weight:800;padding:0 8px">${mbDot}${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':''}${label}</button>`;
+      }
       const done=u.indexes.every(i=>curSess.exercises[i]?.sets?.every(s=>s.rpe!==null));
       const label=u.size===2?'🔗 BI':u.size===3?'🔗 TRI':'🔗 ×'+u.size;
-      // Dot del color del bloque del primer ejercicio del grupo en corner top-left
       const grpColor=blockColorOfEx(compounds[u.firstIdx]);
       const grpDot=grpColor?`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${grpColor}"></span>`:'';
       return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="background:${active?'rgba(251,146,60,0.14)':'transparent'};color:${active?'var(--yw)':'var(--mt)'};border:1px solid ${active?'rgba(251,146,60,0.40)':'var(--bd)'};min-width:48px;font-size:12px;font-weight:700;padding:0 8px">${grpDot}${done?'<span style="position:absolute;top:-4px;right:-4px;font-size:10px;color:var(--action-tx);background:var(--gn);border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">✓</span>':''}${label}</button>`;
@@ -3150,7 +3517,11 @@ function renderWork(){
     if(grp){
       // Redirigir al primero del grupo si no estamos parados ahí
       if(curExI!==grp.indexes[0]){curExI=grp.indexes[0];return renderWork();}
-      html+=renderGroupedWorkoutHTML(grp,compounds,day);
+      if(grp.isMetabolic){
+        html+=renderMetabolicUnitHTML(grp,compounds,day);
+      } else {
+        html+=renderGroupedWorkoutHTML(grp,compounds,day);
+      }
     } else {
       html+=renderSingleCompoundWorkoutHTML(curExI,compounds,day);
     }
