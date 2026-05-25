@@ -268,6 +268,25 @@ body.modal-open .page{overflow:hidden;}
 details summary{list-style:none;}
 details summary::-webkit-details-marker{display:none;}
 
+/* ─── Haptic switch wrapper · "real user tap" trick para iOS 26.5+ ─── */
+/* En lugar de disparar haptic vía JS programático (parchado por Apple), envolvemos
+   ciertos botones como <label> con un <input type="checkbox" switch> invisible adentro.
+   El usuario toca el label físicamente → iOS detecta tap real sobre elemento conectado
+   a un switch → dispara haptic nativo. El estado del checkbox no nos importa, solo
+   queremos la vibración. El onclick del label sigue ejecutando la acción real. */
+.haptic-switch{position:relative;}
+.haptic-switch > input[type="checkbox"][switch]{
+  position:absolute;
+  opacity:0;
+  width:1px;
+  height:1px;
+  margin:0;
+  padding:0;
+  pointer-events:none;
+  appearance:none;
+  -webkit-appearance:none;
+}
+
 /* ─── RPE segmented control minimalista (Fase 4.2 set card sin caja) ─── */
 .rpe-btn-min{flex:1;padding:12px 0;border-radius:12px;background:var(--sf);border:1px solid var(--bd);color:var(--tx);font-family:var(--fs);font-size:13px;font-weight:600;letter-spacing:-0.1px;cursor:pointer;transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),background 110ms ease,border-color 110ms ease,filter 110ms ease;}
 .rpe-btn-min:hover{background:var(--bd);}
@@ -2838,24 +2857,25 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
       ${isEditMode?`<button onclick="curWorkSetEdit=null;renderWork()" style="background:rgba(96,165,250,0.10);border:1px solid rgba(96,165,250,0.30);color:var(--ac);font-size:12px;font-weight:600;letter-spacing:0.2px;cursor:pointer;padding:6px 12px;border-radius:10px;display:inline-flex;align-items:center;gap:4px">Salir <span style="font-size:13px;line-height:1">✕</span></button>`:''}
     </div>`;
 
-    // Campos numéricos centrados, sin caja
+    // Campos numéricos centrados, sin caja. Los steppers +/− ahora son <label> con
+    // checkbox switch invisible adentro · disparan haptic nativo iOS al tap real del usuario.
     if(mode==='weight'){
       html+=`<div style="display:flex;justify-content:center;gap:36px;margin:8px 0 24px;flex-wrap:wrap">
         <div style="text-align:center">
           <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Peso</div>
           <div style="display:flex;align-items:center;gap:12px">
-            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},-2.5,${ci})">−</button>
+            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjW(${si},-2.5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
             <div id="val-w-${ci}-${si}" class="mono fw-700" style="font-size:34px;min-width:70px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1" onclick="typeVal(${si},'w',null,${ci})">${s.w}</div>
-            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},2.5,${ci})">+</button>
+            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjW(${si},2.5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">+</label>
           </div>
           <div style="font-size:10px;color:var(--mt2);margin-top:8px;font-weight:600;letter-spacing:0.5px">kg</div>
         </div>
         <div style="text-align:center">
           <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Reps</div>
           <div style="display:flex;align-items:center;gap:12px">
-            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button>
+            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},-1,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
             <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:34px;min-width:50px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
-            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button>
+            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},1,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">+</label>
           </div>
         </div>
       </div>`;
@@ -2864,9 +2884,9 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
         <div style="text-align:center">
           <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Repeticiones</div>
           <div style="display:flex;align-items:center;gap:16px">
-            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button>
+            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},-1,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
             <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:52px;min-width:100px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1.8px;line-height:1" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
-            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button>
+            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},1,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">+</label>
           </div>
         </div>
       </div>`;
@@ -2875,9 +2895,9 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
         <div style="text-align:center">
           <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Tiempo</div>
           <div style="display:flex;align-items:center;gap:16px">
-            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-5,${ci})">−</button>
+            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},-5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
             <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:52px;min-width:120px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1.8px;line-height:1" onclick="typeVal(${si},'r','Tiempo (segs)',${ci})">${s.r}</div>
-            <button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},5,${ci})">+</button>
+            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">+</label>
           </div>
           <div style="font-size:10px;color:var(--mt2);margin-top:8px;font-weight:600;letter-spacing:0.5px">segs</div>
         </div>
