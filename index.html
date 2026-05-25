@@ -3573,16 +3573,22 @@ function haptic(){
   try{
     if(navigator.vibrate){navigator.vibrate(50);return;}
     if(!_hapticTouch) return;
+    // Técnica conservadora vs ios-haptics original:
+    // - opacity:0 + position:absolute en vez de display:none → el elemento existe en el
+    //   render tree (Apple capaz checkea visibilidad antes del parche oficial de 26.5)
+    // - append al body en vez del head → el head no participa de rendering, el body sí
+    // - aria-hidden mantiene accesibilidad limpia (screen readers lo ignoran)
     const label=document.createElement('label');
     label.setAttribute('aria-hidden','true');
-    label.style.display='none';
+    label.style.cssText='position:fixed;left:-9999px;top:0;opacity:0;pointer-events:none;width:1px;height:1px';
     const input=document.createElement('input');
     input.type='checkbox';
     input.setAttribute('switch','');
+    input.style.cssText='position:absolute;opacity:0;width:1px;height:1px;margin:0;padding:0';
     label.appendChild(input);
-    document.head.appendChild(label);
+    document.body.appendChild(label);
     label.click();
-    document.head.removeChild(label);
+    document.body.removeChild(label);
   }catch{}
 }
 haptic.confirm=()=>{
