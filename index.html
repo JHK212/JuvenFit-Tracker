@@ -3620,6 +3620,70 @@ haptic.error=()=>{
   haptic();setTimeout(haptic,120);setTimeout(haptic,240);
 };
 
+// ══ Auto-wrap "real user tap" ══
+// Apple parchó el haptic programático en iOS 26.4+. La única forma de disparar haptic
+// en iOS web puro es que el usuario haga tap REAL con el dedo sobre un elemento
+// conectado a un <input type="checkbox" switch>. Esta función wrappea cualquier botón
+// tappable como <label> con un input switch invisible adentro, así cuando el dedo
+// toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
+// automáticamente a botones rendereados dinámicamente (renderWork, etc.).
+const _HAPTIC_WRAP_SEL='.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab';
+function applyHapticWrapping(root){
+  if(!_hapticTouch) return;
+  root=root||document.body;
+  if(!root||!root.querySelectorAll) return;
+  const els=root.querySelectorAll(_HAPTIC_WRAP_SEL);
+  els.forEach(el=>{
+    if(el.dataset.hWrapped==='1') return;
+    // Si ya es label, solo asegurar input switch dentro (no replace)
+    if(el.tagName==='LABEL'){
+      if(!el.querySelector('input[type="checkbox"][switch]')){
+        const input=document.createElement('input');
+        input.type='checkbox';
+        input.setAttribute('switch','');
+        input.setAttribute('tabindex','-1');
+        input.setAttribute('aria-hidden','true');
+        el.insertBefore(input,el.firstChild);
+      }
+      el.classList.add('haptic-switch');
+      el.dataset.hWrapped='1';
+      return;
+    }
+    // Button (u otro) → reemplazar con label, copiando attributes y children
+    const label=document.createElement('label');
+    for(const attr of Array.from(el.attributes)){
+      try{label.setAttribute(attr.name,attr.value);}catch{}
+    }
+    label.classList.add('haptic-switch');
+    const input=document.createElement('input');
+    input.type='checkbox';
+    input.setAttribute('switch','');
+    input.setAttribute('tabindex','-1');
+    input.setAttribute('aria-hidden','true');
+    label.appendChild(input);
+    while(el.firstChild) label.appendChild(el.firstChild);
+    label.dataset.hWrapped='1';
+    if(el.parentNode) el.parentNode.replaceChild(label,el);
+  });
+}
+// Observer que detecta botones nuevos (renderWork/renderHome/etc. los crean dinámicamente).
+// rAF throttle: si llegan 50 mutations en un frame, solo wrappeamos UNA vez al final.
+(function(){
+  if(typeof MutationObserver==='undefined'||!_hapticTouch) return;
+  let scheduled=false;
+  const obs=new MutationObserver(()=>{
+    if(scheduled) return;
+    scheduled=true;
+    requestAnimationFrame(()=>{
+      scheduled=false;
+      applyHapticWrapping(document.body);
+    });
+  });
+  const start=()=>obs.observe(document.body,{childList:true,subtree:true});
+  if(document.body) start();
+  else document.addEventListener('DOMContentLoaded',start);
+})();
+
 function addWorkSet(ci){
   haptic();
   ci=(ci==null)?curExI:ci;
