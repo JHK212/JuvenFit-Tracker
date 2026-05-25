@@ -8,37 +8,70 @@
 <meta name="apple-mobile-web-app-title" content="Tracker">
 <meta name="theme-color" content="#0A0A0B">
 <title>Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;color:inherit;}
 :root{
-  /* Bento Tri · Dark · paleta tri-color estricta */
+  /* Sport v3 · Dark cálido · industrial-editorial · tri-color verde/naranja/azul */
   --bg:#0A0A0B;            /* fondo página */
-  --sf:#1F1F23;            /* surface alt (inputs, surf2) */
-  --cd:#18181B;            /* card (TODAS iguales — sin tints de fondo) */
-  --bd:#27272A;            /* border sutil */
-  --tx:#FAFAFA;            /* texto principal off-white */
-  --mt:#A1A1AA;            /* muted */
-  --mt2:#71717A;           /* muted secundario */
-  --ac:#60A5FA;            /* AZUL = acción (CTAs, edit affordance) */
-  --action-tx:#0A0A0B;     /* texto sobre fondo azul */
-  --gn:#34D399;            /* VERDE = logro (PR, set done, ✓) */
-  --yw:#FB923C;            /* NARANJA = intensidad (set activo, racha, RPE, timer) */
-  --dn:#F87171;            /* danger */
-  /* radios estandarizados (de 7 escalas a 4) */
+  --bg-warm:#15110D;        /* tinte cálido para gradient hero */
+  --sf:#15151A;             /* surface alt */
+  --cd:#13131A;             /* card base */
+  --cd-hi:#1A1A21;          /* card hover/active */
+  --bd:#1F1F23;             /* border sutil */
+  --bd-hi:#2A2A30;          /* border visible */
+  --tx:#F5F4EF;             /* texto principal off-white cálido */
+  --mt:#9C9A92;             /* muted */
+  --mt2:#5E5C56;            /* muted secundario */
+  --ac:#5B9DF8;             /* AZUL = acción (CTAs, edit affordance) */
+  --ac-deep:#2E5FA0;
+  --action-tx:#0A0A0B;
+  --gn:#3DD68C;             /* VERDE = logro (PR, set done, ✓) */
+  --yw:#D7793E;             /* NARANJA rust = intensidad (racha, RPE, timer) */
+  --yw-bright:#E08A55;
+  --yw-deep:#A85838;
+  --yw-dark:#160B04;        /* texto sobre bloque naranja */
+  --dn:#E36A6A;             /* danger */
+  /* radios estandarizados */
   --r-chip:6px;
   --r-btn-sm:10px;
-  --r-btn:14px;
-  --r-card:20px;
-  /* lift interno sutil en cards (en vez de sombras Material) */
-  --lift-in:inset 0 1px 0 rgba(255,255,255,0.04);
-  --fm:'JetBrains Mono',ui-monospace,monospace;
-  --fs:'Inter Tight',-apple-system,system-ui,sans-serif;
+  --r-btn:12px;
+  --r-card:16px;
+  --r-hero:22px;
+  --lift-in:inset 0 1px 0 rgba(255,255,255,0.025);
+  /* Familias tipográficas */
+  --fd:'Bricolage Grotesque',-apple-system,system-ui,sans-serif;  /* display: nombres de día, números grandes */
+  --fs:'Manrope',-apple-system,system-ui,sans-serif;               /* body */
+  --fm:'JetBrains Mono',ui-monospace,monospace;                    /* tags, refs, fechas mono */
 }
-body{background:var(--bg);color:var(--tx);font-family:var(--fs);max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom);}
+html,body{background:var(--bg);}
+body{
+  color:var(--tx);font-family:var(--fs);font-size:14px;line-height:1.45;
+  max-width:480px;margin:0 auto;
+  min-height:100vh;min-height:100dvh;overflow-x:hidden;
+  padding-bottom:env(safe-area-inset-bottom);
+  position:relative;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 0%, var(--bg-warm) 0%, transparent 60%),
+    var(--bg);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,240,210,0.03),
+    inset 0 -80px 80px -60px rgba(0,0,0,0.6);
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity:0.04;mix-blend-mode:overlay;
+}
+body > *{position:relative;z-index:1;}
+/* Entrance stagger */
+@keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.reveal{animation:rise 0.55s cubic-bezier(0.2,0.7,0.2,1) both;}
+.r1{animation-delay:0.05s;}.r2{animation-delay:0.12s;}.r3{animation-delay:0.20s;}
+.r4{animation-delay:0.30s;}.r5{animation-delay:0.40s;}.r6{animation-delay:0.50s;}
 input,textarea,button,select{font-family:var(--fs);outline:none;color:var(--tx);}
 input:focus,textarea:focus{border-color:rgba(96,165,250,0.4)!important;box-shadow:0 0 0 3px rgba(96,165,250,0.16);}
 ::-webkit-scrollbar{width:0;}
@@ -344,45 +377,160 @@ label.haptic-switch.rpe-btn-min{
 .btn-dn:hover{filter:brightness(1.10);}
 .btn-dn:active,.btn-dn.is-pressing{transform:scale(0.95);filter:brightness(0.84);box-shadow:inset 0 2px 4px rgba(0,0,0,0.20),inset 0 1px 0 rgba(255,255,255,0.08);}
 .btn-dn:focus-visible{outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 0 0 3px rgba(248,113,113,0.45);}
+
+/* ═══════════════════════════════════════════════════════════════
+   Sport v3 · Home editorial · brand, hero, sec-h, stats, days, cal
+   ═══════════════════════════════════════════════════════════════ */
+.brand{display:flex;align-items:baseline;gap:10px;}
+.brand-name{font-family:var(--fd);font-size:22px;font-weight:800;color:var(--tx);letter-spacing:-0.8px;font-variation-settings:"wdth" 85;line-height:1;}
+.brand-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ac);margin-right:8px;vertical-align:middle;transform:translateY(-2px);box-shadow:0 0 10px var(--ac);}
+.brand-meta{font-family:var(--fm);font-size:9.5px;color:var(--mt);font-weight:500;letter-spacing:1.2px;text-transform:uppercase;}
+
+.greet{padding:6px 22px 16px;display:flex;justify-content:space-between;align-items:baseline;}
+.greet-h{font-size:13.5px;color:var(--mt);font-weight:400;}
+.greet-h b{color:var(--tx);font-weight:600;}
+.greet-d{font-family:var(--fm);font-size:10.5px;color:var(--mt2);font-weight:500;letter-spacing:1px;text-transform:uppercase;}
+
+/* Hero orange block */
+.hero-wrap{padding:8px 16px 24px;}
+.hero{
+  background:linear-gradient(135deg, #DC8550 0%, #C46A38 55%, #A85838 100%);
+  border-radius:var(--r-hero);padding:24px 24px 22px;color:var(--yw-dark);
+  position:relative;overflow:hidden;
+  box-shadow:0 18px 38px -14px rgba(168,88,56,0.45),0 4px 12px -4px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,220,180,0.18);
+}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 88% 0%, rgba(255,220,190,0.22), transparent 55%),radial-gradient(circle at 5% 110%, rgba(0,0,0,0.20), transparent 55%);pointer-events:none;}
+.hero::after{content:'';position:absolute;inset:0;pointer-events:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.4 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");opacity:0.18;mix-blend-mode:multiply;border-radius:var(--r-hero);}
+.hero > *{position:relative;z-index:2;}
+.hero-top{display:flex;justify-content:space-between;align-items:center;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;opacity:0.72;margin-bottom:8px;}
+.hero-top span{display:flex;align-items:center;gap:6px;}
+.hero-top .tag-rule{width:14px;height:1px;background:currentColor;opacity:0.5;}
+.hero-stage{position:relative;padding:18px 0 4px;}
+.hero-ghost{position:absolute;top:-12px;left:-6px;right:-6px;font-family:var(--fd);font-size:130px;font-weight:800;letter-spacing:-6px;line-height:0.85;font-variation-settings:"wdth" 78;color:transparent;-webkit-text-stroke:1.5px rgba(22,11,4,0.25);pointer-events:none;text-align:left;user-select:none;}
+.hero-name{position:relative;font-family:var(--fd);font-size:54px;font-weight:800;letter-spacing:-2.5px;line-height:0.88;font-variation-settings:"wdth" 82;text-align:center;text-transform:uppercase;}
+.hero-sub{position:relative;font-size:13px;opacity:0.72;margin-top:10px;font-weight:500;text-align:center;letter-spacing:0.1px;}
+.hero-meta{display:flex;justify-content:center;gap:0;margin-top:20px;font-size:11.5px;font-weight:600;}
+.hero-meta span{padding:0 14px;display:flex;align-items:baseline;gap:5px;border-right:1px solid rgba(22,11,4,0.18);}
+.hero-meta span:last-child{border-right:none;}
+.hero-meta b{font-family:var(--fd);font-size:19px;font-weight:800;font-variation-settings:"wdth" 82;letter-spacing:-0.5px;}
+.hero-cta{margin-top:18px;width:100%;background:var(--yw-dark);color:var(--yw-bright);padding:15px 0;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:-0.1px;box-shadow:0 4px 14px -4px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.06);transition:filter 120ms ease,transform 120ms ease;font-family:var(--fs);}
+.hero-cta svg{color:var(--ac);}
+.hero-cta:active{filter:brightness(1.15);transform:scale(0.99);}
+
+/* Section heading editorial */
+.sec-h{padding:0 22px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.sec-h-idx{font-family:var(--fm);font-size:10px;font-weight:600;color:var(--mt2);letter-spacing:1.5px;border:1px solid var(--bd);border-radius:4px;padding:2px 6px;}
+.sec-h-title{font-family:var(--fd);font-size:14px;font-weight:700;color:var(--mt);letter-spacing:-0.2px;font-variation-settings:"wdth" 90;}
+.sec-h-rule{flex:1;height:1px;background:linear-gradient(to right, var(--bd) 0%, var(--bd-hi) 50%, transparent 100%);}
+
+/* Stats asimétrico */
+.stats{padding:0 22px 28px;display:grid;grid-template-columns:1.7fr 1fr;gap:10px;}
+.stat-card{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);padding:18px 16px;box-shadow:0 8px 24px -12px rgba(0,0,0,0.6),var(--lift-in);position:relative;overflow:hidden;}
+.stat-card:active{background:var(--cd-hi);}
+.stat-row{display:flex;align-items:flex-start;gap:14px;}
+.stat-num{font-family:var(--fd);font-size:62px;font-weight:800;line-height:0.82;letter-spacing:-3px;font-variation-settings:"wdth" 80;flex-shrink:0;}
+.stat-num-sm{font-family:var(--fd);font-size:48px;font-weight:800;line-height:0.85;letter-spacing:-2px;font-variation-settings:"wdth" 82;}
+.stat-num.yw{color:var(--yw);}
+.stat-num.tx{color:var(--tx);}
+.stat-info{flex:1;min-width:0;padding-top:4px;}
+.stat-lbl{font-family:var(--fm);font-size:9.5px;color:var(--mt);font-weight:600;text-transform:uppercase;letter-spacing:1.5px;}
+.stat-det{font-size:12.5px;color:var(--tx);margin-top:5px;font-weight:500;}
+.stat-det .gn{color:var(--gn);font-weight:700;font-family:var(--fm);font-size:11.5px;}
+.stat-det .lbl{color:var(--mt);}
+.stat-bars{display:flex;gap:3px;align-items:flex-end;height:18px;margin-top:10px;}
+.stat-bars div{flex:1;height:25%;background:var(--bd-hi);border-radius:2px;}
+.stat-bars div.on{height:100%;background:var(--yw);box-shadow:0 0 8px -1px rgba(215,121,62,0.55);}
+.stat-bars div.today{height:100%;border:1px solid var(--yw);background:rgba(215,121,62,0.10);}
+.stat-bars-row{display:flex;gap:3px;margin-top:5px;}
+.stat-bars-d{flex:1;text-align:center;font-family:var(--fm);font-size:9px;color:var(--mt2);font-weight:600;}
+.stat-bars-d.today{color:var(--yw);}
+.stat-mini{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;}
+.stat-mini .stat-lbl{margin-bottom:8px;}
+.stat-mini-foot{font-family:var(--fm);font-size:10px;color:var(--mt);letter-spacing:0.5px;text-transform:uppercase;margin-top:auto;padding-top:14px;}
+.stat-mini-foot b{color:var(--gn);font-weight:700;}
+
+/* Days list */
+.days{padding:0 22px 16px;display:flex;flex-direction:column;gap:10px;}
+.day-card{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);padding:16px 18px;display:flex;align-items:center;gap:18px;cursor:pointer;box-shadow:0 8px 24px -12px rgba(0,0,0,0.6),var(--lift-in);}
+.day-card:active{background:var(--cd-hi);}
+.day-num{font-family:var(--fd);font-size:44px;font-weight:800;color:var(--mt2);line-height:0.85;flex-shrink:0;letter-spacing:-2px;font-variation-settings:"wdth" 80;width:50px;text-align:center;}
+.day-info{flex:1;min-width:0;}
+.day-name{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--tx);letter-spacing:-0.6px;line-height:1;font-variation-settings:"wdth" 88;margin-bottom:6px;}
+.day-preview{font-size:12px;color:var(--mt);font-weight:500;line-height:1.4;}
+.day-arrow{color:var(--ac);flex-shrink:0;}
+
+/* Calendar */
+.cal-wrap{padding:0 22px 28px;}
+.cal-card{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);padding:20px;box-shadow:0 8px 24px -12px rgba(0,0,0,0.6),var(--lift-in);}
+.cal-card-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;}
+.cal-month-lbl{font-family:var(--fd);font-size:30px;font-weight:800;color:var(--tx);letter-spacing:-1px;text-transform:lowercase;line-height:1;font-variation-settings:"wdth" 82;}
+.cal-month-yr{font-family:var(--fm);font-size:13px;color:var(--mt);font-weight:600;letter-spacing:0.5px;margin-left:10px;text-transform:uppercase;}
+.cal-streak{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:10px;color:var(--yw);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:5px 10px;border:1px solid rgba(215,121,62,0.45);border-radius:6px;background:rgba(215,121,62,0.07);}
+.cal-streak b{font-family:var(--fd);font-size:12px;font-weight:800;font-variation-settings:"wdth" 85;letter-spacing:-0.3px;}
+.cal-nav-tiny{width:24px;height:24px;border:1px solid var(--bd);border-radius:6px;color:var(--mt);font-size:13px;background:transparent;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-family:var(--fs);}
+.cal-nav-tiny:active{background:var(--sf);color:var(--tx);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.cal-day-h{font-family:var(--fm);font-size:9.5px;color:var(--mt2);text-align:center;font-weight:700;padding:4px 0;letter-spacing:1.5px;}
+.cal-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11.5px;color:var(--tx);font-weight:500;border-radius:8px;font-variant-numeric:tabular-nums;}
+.cal-cell.trained{background:var(--gn);color:#062414;font-weight:700;box-shadow:0 0 14px -3px rgba(61,214,140,0.55);}
+.cal-cell.today{border:1.5px solid var(--tx);color:var(--tx);font-weight:700;}
+.cal-cell.muted{color:transparent;}
+
+/* Last session */
+.last-wrap{padding:0 22px 36px;}
+.last-card{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);padding:20px 22px;box-shadow:0 8px 24px -12px rgba(0,0,0,0.6),var(--lift-in);}
+.last-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.last-label{font-family:var(--fm);font-size:9.5px;color:var(--mt);font-weight:600;letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.last-label::before{content:'';width:12px;height:1px;background:currentColor;opacity:0.6;}
+.last-date{font-family:var(--fm);font-size:11px;color:var(--mt2);font-weight:500;letter-spacing:0.3px;}
+.last-title{font-family:var(--fd);font-size:30px;font-weight:800;color:var(--tx);letter-spacing:-1.2px;line-height:1;font-variation-settings:"wdth" 82;}
+.last-meta{font-size:12.5px;color:var(--mt);margin-top:8px;font-weight:500;}
+.last-pr{margin-top:16px;padding:14px 16px;border-radius:11px;background:rgba(61,214,140,0.06);border:1px solid rgba(61,214,140,0.25);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.last-pr-left{display:flex;align-items:center;gap:12px;min-width:0;flex:1;}
+.last-pr-badge{font-family:var(--fd);font-size:11px;font-weight:800;letter-spacing:1.5px;color:#062414;background:var(--gn);padding:5px 9px;border-radius:6px;flex-shrink:0;font-variation-settings:"wdth" 88;}
+.last-pr-text{font-size:13.5px;color:var(--tx);font-weight:600;line-height:1.25;letter-spacing:-0.1px;}
+.last-pr-val{color:var(--gn);font-family:var(--fd);font-weight:800;font-variation-settings:"wdth" 88;letter-spacing:-0.3px;}
 </style>
 </head>
 <body>
 
 <!-- ══ HOME ══ -->
 <div id="home" class="page active">
-  <div class="header" style="padding:18px 20px 10px;padding-top:calc(18px + env(safe-area-inset-top));align-items:flex-start">
-    <div style="min-width:0;flex:1">
-      <div id="home-date" style="font-size:10.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)"></div>
-      <div id="home-greeting" style="font-size:22px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;margin-top:3px;line-height:1.1"></div>
+  <div class="header reveal r1" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
+    <div class="brand">
+      <div class="brand-name"><span class="brand-dot"></span>Tracker</div>
+      <div class="brand-meta" id="home-vol"></div>
     </div>
     <div class="flex gap-8">
-      <button class="icon-btn" onclick="openImportRoutine()" title="Importar rutina del coach" aria-label="Importar rutina del coach">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
+      <button class="icon-btn" onclick="openImportRoutine()" title="Importar rutina del coach" aria-label="Importar rutina del coach" style="width:38px;height:38px;border-radius:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
           <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
           <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
           <rect x="18" y="18" width="3" height="3"/><rect x="14" y="19" width="3" height="2"/>
         </svg>
       </button>
-      <button class="icon-btn" onclick="showPage('progress')" title="Mi progreso" aria-label="Mi progreso">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="20" x2="18" y2="10"/>
-          <line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
+      <button class="icon-btn" onclick="showPage('progress')" title="Mi progreso" aria-label="Mi progreso" style="width:38px;height:38px;border-radius:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
         </svg>
       </button>
-      <button class="icon-btn" onclick="showPage('routine')" title="Ver rutina" aria-label="Ver rutina">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <button class="icon-btn" onclick="showPage('routine')" title="Ver rutina" aria-label="Ver rutina" style="width:38px;height:38px;border-radius:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
           <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
           <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
         </svg>
       </button>
-      <button class="icon-btn" onclick="showPage('editR')" title="Ajustes" aria-label="Ajustes">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button class="icon-btn" onclick="showPage('editR')" title="Ajustes" aria-label="Ajustes" style="width:38px;height:38px;border-radius:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
         </svg>
       </button>
     </div>
+  </div>
+  <div class="greet reveal r1">
+    <div class="greet-h">Buenas, <b id="home-greeting"></b>.</div>
+    <div class="greet-d" id="home-date"></div>
   </div>
   <div id="home-welcome" style="display:none">
     <!-- Brand header sutil · shield chico + "JuvenFIT" tracked -->
@@ -427,58 +575,79 @@ label.haptic-switch.rpe-btn-min{
   <div id="home-main">
     <div id="draft-banner" style="display:none;padding:14px 20px 0"></div>
 
-    <!-- HERO: Hoy te toca · CTA azul prominente -->
-    <div class="sec" style="padding-top:6px;padding-bottom:14px">
-      <div id="home-suggested" class="card" style="cursor:default"></div>
+    <!-- HERO: bloque naranja con número ghost detrás -->
+    <div class="hero-wrap reveal r2">
+      <div id="home-suggested" class="hero"></div>
     </div>
 
-    <!-- STATS: Racha (naranja · intensidad) + Sesiones (blanco · neutro) -->
-    <div class="sec" style="padding-top:0;padding-bottom:14px">
-      <div class="flex gap-12">
-        <div class="card flex-1" style="cursor:default;padding:16px">
-          <div style="display:flex;align-items:center;gap:6px">
-            <svg id="home-fire" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color:var(--yw);display:none;flex-shrink:0"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-            <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Racha</span>
+    <!-- SEC 02: Esta semana / Stats asimétrico -->
+    <div class="sec-h reveal r3">
+      <span class="sec-h-idx">02</span>
+      <span class="sec-h-title">Esta semana</span>
+      <span class="sec-h-rule"></span>
+    </div>
+    <div class="stats reveal r3">
+      <div class="stat-card">
+        <div class="stat-row">
+          <div id="home-streak" class="stat-num yw">0</div>
+          <div class="stat-info">
+            <div class="stat-lbl">Racha · días</div>
+            <div class="stat-det" id="home-streak-detail"></div>
+            <div id="home-streak-bars" style="margin-top:10px"></div>
           </div>
-          <div style="display:flex;align-items:baseline;gap:6px;margin-top:8px">
-            <span id="home-streak" style="font-size:42px;font-weight:700;color:var(--yw);line-height:0.85;letter-spacing:-1.8px">0</span>
-            <span style="font-size:13px;font-weight:500;color:var(--mt)">sem</span>
-          </div>
-          <div id="home-streak-bars" style="margin-top:14px"></div>
-          <div id="home-streak-detail" style="font-size:11px;color:var(--mt);font-weight:500;margin-top:10px"></div>
         </div>
-        <div class="card flex-1" style="cursor:default;padding:16px">
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Sesiones</span>
-            <button class="icon-btn" onclick="window._delHistFrom='home';showPage('delHist')" title="Borrar sesiones" style="width:26px;height:26px;font-size:11px">✎</button>
-          </div>
-          <div style="display:flex;align-items:baseline;gap:6px;margin-top:8px">
-            <span id="home-sessions" style="font-size:42px;font-weight:700;color:var(--tx);line-height:0.85;letter-spacing:-1.8px">0</span>
-          </div>
-          <div id="home-sessions-detail" style="font-size:11px;color:var(--mt);font-weight:500;margin-top:14px"></div>
-        </div>
+      </div>
+      <div class="stat-card stat-mini">
+        <div class="stat-lbl">Total</div>
+        <div id="home-sessions" class="stat-num-sm tx">0</div>
+        <div class="stat-mini-foot" id="home-sessions-detail"></div>
       </div>
     </div>
 
-    <!-- ÚLTIMA SESIÓN — con PR banner verde integrado adentro si hubo PR -->
-    <div id="home-last-sec" class="sec" style="display:none;padding-top:0;padding-bottom:14px">
-      <div id="home-last" class="card" style="cursor:default"></div>
+    <!-- SEC 03: Próximos días -->
+    <div class="sec-h reveal r4">
+      <span class="sec-h-idx">03</span>
+      <span class="sec-h-title">Próximos días</span>
+      <span class="sec-h-rule"></span>
+    </div>
+    <div id="home-others" class="days reveal r4"></div>
+    <div style="padding:0 22px 26px">
+      <button class="btn-out" onclick="showPastWorkout()" style="font-size:13.5px;padding:13px 18px">📅 Registrar entreno anterior</button>
     </div>
 
-    <!-- OTROS DÍAS — grid 2x2 de cards chicas -->
-    <div class="sec" style="padding-top:0;padding-bottom:14px">
-      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);padding-left:2px;margin-bottom:12px">Otros días</div>
-      <div id="home-others"></div>
-      <button class="btn-out mt-12" onclick="showPastWorkout()" style="font-size:14px;padding:12px 20px">📅 Registrar entreno anterior</button>
+    <!-- SEC 04: Mes / Calendario -->
+    <div class="sec-h reveal r5">
+      <span class="sec-h-idx">04</span>
+      <span class="sec-h-title">Mes</span>
+      <span class="sec-h-rule"></span>
+    </div>
+    <div class="cal-wrap reveal r5">
+      <div class="cal-card">
+        <div class="cal-card-h">
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="cal-nav-tiny" onclick="calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderHome()" aria-label="mes anterior">‹</button>
+            <span><span class="cal-month-lbl" id="cal-month-lbl">—</span><span class="cal-month-yr" id="cal-month-yr"></span></span>
+            <button class="cal-nav-tiny" onclick="calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderHome()" aria-label="mes siguiente">›</button>
+          </div>
+          <div class="cal-streak" id="cal-streak-badge" style="display:none">STREAK<b id="cal-streak-val">×0</b></div>
+        </div>
+        <div id="home-calendar"></div>
+      </div>
     </div>
 
-    <!-- CALENDARIO — movido al final, leyenda verde/naranja -->
-    <div class="sec" style="padding-top:0;padding-bottom:14px">
-      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);padding-left:2px;margin-bottom:12px">Calendario</div>
-      <div class="card" style="cursor:default"><div id="home-calendar"></div></div>
+    <!-- SEC 05: Última sesión -->
+    <div id="home-last-sec" class="reveal r6" style="display:none">
+      <div class="sec-h">
+        <span class="sec-h-idx">05</span>
+        <span class="sec-h-title">Última sesión</span>
+        <span class="sec-h-rule"></span>
+      </div>
+      <div class="last-wrap">
+        <div id="home-last" class="last-card"></div>
+      </div>
     </div>
 
-    <!-- Historial por ejercicio + Volumen muscular movidos a "Mi progreso" (📊 en header) -->
+    <!-- Historial por ejercicio + Volumen muscular movidos a "Mi progreso" -->
   </div>
 </div>
 
@@ -1946,34 +2115,46 @@ function lastSessionRec(eid,mode='weight'){
 // ══ CALENDAR ══
 function sessionDates(){const m={};sessions.forEach(s=>{m[s.date]=(m[s.date]||0)+1;});return m;}
 function renderCalendar(){
-  const sd=sessionDates();const first=new Date(calYear,calMonth,1);const lastDay=new Date(calYear,calMonth+1,0).getDate();const startDow=first.getDay();
-  const monthName=first.toLocaleDateString("es-AR",{month:"long",year:"numeric"});const todayDate=td();
-  let html=`<div class="cal-nav"><button class="cal-nav-btn" onclick="calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar()">‹</button><span class="cal-month">${monthName}</span><button class="cal-nav-btn" onclick="calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar()">›</button></div><div class="cal-grid">`;
-  ["Do","Lu","Ma","Mi","Ju","Vi","Sá"].forEach(h=>{html+=`<div class="cal-header">${h}</div>`;});
-  for(let i=0;i<startDow;i++) html+='<div class="cal-day empty"></div>';
-  for(let d=1;d<=lastDay;d++){const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;let cls='cal-day';if(ds===todayDate) cls+=' today';if(sd[ds]) cls+=' trained';html+=`<div class="${cls}">${d}</div>`;}
+  const sd=sessionDates();
+  const first=new Date(calYear,calMonth,1);
+  const lastDay=new Date(calYear,calMonth+1,0).getDate();
+  const startDow=first.getDay(); // 0=Dom
+  const startDowMon=(startDow+6)%7; // 0=Lun
+  const todayDate=td();
+  let html='<div class="cal-grid">';
+  ['L','M','M','J','V','S','D'].forEach(h=>{html+=`<div class="cal-day-h">${h}</div>`;});
+  for(let i=0;i<startDowMon;i++) html+='<div class="cal-cell muted"></div>';
+  for(let d=1;d<=lastDay;d++){
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    let cls='cal-cell';
+    if(sd[ds]) cls+=' trained';
+    else if(ds===todayDate) cls+=' today';
+    html+=`<div class="${cls}">${d}</div>`;
+  }
   html+='</div>';
-  html+=`<div style="display:flex;gap:16px;margin-top:12px;justify-content:center"><div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:4px;background:rgba(52,211,153,0.18);border:1px solid rgba(52,211,153,0.40)"></div><span class="text-xs text-mt">Entrené</span></div><div style="display:flex;align-items:center;gap:6px"><div style="width:10px;height:10px;border-radius:4px;border:1.5px solid var(--yw)"></div><span class="text-xs text-mt">Hoy</span></div></div>`;
   $("home-calendar").innerHTML=html;
 }
 
-// ══ HOME ══
+// ══ HOME · Sport v3 editorial ══
 function renderHome(){
   const totalExercises=routine.days.reduce((s,d)=>s+getDayExercises(d).length,0);
   if(totalExercises===0){$("home-welcome").style.display="block";$("home-main").style.display="none";return;}
   $("home-welcome").style.display="none";$("home-main").style.display="block";
 
-  // Header: greeting + fecha
-  $("home-greeting").textContent=homeGreet();
-  $("home-date").textContent=homeDateLabel();
+  // Header: vol + greeting + fecha mono
+  if($("home-vol")) $("home-vol").textContent=`vol. ${sessions.length}`;
+  $("home-greeting").innerHTML=`<b>${homeGreet()}</b>.`;
+  const _dn=nowBsAs();
+  const _diaShort=['DOM','LUN','MAR','MIE','JUE','VIE','SAB'][_dn.getUTCDay()];
+  $("home-date").textContent=`${_diaShort} · ${_dn.getUTCDate()}.${String(_dn.getUTCMonth()+1).padStart(2,'0')}.${String(_dn.getUTCFullYear()).slice(-2)}`;
 
-  // Draft banner — naranja sutil con dot pulsante (intensidad: hay un trabajo en curso)
+  // Draft banner — naranja con dot pulsante
   const draft=load("gym-draft",null);
   const db=$("draft-banner");
   if(draft){
     const dayDef=routine.days.find(d=>d.id===draft.dayId);
     db.style.display="block";
-    db.innerHTML=`<div class="card" style="cursor:default;background:rgba(251,146,60,0.08);border-color:rgba(251,146,60,0.30);box-shadow:var(--lift-in)">
+    db.innerHTML=`<div class="card" style="cursor:default;background:rgba(215,121,62,0.08);border-color:rgba(215,121,62,0.30);box-shadow:var(--lift-in)">
       <div class="row mb-8" style="align-items:center;gap:8px">
         <span class="b2-pulse-dot"></span>
         <span style="color:var(--yw);font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">Borrador en curso</span>
@@ -1987,101 +2168,133 @@ function renderHome(){
     </div>`;
   } else {db.style.display="none";db.innerHTML="";}
 
-  // HERO — "Hoy te toca" con CTA azul prominente
-  const sg=sugDay();const sgD=routine.days.find(d=>d.id===sg);
+  // HERO — bloque naranja con ghost number, REF, D x/y
+  const sg=sugDay();
+  const sgD=routine.days.find(d=>d.id===sg);
   const meta=homeDayMeta(sgD);
+  const sgIdx=routine.days.findIndex(d=>d.id===sg);
+  const sgNum=String(sgIdx+1).padStart(2,'0');
+  const totalDays=routine.days.length;
+  const refSlug=sgD.name.toUpperCase().replace(/\s+/g,'-').replace(/[^A-Z0-9-]/g,'');
   $("home-suggested").innerHTML=`
-    <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Hoy te toca</div>
-    <div style="font-size:26px;font-weight:600;color:var(--tx);line-height:1.05;margin-top:6px;letter-spacing:-0.5px">${sgD.name}${sgD.sub?` <span style="color:var(--mt);font-weight:500">· ${sgD.sub}</span>`:''}</div>
-    <div style="font-size:13px;color:var(--mt);margin-top:4px;font-weight:500">${formatDayPreview(sgD)||''}</div>
-    <div style="display:flex;gap:14px;margin-top:14px;font-size:12px;color:var(--mt);font-weight:500;flex-wrap:wrap">
-      <span><span style="color:var(--tx);font-weight:600">${meta.ex}</span> ejercicio${meta.ex===1?'':'s'}</span>
-      ${meta.blocks>1?`<span style="color:var(--bd)">·</span><span><span style="color:var(--tx);font-weight:600">${meta.blocks}</span> bloques</span>`:''}
-      <span style="color:var(--bd)">·</span>
-      <span><span style="color:var(--tx);font-weight:600">${meta.sets}</span> sets</span>
+    <div class="hero-top">
+      <span><span class="tag-rule"></span>REF · ${refSlug}-${sgNum}</span>
+      <span>D${sgIdx+1}/${totalDays}<span class="tag-rule"></span></span>
     </div>
-    <button class="btn" style="margin-top:16px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 0;font-size:14.5px;letter-spacing:-0.2px" onclick="startWorkout(${sg})">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>
-      Empezar entrenamiento
+    <div class="hero-stage">
+      <div class="hero-ghost">${sgNum}</div>
+      <div class="hero-name">${sgD.name}</div>
+    </div>
+    ${sgD.sub?`<div class="hero-sub">${sgD.sub}</div>`:''}
+    <div class="hero-meta">
+      <span><b>${meta.ex}</b>ej</span>
+      ${meta.blocks>1?`<span><b>${meta.blocks}</b>bloques</span>`:''}
+      <span><b>${meta.sets}</b>sets</span>
+    </div>
+    <button class="hero-cta" onclick="startWorkout(${sg})">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>
+      EMPEZAR ENTRENO
     </button>
   `;
 
-  // STATS — Racha (naranja + barras 7d) + Sesiones (blanco + delta semana)
+  // STATS asimétrico — Racha (1.7fr con bars) + Sesiones (1fr mini)
   const st=streak();
   const tw=thisWeekSessions();
   const dpw=config.daysPerWeek||3;
   $("home-streak").textContent=st;
-  $("home-fire").style.display=st>0?"inline-block":"none";
   $("home-sessions").textContent=sessions.length;
-  $("home-streak-detail").innerHTML=`Esta semana: <span style="color:${tw>=dpw?'var(--gn)':'var(--tx)'};font-weight:600">${tw}/${dpw}</span>${tw>=dpw?' <span style="color:var(--gn)">✓</span>':''}`;
-  // Barras semana actual (L→D) con labels y "hoy" destacado
+  $("home-streak-detail").innerHTML=`<span class="lbl">${tw}/${dpw}</span> esta semana${tw>=dpw?' <span class="gn">✓</span>':''}`;
+
   const week=homeLast7Trained();
   const dowLabels=['L','M','M','J','V','S','D'];
   $("home-streak-bars").innerHTML=`
-    <div style="display:flex;gap:3px;align-items:flex-end;height:20px;width:100%">
-      ${week.map(d=>`<div style="flex:1;height:${d.trained?'100%':'38%'};background:${d.trained?'var(--yw)':(d.isToday?'transparent':'var(--bd)')};${d.isToday&&!d.trained?'border:1.5px solid var(--yw);':''}border-radius:2px;opacity:${d.trained?1:(d.isFuture?0.25:0.5)};transition:height 0.3s ease"></div>`).join('')}
+    <div class="stat-bars">
+      ${week.map(d=>`<div class="${d.trained?'on':(d.isToday?'today':'')}"></div>`).join('')}
     </div>
-    <div style="display:flex;gap:3px;margin-top:5px">
-      ${week.map((d,i)=>`<div style="flex:1;text-align:center;font-size:9px;font-weight:700;color:${d.isToday?'var(--yw)':'var(--mt2)'};letter-spacing:0.5px">${dowLabels[i]}</div>`).join('')}
-    </div>
-  `;
-  // Sesiones: "+X últimos 7 días"
+    <div class="stat-bars-row">
+      ${week.map((d,i)=>`<div class="stat-bars-d ${d.isToday?'today':''}">${dowLabels[i]}</div>`).join('')}
+    </div>`;
+
+  // Sesiones detail
   const sevenAgo=new Date(nowBsAs().getTime()-7*24*3600*1000).toISOString().slice(0,10);
   const sessLast7=sessions.filter(s=>s.date>sevenAgo).length;
   $("home-sessions-detail").innerHTML=sessLast7>0
-    ?`<span style="color:var(--tx);font-weight:600">+${sessLast7}</span> últimos 7 días`
-    :`<span style="color:var(--mt2)">—</span>`;
+    ?`<b>+${sessLast7}</b> en 7d`
+    :`— en 7d`;
 
-  // OTROS DÍAS — grid 2x2 (responsive si hay impar)
+  // OTROS DÍAS — lista con número grande
   const others=routine.days.filter(d=>d.id!==sg);
-  $("home-others").innerHTML=others.length===0
-    ?'<div class="card" style="cursor:default;text-align:center;color:var(--mt2);padding:24px 16px;font-size:13px">No hay otros días configurados.</div>'
-    :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${others.map(d=>`
-        <div class="card b2-tap" style="padding:14px;cursor:pointer;display:flex;flex-direction:column" onclick="startWorkout(${d.id})">
-          <div style="font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mt2)">${d.name}</div>
-          <div style="font-size:15px;font-weight:600;color:var(--tx);margin-top:6px;letter-spacing:-0.2px;line-height:1.1">${d.sub||''}</div>
-          ${formatDayPreview(d)?`<div style="font-size:11px;color:var(--mt);margin-top:4px;font-weight:500;line-height:1.3;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;flex:1">${formatDayPreview(d)}</div>`:'<div style="flex:1"></div>'}
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--bd)">
-            <span style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac)">Empezar</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="color:var(--ac)"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+  if(others.length===0){
+    $("home-others").innerHTML='<div class="day-card" style="cursor:default;justify-content:center"><div class="day-info" style="text-align:center;color:var(--mt2);font-size:13px">No hay otros días configurados.</div></div>';
+  } else {
+    $("home-others").innerHTML=others.map(d=>{
+      const idx=routine.days.findIndex(x=>x.id===d.id);
+      const num=String(idx+1).padStart(2,'0');
+      const preview=formatDayPreview(d)||d.sub||'';
+      return `
+        <div class="day-card" onclick="startWorkout(${d.id})">
+          <div class="day-num">${num}</div>
+          <div class="day-info">
+            <div class="day-name">${d.name}</div>
+            ${preview?`<div class="day-preview">${preview}</div>`:''}
           </div>
-        </div>
-      `).join('')}</div>`;
+          <svg class="day-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>`;
+    }).join('');
+  }
 
+  // CALENDAR — mes/año + streak badge en header
+  const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  $("cal-month-lbl").textContent=meses[calMonth];
+  $("cal-month-yr").textContent=String(calYear).slice(-2);
+  const streakBadge=$("cal-streak-badge");
+  if(st>0){
+    streakBadge.style.display="inline-flex";
+    $("cal-streak-val").textContent=`×${st}`;
+  } else {
+    streakBadge.style.display="none";
+  }
   renderCalendar();
 
-  // ÚLTIMA SESIÓN — con PR banner verde integrado si hubo PR
+  // ÚLTIMA SESIÓN
   const last=sessions.length?[...sessions].sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
   if(last){
     $("home-last-sec").style.display="block";
     const dayDef=routine.days.find(d=>d.id===last.dayId);
     const prs=homeSessionPRs(last);
     const exDone=(last.exercises||[]).filter(ex=>ex.sets&&ex.sets.some(s=>s.rpe!==null)).length;
-    const setsRegistered=(last.exercises||[]).reduce((s,ex)=>s+(ex.sets||[]).filter(st=>st.rpe!==null).length,0);
+    const setsReg=(last.exercises||[]).reduce((s,ex)=>s+(ex.sets||[]).filter(st=>st.rpe!==null).length,0);
+    const parts=last.date.split('-');
+    const dateShort=`${parts[2]}.${parts[1]}`;
     $("home-last").innerHTML=`
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px">
-        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Última sesión</div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-          <span style="font-size:11px;color:var(--mt2);font-weight:500">${relativeDate(last.date)}${last.time?' · '+last.time:''}</span>
-          <button class="btn-sm" onclick="editSession('${last.id}')" title="Editar sesión" style="font-size:11px;padding:5px 10px;border-radius:8px">✎</button>
-        </div>
+      <div class="last-top">
+        <div class="last-label">${relativeDate(last.date)}</div>
+        <div class="last-date">${dateShort}${last.time?' · '+last.time:''}</div>
       </div>
-      <div style="font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.3px;line-height:1.1">${dayDef?.name||'—'}${dayDef?.sub?` <span style="color:var(--mt);font-weight:500">· ${dayDef.sub}</span>`:''}</div>
-      <div style="font-size:12px;color:var(--mt);margin-top:3px;font-weight:500">${exDone} ejercicio${exDone===1?'':'s'} · ${setsRegistered} sets registrados</div>
+      <div class="last-title">${dayDef?.name||'—'}</div>
+      <div class="last-meta">${exDone} ejercicio${exDone===1?'':'s'} · ${setsReg} sets registrados${dayDef?.sub?` · ${dayDef.sub}`:''}</div>
       ${prs.length?`
-        <div style="margin-top:12px;padding:10px 12px;background:rgba(52,211,153,0.10);border:1px solid rgba(52,211,153,0.25);border-radius:12px;display:flex;align-items:center;gap:10px">
-          <div style="width:30px;height:30px;border-radius:9px;background:rgba(52,211,153,0.20);color:var(--gn);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px">🏆</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:12.5px;font-weight:600;color:var(--tx);line-height:1.15;letter-spacing:-0.1px">${prs[0].name} · <span style="color:var(--gn)">${formatPR(prs[0].value,prs[0].mode)}</span></div>
-            <div style="font-size:11px;color:var(--mt);margin-top:2px;font-weight:500">${prs.length===1?'Nuevo PR':`${prs.length} PRs esta sesión`}</div>
+        <div class="last-pr">
+          <div class="last-pr-left">
+            <div class="last-pr-badge">PR</div>
+            <div>
+              <div class="last-pr-text">${prs[0].name} · <span class="last-pr-val">${formatPR(prs[0].value,prs[0].mode)}</span></div>
+              ${prs.length>1?`<div style="font-size:11px;color:var(--mt);margin-top:2px;font-weight:500">+${prs.length-1} PR más</div>`:''}
+            </div>
           </div>
+          <button class="icon-btn" style="width:32px;height:32px;border-radius:8px" onclick="editSession('${last.id}')" title="Editar sesión">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
         </div>
-      `:''}
+      `:`
+        <div style="margin-top:14px;display:flex;justify-content:flex-end">
+          <button class="btn-sm" onclick="editSession('${last.id}')" style="font-size:11.5px;padding:6px 12px;border-radius:8px">Editar</button>
+        </div>
+      `}
     `;
   } else {$("home-last-sec").style.display="none";}
 
   // Historial por ejercicio + chart de volumen muscular fueron movidos a "Mi progreso" (📊).
-  // El Home queda más foco-en-hoy: hero + stats + última + otros días + calendario y listo.
 }
 
 // ══ PROGRESS · "Mi progreso" ══
