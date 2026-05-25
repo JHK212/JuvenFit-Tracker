@@ -286,6 +286,21 @@ details summary::-webkit-details-marker{display:none;}
   appearance:none;
   -webkit-appearance:none;
 }
+/* Restaurar defaults de <button> para labels wrappeados cuyas clases no declaran display:
+   <button> es inline-block + text-align:center por UA; <label> es inline + text-align inherit.
+   Sin esto, .btn/.btn-out/.btn-danger pierden width:100%, y .rpe-btn-min/.btn-sm/.ex-tab/.dpw-btn
+   pierden el centrado del texto. Las clases con display:flex|inline-flex propio (icon-btn, w-btn,
+   ws-pill) tienen mayor especificidad y ganan, por lo que no se ven afectadas. */
+label.haptic-switch.btn,
+label.haptic-switch.btn-out,
+label.haptic-switch.btn-sm,
+label.haptic-switch.btn-danger,
+label.haptic-switch.dpw-btn,
+label.haptic-switch.ex-tab,
+label.haptic-switch.rpe-btn-min{
+  display:inline-block;
+  text-align:center;
+}
 
 /* ─── RPE segmented control minimalista (Fase 4.2 set card sin caja) ─── */
 .rpe-btn-min{flex:1;padding:12px 0;border-radius:12px;background:var(--sf);border:1px solid var(--bd);color:var(--tx);font-family:var(--fs);font-size:13px;font-weight:600;letter-spacing:-0.1px;cursor:pointer;transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),background 110ms ease,border-color 110ms ease,filter 110ms ease;}
