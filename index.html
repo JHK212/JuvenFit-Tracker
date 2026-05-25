@@ -891,18 +891,40 @@ label.haptic-switch.rpe-btn-min{
 
 <!-- ══ HISTORY ══ -->
 <div id="hist" class="page">
-  <div class="header">
-    <button class="icon-btn" onclick="histBack()">←</button>
-    <div id="hist-title" class="fw-700" style="font-size:16px;text-align:center;flex:1;color:var(--ac)"></div>
-    <div style="width:44px"></div>
+  <div class="header" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
+    <button class="icon-btn" onclick="histBack()" style="width:38px;height:38px;border-radius:10px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div id="hist-title" style="font-size:17px;font-weight:600;letter-spacing:-0.3px;text-align:center;flex:1;color:var(--tx)"></div>
+    <div style="width:38px"></div>
   </div>
-  <div class="sec">
-    <div class="flex gap-12 mb-20">
-      <div class="card flex-1" style="cursor:default"><div class="text-xs text-mt fw-600 mb-4">RECORD</div><div class="flex gap-8" style="align-items:baseline"><span id="hist-pr" class="accent-num">0</span><span class="text-sm text-mt">kg</span></div></div>
-      <div class="card flex-1" style="cursor:default"><div class="row mb-4"><span class="text-xs text-mt fw-600">SESIONES</span><button class="icon-btn" onclick="window._delHistFrom='hist';showPage('delHist')" style="width:26px;height:26px;font-size:12px">✎</button></div><span id="hist-count" class="big-num">0</span></div>
+  <div class="sec-h" style="padding-top:6px"><span class="sec-h-idx">01</span><span class="sec-h-title">Resumen</span><span class="sec-h-rule"></span></div>
+  <div class="sec" style="padding-top:0;padding-bottom:14px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="stat-card" style="padding:16px;margin-bottom:0">
+        <div style="font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Récord</div>
+        <div style="display:flex;align-items:baseline;gap:6px"><span id="hist-pr" style="font-family:var(--fm);font-size:30px;font-weight:700;color:var(--gn);letter-spacing:-0.8px;line-height:1;font-variant-numeric:tabular-nums">0</span><span id="hist-pr-unit" style="font-size:12px;color:var(--mt);font-weight:500">kg</span></div>
+      </div>
+      <div class="stat-card" style="padding:16px;margin-bottom:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Sesiones</span>
+          <button class="icon-btn" onclick="window._delHistFrom='hist';showPage('delHist')" style="width:26px;height:26px;font-size:11px;border-radius:6px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+        </div>
+        <span id="hist-count" style="font-family:var(--fm);font-size:30px;font-weight:700;color:var(--tx);letter-spacing:-0.8px;line-height:1;font-variant-numeric:tabular-nums">0</span>
+      </div>
     </div>
-    <div id="hist-chart" class="card mb-20" style="cursor:default;display:none;padding:18px 10px 10px"><div class="text-xs text-mt fw-600 mb-12" style="padding-left:8px">PROGRESIÓN</div><svg id="hist-svg" class="chart-svg"></svg></div>
-    <div class="sec-title">Historial</div><div id="hist-list"></div>
+  </div>
+  <div id="hist-chart-sec" style="display:none">
+    <div class="sec-h"><span class="sec-h-idx">02</span><span class="sec-h-title">Progresión</span><span class="sec-h-rule"></span></div>
+    <div class="sec" style="padding-top:0;padding-bottom:14px">
+      <div id="hist-chart" class="card" style="cursor:default;padding:18px 10px 10px;margin-bottom:0;border-radius:var(--r-card)">
+        <svg id="hist-svg" class="chart-svg"></svg>
+      </div>
+    </div>
+  </div>
+  <div class="sec-h"><span class="sec-h-idx" id="hist-list-idx">02</span><span class="sec-h-title">Historial</span><span class="sec-h-rule"></span></div>
+  <div class="sec" style="padding-top:0">
+    <div id="hist-list"></div>
   </div>
 </div>
 
@@ -2885,12 +2907,12 @@ function progressShowDayDetail(date){
 }
 function renderProgress(){
   const root=$("progress-content");
-  // Empty state
+  // Empty state · editorial
   if(!sessions.length){
-    root.innerHTML=`<div class="sec"><div class="card" style="cursor:default;text-align:center;padding:36px 20px">
-      <div style="font-size:42px;margin-bottom:12px">📊</div>
-      <div style="font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;margin-bottom:6px">Sin sesiones todavía</div>
-      <div class="text-sm text-mt" style="line-height:1.5">Tu primer entreno aparecerá acá.<br>Empezá hoy desde el home.</div>
+    root.innerHTML=`<div class="sec"><div style="background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);text-align:center;padding:40px 22px">
+      <div style="font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--mt);margin-bottom:14px">Progreso</div>
+      <div style="font-size:20px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;margin-bottom:8px">Sin sesiones todavía</div>
+      <div style="font-size:13px;color:var(--mt);line-height:1.55;font-weight:500">Tu primer entreno aparecerá acá.<br>Empezá hoy desde el home.</div>
     </div></div>`;
     return;
   }
@@ -2901,28 +2923,24 @@ function renderProgress(){
   const muscle=progressMonthMuscleVolume();
   const heat=progressYearHeatmap();
 
-  // ── 1 · Stats grid ──
-  const sessNumColor='var(--tx)';
+  // ── 01 · Stats grid editorial (igual lenguaje que home) ──
   const prNumColor=prTotal>0?'var(--gn)':'var(--mt2)';
-  const prSubColor=prTotal>0?'var(--mt)':'var(--mt2)';
   const prSubText=prTotal>0?'logrados':'aún no';
   const stNumColor=stWeeks>0?'var(--yw)':'var(--mt2)';
-  let html=`<div class="sec" style="padding-top:6px;padding-bottom:14px">
+  let html=`<div class="sec-h" style="padding-top:6px"><span class="sec-h-idx">01</span><span class="sec-h-title">Resumen</span><span class="sec-h-rule"></span></div>`;
+  html+=`<div class="sec" style="padding-top:0;padding-bottom:14px">
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-      <div class="card" style="cursor:default;padding:14px 10px;text-align:center;margin-bottom:0">
-        <div style="font-size:26px;font-weight:700;letter-spacing:-0.9px;color:${sessNumColor};line-height:1">${sessions.length}</div>
-        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mt);margin-top:8px">Sesiones</div>
-        <div style="font-size:10px;font-weight:500;color:var(--mt2);margin-top:2px">totales</div>
+      <div class="stat-card" style="padding:16px 10px;text-align:center;margin-bottom:0">
+        <div style="font-family:var(--fm);font-size:28px;font-weight:700;letter-spacing:-0.8px;color:var(--tx);line-height:1;font-variant-numeric:tabular-nums">${sessions.length}</div>
+        <div style="font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-top:10px">Sesiones</div>
       </div>
-      <div class="card" style="cursor:default;padding:14px 10px;text-align:center;margin-bottom:0">
-        <div style="font-size:26px;font-weight:700;letter-spacing:-0.9px;color:${prNumColor};line-height:1">${prTotal}</div>
-        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mt);margin-top:8px">PRs</div>
-        <div style="font-size:10px;font-weight:500;color:${prSubColor};margin-top:2px">${prSubText}</div>
+      <div class="stat-card" style="padding:16px 10px;text-align:center;margin-bottom:0">
+        <div style="font-family:var(--fm);font-size:28px;font-weight:700;letter-spacing:-0.8px;color:${prNumColor};line-height:1;font-variant-numeric:tabular-nums">${prTotal}</div>
+        <div style="font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-top:10px">PRs · ${prSubText}</div>
       </div>
-      <div class="card" style="cursor:default;padding:14px 10px;text-align:center;margin-bottom:0">
-        <div style="font-size:26px;font-weight:700;letter-spacing:-0.9px;color:${stNumColor};line-height:1">${stWeeks}${stWeeks>0?' <span style="font-size:18px">🔥</span>':''}</div>
-        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mt);margin-top:8px">Racha</div>
-        <div style="font-size:10px;font-weight:500;color:var(--mt2);margin-top:2px">semanas</div>
+      <div class="stat-card" style="padding:16px 10px;text-align:center;margin-bottom:0">
+        <div style="font-family:var(--fm);font-size:28px;font-weight:700;letter-spacing:-0.8px;color:${stNumColor};line-height:1;font-variant-numeric:tabular-nums">${stWeeks}</div>
+        <div style="font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-top:10px">Racha · semanas</div>
       </div>
     </div>
   </div>`;
@@ -2932,11 +2950,8 @@ function renderProgress(){
   // Solo se muestra si hay al menos 1 set registrado este año.
   const rpeDist=progressYearRPEDistribution();
   if(rpeDist.counts.total>0){
-    html+=`<div class="sec" style="padding-top:0;padding-bottom:14px">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;padding:0 2px">
-        <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Intensidad del año</div>
-        <div style="font-size:11px;color:var(--mt2);font-weight:500">${rpeDist.counts.total} set${rpeDist.counts.total===1?'':'s'}</div>
-      </div>
+    html+=`<div class="sec-h"><span class="sec-h-idx">02</span><span class="sec-h-title">Intensidad del año</span><span class="sec-h-rule"></span><span style="font-family:var(--fm);font-size:10px;color:var(--mt2);font-weight:500;letter-spacing:0.5px">${rpeDist.counts.total} sets</span></div>
+    <div class="sec" style="padding-top:0;padding-bottom:14px">
       <div class="card" style="cursor:default;padding:18px">
         <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--bd);box-shadow:var(--lift-in)">
           ${rpeDist.pct.liviano>0?`<div style="flex:${rpeDist.pct.liviano};background:var(--gn);transition:flex 0.3s ease"></div>`:''}
@@ -2974,12 +2989,9 @@ function renderProgress(){
     </div>`;
   }
 
-  // ── 2 · Historial por ejercicio ──
-  html+=`<div class="sec" style="padding-top:0;padding-bottom:14px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 2px">
-      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Historial por ejercicio</div>
-      <div style="font-size:11px;color:var(--mt2);font-weight:500">${topAll.length} ejercicio${topAll.length===1?'':'s'}</div>
-    </div>`;
+  // ── 03 · Historial por ejercicio ──
+  html+=`<div class="sec-h"><span class="sec-h-idx">03</span><span class="sec-h-title">Historial por ejercicio</span><span class="sec-h-rule"></span><span style="font-family:var(--fm);font-size:10px;color:var(--mt2);font-weight:500;letter-spacing:0.5px">${topAll.length} ej</span></div>
+  <div class="sec" style="padding-top:0;padding-bottom:14px">`;
   if(!topAll.length){
     html+=`<div class="card" style="cursor:default;text-align:center;color:var(--mt2);padding:20px;font-size:13px">Sin ejercicios registrados.</div>`;
   } else {
@@ -3009,9 +3021,9 @@ function renderProgress(){
   }
   html+=`</div>`;
 
-  // ── 3 · Volumen muscular ──
-  html+=`<div class="sec" style="padding-top:0;padding-bottom:14px">
-    <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px;padding:0 2px">Volumen muscular</div>
+  // ── 04 · Volumen muscular ──
+  html+=`<div class="sec-h"><span class="sec-h-idx">04</span><span class="sec-h-title">Volumen muscular</span><span class="sec-h-rule"></span></div>
+  <div class="sec" style="padding-top:0;padding-bottom:14px">
     <div class="card" style="cursor:default;padding:18px">`;
   if(!muscle.hasAnyMapping||!muscle.segments.length){
     html+=`<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0">
@@ -3109,15 +3121,10 @@ function renderProgress(){
     html+=`</div>`;
   }
 
-  // ── 4 · Heatmap anual ──
-  // Año actual (1 ene → 31 dic), labels de meses tappables arriba. Tap en un mes → expande
-  // un calendario tradicional del mes debajo con días grandes (tap en un día entrenado → toast con detalle).
+  // ── 05 · Heatmap anual ──
   const totalSessYear=heat.days.filter(d=>d.trained).length;
-  html+=`<div class="sec" style="padding-top:0;padding-bottom:14px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;padding:0 2px">
-      <div style="font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt)">Año ${heat.year}</div>
-      <div style="font-size:11px;color:var(--mt2);font-weight:500">${totalSessYear} sesion${totalSessYear===1?'':'es'}</div>
-    </div>
+  html+=`<div class="sec-h"><span class="sec-h-idx">05</span><span class="sec-h-title">Año ${heat.year}</span><span class="sec-h-rule"></span><span style="font-family:var(--fm);font-size:10px;color:var(--mt2);font-weight:500;letter-spacing:0.5px">${totalSessYear} ses</span></div>
+  <div class="sec" style="padding-top:0;padding-bottom:14px">
     <div class="card" style="cursor:default;padding:14px 12px">
       <!-- Row de labels de meses, alineado con grid (padding-left para skip la columna de labels Y) -->
       <div style="display:flex;gap:2px;margin-bottom:6px;padding-left:18px">
@@ -5009,10 +5016,34 @@ function showHist(eid){
   const peakOf=e=>mode==='weight'?e.peso:e.peakR;
   $("hist-title").textContent=ex?.name||getExerciseName(eid)||'Ejercicio';
   $("hist-pr").textContent=mode==='weight'?pr:formatPR(pr,mode);
+  if($("hist-pr-unit")) $("hist-pr-unit").textContent=mode==='weight'?'kg':(mode==='time'?'s':'reps');
   $("hist-count").textContent=data.length;
-  if(data.length>=2){$("hist-chart").style.display="block";drawChart(data,mode);}else{$("hist-chart").style.display="none";}
+  if(data.length>=2){
+    $("hist-chart-sec").style.display="block";
+    if($("hist-list-idx")) $("hist-list-idx").textContent='03';
+    drawChart(data,mode);
+  } else {
+    $("hist-chart-sec").style.display="none";
+    if($("hist-list-idx")) $("hist-list-idx").textContent='02';
+  }
   const rpeMap={liviano:{c:'var(--gn)',i:'🟢'},justo:{c:'var(--yw)',i:'🟡'},limite:{c:'var(--dn)',i:'🔴'}};
-  $("hist-list").innerHTML=data.length?[...data].reverse().map(e=>{const peak=peakOf(e);const peakLbl=mode==='weight'?(peak+'kg'):formatPR(peak,mode);return `<div class="card" style="cursor:default"><div class="row mb-8"><span class="fw-700" style="font-size:14px">${e.date}${e.time?` <span class="text-xs text-mt fw-600">${e.time}</span>`:''}</span><span class="mono fw-800" style="font-size:18px;color:${peak>=pr?'var(--ac)':'var(--tx)'}">${peakLbl}${peak>=pr?' 🔥':''}</span></div><div class="flex gap-8" style="flex-wrap:wrap">${e.sets.map(s=>{const r=rpeMap[s.rpe]||{c:'var(--mt)',i:''};return`<div class="badge" style="background:${r.c}18;color:${r.c}">${formatSetBadge(s,mode)} ${r.i}</div>`;}).join('')}</div>${e.note?`<div class="text-xs mt-8" style="color:var(--mt);font-style:italic">📝 ${e.note}</div>`:''}</div>`}).join(''):'<div class="text-sm text-mt">Sin datos todavía.</div>';
+  $("hist-list").innerHTML=data.length?[...data].reverse().map(e=>{
+    const peak=peakOf(e);
+    const peakLbl=mode==='weight'?(peak+' kg'):formatPR(peak,mode);
+    const isPR=peak>=pr&&pr>0;
+    return `<div class="card" style="cursor:default;border-radius:12px;padding:14px 16px;margin-bottom:8px;${isPR?'border-color:var(--gn)':''}">
+      <div class="row" style="margin-bottom:10px;align-items:baseline">
+        <span style="font-family:var(--fm);font-size:11px;font-weight:600;letter-spacing:0.8px;color:var(--mt);text-transform:uppercase">${e.date}${e.time?` · ${e.time}`:''}</span>
+        <span style="font-family:var(--fm);font-size:18px;font-weight:700;color:${isPR?'var(--gn)':'var(--tx)'};letter-spacing:-0.4px;font-variant-numeric:tabular-nums">${peakLbl}${isPR?' ·':''}${isPR?'<span style="font-family:var(--fs);font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:var(--gn);margin-left:4px;background:rgba(61,214,140,0.12);padding:2px 6px;border-radius:4px">PR</span>':''}</span>
+      </div>
+      <div class="flex gap-6" style="flex-wrap:wrap">${e.sets.map(s=>{
+        const r=rpeMap[s.rpe]||{c:'var(--mt)',i:''};
+        const cn=s.rpe==='liviano'?'var(--gn)':s.rpe==='justo'?'var(--yw)':s.rpe==='limite'?'var(--dn)':'var(--mt)';
+        return `<div style="display:inline-flex;align-items:center;gap:5px;font-family:var(--fm);font-size:11px;font-weight:600;color:${cn};border:1px solid ${cn};padding:3px 8px;border-radius:5px">${formatSetBadge(s,mode)}</div>`;
+      }).join('')}</div>
+      ${e.note?`<div style="font-size:12px;color:var(--mt);margin-top:8px;line-height:1.4;font-weight:500">${e.note}</div>`:''}
+    </div>`;
+  }).join(''):'<div style="text-align:center;color:var(--mt2);font-size:13px;padding:24px 0">Sin datos todavía.</div>';
   showPage('hist');
 }
 function drawChart(data,mode){
