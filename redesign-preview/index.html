@@ -1655,8 +1655,11 @@ function metabolicHeaderLabel(fmt,cfg,nEx){
 // ══ Audio cues (Web Audio API, sin assets) ══
 let _mbAudioCtx=null;
 function _mbEnsureAudio(){
-  if(_mbAudioCtx) return _mbAudioCtx;
-  try{_mbAudioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}
+  if(!_mbAudioCtx){
+    try{_mbAudioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}
+  }
+  // iOS requiere .resume() explicito desde un user gesture · idempotente.
+  try{ if(_mbAudioCtx.state==='suspended') _mbAudioCtx.resume().catch(()=>{}); }catch(e){}
   return _mbAudioCtx;
 }
 function mbBeep(freq,durMs,vol){
@@ -2196,6 +2199,8 @@ function renderCalendar(){
 function startHoldCTA(btn,ev){
   if(btn._holding) return;
   if(ev&&ev.preventDefault) ev.preventDefault();
+  // Unlock AudioContext aprovechando el gesto vivo · habilita beeps del timer end en iOS.
+  try{ if(typeof _mbEnsureAudio==='function') _mbEnsureAudio(); }catch(e){}
   btn._holding=true;
   btn.classList.add('holding');
   // Capture pointer so pointerup/cancel fire incluso si el dedo se desliza un poco
@@ -4217,10 +4222,8 @@ function toggleAcc(accId,rest){
 }
 function toggleMobility(exId,restSec){
   if(!curSess.mobility) curSess.mobility={};
-  const wasOff=!curSess.mobility[exId];
   curSess.mobility[exId]=!curSess.mobility[exId];
   saveDraft();
-  if(wasOff&&restSec&&!timerRef) startTimer(restSec);
   renderWork();
 }
 
