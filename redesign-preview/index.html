@@ -578,17 +578,63 @@ label.haptic-switch.rpe-btn-min{
 .mb-reset-btn{margin-top:18px;width:100%;background:transparent;border:1px solid var(--bd);color:var(--mt);font-family:var(--fm);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:12px;border-radius:10px;cursor:pointer;}
 .mb-reset-btn:active{background:var(--sf);color:var(--tx);}
 
-/* ─── Grouped (biserie / triserie) banner · Sport v3 editorial ─── */
-.grp-banner{background:var(--cd);border:1px solid var(--bd);border-left:3px solid var(--yw);border-radius:14px;padding:16px 18px;margin-bottom:18px;box-shadow:0 8px 24px -14px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.025);}
-.grp-banner-top{display:flex;justify-content:space-between;align-items:center;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--yw);margin-bottom:12px;}
+/* ─── Grouped (biserie / triserie) · Sport v3 editorial · focused-by-round ─── */
+.grp-banner{background:var(--cd);border:1px solid var(--bd);border-left:3px solid var(--yw);border-radius:14px;padding:14px 16px 12px;margin-bottom:14px;box-shadow:0 8px 24px -14px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.025);}
+.grp-banner-top{display:flex;justify-content:space-between;align-items:center;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--yw);margin-bottom:10px;}
 .grp-banner-top span{display:flex;align-items:center;gap:7px;}
 .grp-banner-top .tag-rule{width:14px;height:1px;background:currentColor;opacity:0.4;}
-.grp-banner-name{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;}
-.grp-banner-ex{font-family:var(--fd);font-size:18px;font-weight:700;color:var(--tx);letter-spacing:-0.4px;line-height:1.05;font-variation-settings:"wdth" 90;display:flex;align-items:baseline;gap:8px;}
-.grp-banner-num{font-family:var(--fm);font-size:11px;font-weight:600;color:var(--mt2);letter-spacing:0.5px;flex-shrink:0;}
+.grp-banner-name{display:flex;flex-direction:column;gap:2px;}
+.grp-banner-ex{font-family:var(--fd);font-size:17px;font-weight:700;color:var(--tx);letter-spacing:-0.4px;line-height:1.1;font-variation-settings:"wdth" 90;display:flex;align-items:baseline;gap:8px;}
+.grp-banner-num{font-family:var(--fm);font-size:10.5px;font-weight:600;color:var(--mt2);letter-spacing:0.5px;flex-shrink:0;}
 .grp-banner-plus{display:none;}
-.grp-banner-note{font-size:11.5px;color:var(--mt);font-weight:500;line-height:1.5;}
-.grp-banner-note b{color:var(--tx);font-weight:600;}
+
+/* Round container — 3 estados (done collapsed, active expanded, pending placeholder) */
+.grp-round{margin-bottom:10px;border-radius:12px;}
+.grp-round-h{display:flex;justify-content:space-between;align-items:center;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;}
+.grp-round-tag{color:var(--mt);}
+.grp-round-mark-done{color:var(--gn);}
+.grp-round-mark-active{color:var(--yw);}
+.grp-round-mark-pending{color:var(--mt2);font-weight:500;text-transform:none;letter-spacing:0.5px;}
+
+/* DONE state · resumen colapsado */
+.grp-round-done{background:var(--cd);border:1px solid var(--bd);border-left:3px solid var(--gn);padding:11px 14px;}
+.grp-round-done .grp-round-h{margin-bottom:8px;}
+.grp-round-body{display:flex;flex-direction:column;gap:5px;}
+.grp-sum-row{display:flex;align-items:center;gap:10px;font-size:12.5px;line-height:1.2;}
+.grp-sum-num{font-family:var(--fm);font-size:10px;color:var(--mt2);font-weight:600;letter-spacing:0.5px;flex-shrink:0;width:18px;}
+.grp-sum-name{flex:1;color:var(--tx);font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.grp-sum-val{font-family:var(--fm);color:var(--tx);font-weight:600;letter-spacing:-0.2px;flex-shrink:0;}
+.grp-sum-unit{color:var(--mt);font-weight:500;font-size:11px;}
+.grp-sum-rpe{display:inline-block;width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.grp-sum-rpe-gn{background:var(--gn);box-shadow:0 0 5px -1px rgba(61,214,140,0.6);}
+.grp-sum-rpe-yw{background:var(--yw);box-shadow:0 0 5px -1px rgba(215,121,62,0.6);}
+.grp-sum-rpe-dn{background:var(--dn);}
+
+/* ACTIVE state · expanded set cards */
+.grp-round-active{background:var(--cd);border:1px solid var(--bd);border-left:3px solid var(--yw);padding:14px 16px 14px;box-shadow:0 12px 28px -16px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.025);}
+.grp-round-active .grp-round-h{margin-bottom:14px;}
+.grp-active-ex{margin-top:14px;padding-top:14px;border-top:1px dashed var(--bd);}
+.grp-active-ex:first-of-type{margin-top:6px;padding-top:0;border-top:none;}
+.grp-active-ex-h{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.grp-active-ex-num{font-family:var(--fm);font-size:10px;font-weight:600;color:var(--mt2);letter-spacing:0.5px;}
+.grp-active-ex-name{flex:1;font-family:var(--fd);font-size:18px;font-weight:700;color:var(--tx);letter-spacing:-0.4px;font-variation-settings:"wdth" 88;line-height:1.05;}
+.grp-active-ex-info{width:28px;height:28px;border:1px solid var(--bd);border-radius:7px;background:transparent;color:var(--mt);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.grp-active-ex-info:active{background:var(--sf);color:var(--tx);}
+.grp-active-ex-meta{font-family:var(--fm);font-size:10px;color:var(--mt);font-weight:500;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:12px;}
+.grp-round-controls{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--bd);}
+.grp-round-ctrl{padding:9px 10px;border:1px solid var(--bd);border-radius:9px;background:transparent;color:var(--mt);font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;flex-shrink:0;}
+.grp-round-ctrl:active{background:var(--sf);color:var(--tx);}
+.grp-rest-btn{flex:1;padding:11px;border:none;border-radius:9px;background:var(--yw);color:var(--yw-dark);font-family:var(--fs);font-size:12.5px;font-weight:700;letter-spacing:-0.1px;cursor:pointer;box-shadow:0 4px 12px -4px rgba(215,121,62,0.45),inset 0 1px 0 rgba(255,255,255,0.18);}
+.grp-rest-btn:active{filter:brightness(1.05);transform:scale(0.99);}
+
+/* PENDING state · placeholder dashed */
+.grp-round-pending{border:1px dashed var(--bd);padding:10px 14px;opacity:0.55;}
+
+/* Footer (rec + notas) */
+.grp-footer{margin-top:18px;padding-top:14px;border-top:1px solid var(--bd);display:flex;flex-direction:column;gap:10px;}
+.grp-rec{background:var(--cd);border:1px solid var(--bd);border-left:3px solid var(--ac);border-radius:10px;padding:10px 14px;}
+.grp-rec-label{font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);margin-bottom:4px;}
+.grp-rec-text{font-size:12.5px;color:var(--tx);line-height:1.45;font-weight:500;}
 
 /* ─── Workout header editorial ─── */
 .work-header-new{
@@ -3809,25 +3855,17 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
   const groupLabel=groupTerm(grp.size);
   const exs=indexes.map(i=>compounds[i]);
   const restSec=restAsSeconds(firstEx.rest);
-  // Banner editorial · estructura igual al hero pero compacto, naranja sutil + REF mono
+  // Banner editorial compacto (titulo del grupo)
   let html=`<div class="grp-banner">
     <div class="grp-banner-top">
       <span><span class="tag-rule"></span>${groupLabel.toUpperCase()} · ${grp.size} EJ</span>
       <span>SIN DESCANSO ENTRE<span class="tag-rule"></span></span>
     </div>
     <div class="grp-banner-name">${exs.map((e,i)=>`<span class="grp-banner-ex"><span class="grp-banner-num">${String(i+1).padStart(2,'0')}</span>${getExName(e)}</span>`).join('<span class="grp-banner-plus">+</span>')}</div>
-    <div class="grp-banner-note">Hacé 1 set de cada uno sin descanso. Al cerrar la vuelta, tocá <b>Descansar</b>.</div>
   </div>`;
-  // Sub-headers compactos por ejercicio (info: PR, tips, descanso del coach)
-  indexes.forEach(ci=>{
-    const ex=compounds[ci];
-    html+=renderCompoundHeaderHTML(ex,ci,day,{compact:true});
-  });
-  // Número de vueltas = max sets de los ejercicios del grupo
+  // Numero de vueltas + vuelta activa
   const maxSets=Math.max(...indexes.map(ci=>(curSess.exercises[ci]?.sets||[]).length));
   const firstCi=indexes[0];
-  // Detectar vuelta activa: primera vuelta con algún set sin RPE marcado.
-  // Si todas tienen RPE → activeSi=-1 (todas done). Las anteriores a la activa = done; posteriores = pending.
   let activeSi=-1;
   for(let si=0;si<maxSets;si++){
     let hasIncomplete=false;
@@ -3837,43 +3875,81 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
     }
     if(hasIncomplete){activeSi=si;break;}
   }
+  // Helper: linea resumen de un ejercicio en una vuelta done
+  const summaryRow=(ci,gi,s)=>{
+    const ex=compounds[ci];
+    const mode=getTrackMode(ex);
+    const valLabel=mode==='weight'?`${s.w} <span class="grp-sum-unit">kg ×</span> ${s.r}`:mode==='reps'?`${s.r} <span class="grp-sum-unit">reps</span>`:`${s.r}<span class="grp-sum-unit">s</span>`;
+    const rpeCls=s.rpe==='liviano'?'gn':s.rpe==='justo'?'yw':s.rpe==='limite'?'dn':'';
+    return `<div class="grp-sum-row">
+      <span class="grp-sum-num">${String(gi+1).padStart(2,'0')}</span>
+      <span class="grp-sum-name">${getExName(ex)}</span>
+      <span class="grp-sum-val">${valLabel}</span>
+      ${rpeCls?`<span class="grp-sum-rpe grp-sum-rpe-${rpeCls}"></span>`:''}
+    </div>`;
+  };
+  // Renderizar cada vuelta
   for(let si=0;si<maxSets;si++){
     const isLastTurn=si===maxSets-1;
-    // Estado de la vuelta · done (verde) / active (naranja) / pending (gris)
     const vState = activeSi===-1 ? 'done' : si<activeSi ? 'done' : si===activeSi ? 'active' : 'pending';
-    const vColor = vState==='done' ? 'var(--gn)' : vState==='active' ? 'var(--yw)' : 'var(--mt2)';
-    const vBg    = vState==='done' ? 'rgba(52,211,153,0.10)' : vState==='active' ? 'rgba(251,146,60,0.14)' : 'transparent';
-    const vBdr   = vState==='done' ? 'rgba(52,211,153,0.30)' : vState==='active' ? 'rgba(251,146,60,0.40)' : 'var(--bd)';
-    const vCheck = vState==='done' ? ' ✓' : '';
-    // Controles ± solo en la última vuelta (afectan a todo el grupo)
-    const addRemoveHtml=isLastTurn
-      ?`<div class="flex gap-6" style="align-items:center">
-          ${maxSets>1?`<button class="w-btn" style="width:26px;height:26px;border-radius:8px;font-size:14px" onclick="removeWorkSet(${firstCi})">−</button>`:''}
-          <button class="w-btn" style="width:26px;height:26px;border-radius:8px;font-size:14px" onclick="addWorkSet(${firstCi})">+</button>
-        </div>`
-      :'';
-    // Header de la vuelta · pill por estado + ± + descansar
-    html+=`<div class="row mb-10 mt-18" style="align-items:center;gap:8px">
-      <span style="display:inline-flex;align-items:center;padding:6px 11px;border-radius:100px;border:1px solid ${vBdr};background:${vBg};color:${vColor};font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;line-height:1;white-space:nowrap">Vuelta ${si+1}/${maxSets}${vCheck}</span>
-      ${addRemoveHtml}
-      <span style="flex:1"></span>
-      <button class="btn-sm b2-press" onclick="startTimer(${restSec})" style="font-size:11px;padding:7px 14px;background:var(--yw);color:var(--action-tx);font-weight:700;border-radius:10px;border:none;box-shadow:inset 0 1px 0 rgba(255,255,255,0.22),0 1px 2px rgba(0,0,0,0.10)">⏱ Descansar</button>
-    </div>`;
-    // Sub-card por ejercicio en esta vuelta · visual Bento Tri
-    indexes.forEach((ci,gi)=>{
-      const ex=compounds[ci];
-      const sets=curSess.exercises[ci]?.sets||[];
-      if(si>=sets.length) return; // este ejercicio no llega a esta vuelta
-      const s=sets[si];
-      const mode=getTrackMode(ex);
-      // Mini-banner con nombre arriba de la sub-card · naranja en vuelta activa, gris si no
-      const nameColor = vState==='active' ? 'var(--yw)' : vState==='done' ? 'var(--mt)' : 'var(--mt2)';
-      html+=`<div class="mb-6" style="font-size:12.5px;font-weight:700;color:${nameColor};padding:0 4px;letter-spacing:0.2px">${gi+1}. ${getExName(ex)}</div>`;
-      html+=renderSetCardHTML(s,si,sets,ex,mode,{ci,allowAddRemove:false,groupedBento:true});
-    });
+    if(vState==='done'){
+      // Vuelta DONE · colapsada a resumen
+      html+=`<div class="grp-round grp-round-done">
+        <div class="grp-round-h">
+          <span class="grp-round-tag">VUELTA ${si+1}/${maxSets}</span>
+          <span class="grp-round-mark grp-round-mark-done">✓ Cerrada</span>
+        </div>
+        <div class="grp-round-body">${indexes.map((ci,gi)=>{
+          const sets=curSess.exercises[ci]?.sets||[];
+          const s=sets[si]; if(!s) return '';
+          return summaryRow(ci,gi,s);
+        }).join('')}</div>
+      </div>`;
+    } else if(vState==='active'){
+      // Vuelta ACTIVA · set cards completos
+      html+=`<div class="grp-round grp-round-active">
+        <div class="grp-round-h">
+          <span class="grp-round-tag">VUELTA ${si+1}/${maxSets}</span>
+          <span class="grp-round-mark grp-round-mark-active">En curso</span>
+        </div>`;
+      indexes.forEach((ci,gi)=>{
+        const ex=compounds[ci];
+        const sets=curSess.exercises[ci]?.sets||[];
+        if(si>=sets.length) return;
+        const s=sets[si];
+        const mode=getTrackMode(ex);
+        const pr=prOf(eidOf(ex),mode);
+        const metaParts=[formatSetsReps(ex)];
+        if(pr>0) metaParts.push(`PR ${formatPR(pr,mode)}`);
+        const metaLine=metaParts.filter(Boolean).join('  ·  ');
+        html+=`<div class="grp-active-ex">
+          <div class="grp-active-ex-h">
+            <span class="grp-active-ex-num">${String(gi+1).padStart(2,'0')}</span>
+            <span class="grp-active-ex-name">${getExName(ex)}</span>
+            <button class="grp-active-ex-info" onclick="showExHistoryModal('${eidOf(ex)}')" aria-label="Ver historial"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg></button>
+          </div>
+          ${metaLine?`<div class="grp-active-ex-meta">${metaLine}</div>`:''}
+          ${renderSetCardHTML(s,si,sets,ex,mode,{ci,allowAddRemove:false,groupedBento:true})}
+        </div>`;
+      });
+      html+=`<div class="grp-round-controls">
+        ${isLastTurn&&maxSets>1?`<button class="grp-round-ctrl" onclick="removeWorkSet(${firstCi})">− Vuelta</button>`:''}
+        ${isLastTurn?`<button class="grp-round-ctrl" onclick="addWorkSet(${firstCi})">+ Vuelta</button>`:''}
+        <button class="grp-rest-btn" onclick="startTimer(${restSec})">Descansar</button>
+      </div>`;
+      html+=`</div>`;
+    } else {
+      // Vuelta PENDIENTE · placeholder colapsado
+      html+=`<div class="grp-round grp-round-pending">
+        <div class="grp-round-h">
+          <span class="grp-round-tag">VUELTA ${si+1}/${maxSets}</span>
+          <span class="grp-round-mark grp-round-mark-pending">Pendiente</span>
+        </div>
+      </div>`;
+    }
   }
-  // Rec global y nota por ejercicio del grupo (al final)
-  html+=`<div class="mt-20" style="padding-top:14px;border-top:1px solid var(--bd)">`;
+  // Rec global por ejercicio y notas (al final)
+  html+=`<div class="grp-footer">`;
   indexes.forEach(ci=>{
     const ex=compounds[ci];
     const sets=curSess.exercises[ci]?.sets||[];
@@ -3881,7 +3957,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
     const allEval=sets.length&&sets.every(s=>s.rpe&&(s.felt===true||s.felt===false));
     if(allEval){
       const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps,null,mode);
-      if(gr) html+=`<div class="card card-accent mb-12" style="cursor:default;padding:12px 14px"><div class="text-xs fw-700 text-ac mb-4">🎯 ${getExName(ex).toUpperCase()}</div><div class="text-sm">${gr}</div></div>`;
+      if(gr) html+=`<div class="grp-rec"><div class="grp-rec-label">${getExName(ex)}</div><div class="grp-rec-text">${gr}</div></div>`;
     }
     const sessNote=curSess.exercises[ci]?.note||'';
     html+=`<textarea class="note-input" placeholder="Nota de ${getExName(ex)}..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${sessNote}</textarea>`;
