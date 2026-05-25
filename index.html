@@ -186,10 +186,10 @@ body.modal-open .page{overflow:hidden;}
 .del-check{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--bd);background:var(--cd);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:var(--ac);}
 .del-check.checked{border-color:var(--dn);background:rgba(239,68,68,0.12);}
 /* Accessory */
-.acc-group{background:var(--cd);border-radius:14px;border:1px solid var(--bd);padding:16px;margin-bottom:10px;}
-.acc-group.done{border-color:rgba(34,197,94,0.3);background:rgba(34,197,94,0.03);}
-.acc-check{width:32px;height:32px;border-radius:10px;border:2px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex-shrink:0;}
-.acc-check.done{border-color:var(--gn);background:rgba(34,197,94,0.12);color:var(--gn);}
+.acc-group{background:var(--cd);border-radius:14px;border:1px solid var(--bd);padding:16px;margin-bottom:10px;box-shadow:0 8px 24px -16px rgba(0,0,0,0.5),var(--lift-in);transition:border-color 200ms ease;}
+.acc-group.done{border-color:var(--gn);background:var(--cd);}
+.acc-check{width:32px;height:32px;border-radius:8px;border:1.5px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0;transition:border-color 200ms ease,color 200ms ease,background 200ms ease;}
+.acc-check.done{border-color:var(--gn);background:var(--gn);color:#062414;font-weight:700;}
 .acc-tag{display:inline-block;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
 .acc-tag-bi{background:var(--sf);color:var(--mt);border:1px solid var(--bd);}
 .acc-tag-tri{background:var(--sf);color:var(--mt);border:1px solid var(--bd);}
@@ -2045,50 +2045,50 @@ function setRecData(rpe,r,target,felt,mode='weight'){
   const heavyWord=mode==='reps'?'difícil':mode==='time'?'mucho':'pesado';
   let phrase;
   if(!completed){
-    if(range==='bajo') phrase=`🔻 Muy ${heavyWord} → ${downWord}`;
-    else if(range==='medio') phrase=`⚠️ No llegaste → ajustá`;
-    else phrase="🔸 Quedaste corto → completá el rango primero";
+    if(range==='bajo') phrase=`Muy ${heavyWord} — ${downWord} la próxima`;
+    else if(range==='medio') phrase=`No llegaste — ajustá la próxima`;
+    else phrase="Quedaste corto. Completá el rango primero";
   } else if(isAmrap){
     // AMRAP: el target es "lo que puedas". Solo el RPE manda.
-    if(rpe==='liviano') phrase=`🚀 AMRAP liviano → ${upWord}`;
-    else if(rpe==='justo') phrase="✅ AMRAP bien medido";
-    else phrase="⚠️ AMRAP al límite → todo OK, cuidá técnica";
+    if(rpe==='liviano') phrase=`AMRAP liviano. ${upWord}`;
+    else if(rpe==='justo') phrase="AMRAP bien medido";
+    else phrase="AMRAP al límite — todo OK, cuidá técnica";
   } else if(rpe==='liviano'){
-    if(range==='bajo') phrase=`🚀 Muy liviano → ${upWord}`;
-    else if(range==='medio') phrase="🔹 Hay margen → un toque más";
-    else phrase=`🔹 Liviano → ${upWord}`;
+    if(range==='bajo') phrase=`Muy liviano. ${upWord}`;
+    else if(range==='medio') phrase="Hay margen — un toque más";
+    else phrase=`Liviano. ${upWord}`;
   } else if(rpe==='justo'){
-    if(range==='bajo') phrase="✅ En zona de fuerza";
-    else if(range==='medio') phrase="✅ Zona ideal de hipertrofia";
-    else phrase="✅ Buen estímulo";
+    if(range==='bajo') phrase="En zona de fuerza";
+    else if(range==='medio') phrase="Zona ideal de hipertrofia";
+    else phrase="Buen estímulo";
   } else { // limite
-    if(range==='bajo') phrase="⚠️ Al límite → cuidá la técnica";
-    else if(range==='medio') phrase="🔸 Un toque pasado para hipertrofia";
-    else phrase="✔️ Así tiene que ser arriba";
+    if(range==='bajo') phrase="Al límite — cuidá la técnica";
+    else if(range==='medio') phrase="Un toque pasado para hipertrofia";
+    else phrase="Así tiene que ser arriba";
   }
   const muscleHint=mode==='weight'?'bajá peso y enfocá técnica':'enfocá en la técnica';
-  const muscle=felt===false?`🔸 No sentiste el músculo → ${muscleHint}`:null;
+  const muscle=felt===false?`Sin sensación — ${muscleHint}`:null;
   return {phrase,muscle};
 }
 // Pools de frases globales por modo (rotación determinista para variedad).
 const REC_PHRASES={
   weight:{
-    up:["🔹 Próxima: subí peso.","🚀 Te quedó margen → subí carga.","🔹 Estás listo para más peso.","🟢 Próxima sesión: subir."],
-    up_streak:["✅ Segunda sesión clavada → subí peso.","🚀 Ya consolidaste → más peso la próxima.","🎯 Dos sesiones en zona → a progresar.","🔹 Listo para subir — ya está consolidado."],
-    hold:["✅ Próxima: repetí el peso.","🟡 Mantené. Una más así y subimos.","✅ Zona buena → mismo peso.","🟡 Repetí — vamos consolidando."],
-    down:["🔻 Próxima: bajá peso.","⚠️ Demasiado → bajá la carga.","🔻 Ajustá hacia abajo.","🔻 Bajá un poco para volver a la zona."]
+    up:["Próxima: subí peso.","Te quedó margen — subí carga.","Listo para más peso.","Próxima sesión: subir."],
+    up_streak:["Segunda sesión clavada — subí peso.","Ya consolidaste — más peso la próxima.","Dos sesiones en zona — a progresar.","Listo para subir. Ya está consolidado."],
+    hold:["Próxima: repetí el peso.","Mantené. Una más así y subimos.","Zona buena — mismo peso.","Repetí. Vamos consolidando."],
+    down:["Próxima: bajá peso.","Demasiado — bajá la carga.","Ajustá hacia abajo.","Bajá un poco para volver a la zona."]
   },
   reps:{
-    up:["🔹 Próxima: sumá una rep.","🚀 Te quedó margen → más reps.","🔹 Estás listo para más reps.","🟢 Próxima sesión: agregar reps."],
-    up_streak:["✅ Segunda sesión clavada → más reps.","🚀 Ya consolidaste → sumá reps.","🎯 Dos sesiones en zona → progresá.","🔹 Listo para más reps — ya está consolidado."],
-    hold:["✅ Próxima: mismas reps.","🟡 Mantené. Una más así y subimos.","✅ Zona buena → repetí.","🟡 Repetí — vamos consolidando."],
-    down:["🔻 Próxima: bajá reps.","⚠️ Demasiado → menos reps.","🔻 Ajustá hacia abajo.","🔻 Bajá un poco para volver a la zona."]
+    up:["Próxima: sumá una rep.","Te quedó margen — más reps.","Listo para más reps.","Próxima sesión: agregar reps."],
+    up_streak:["Segunda sesión clavada — más reps.","Ya consolidaste — sumá reps.","Dos sesiones en zona — progresá.","Listo para más reps. Ya está consolidado."],
+    hold:["Próxima: mismas reps.","Mantené. Una más así y subimos.","Zona buena — repetí.","Repetí. Vamos consolidando."],
+    down:["Próxima: bajá reps.","Demasiado — menos reps.","Ajustá hacia abajo.","Bajá un poco para volver a la zona."]
   },
   time:{
-    up:["🔹 Próxima: aguantá más tiempo.","🚀 Te quedó margen → más segundos.","🔹 Listo para más tiempo.","🟢 Próxima sesión: extender."],
-    up_streak:["✅ Segunda sesión clavada → más tiempo.","🚀 Ya consolidaste → más segundos la próxima.","🎯 Dos sesiones en zona → progresá.","🔹 Listo para más tiempo — consolidado."],
-    hold:["✅ Próxima: mismo tiempo.","🟡 Mantené. Una más así y subimos.","✅ Zona buena → repetí.","🟡 Repetí — vamos consolidando."],
-    down:["🔻 Próxima: bajá tiempo.","⚠️ Demasiado → menos segundos.","🔻 Ajustá hacia abajo.","🔻 Bajá un poco para volver a la zona."]
+    up:["Próxima: aguantá más tiempo.","Te quedó margen — más segundos.","Listo para más tiempo.","Próxima sesión: extender."],
+    up_streak:["Segunda sesión clavada — más tiempo.","Ya consolidaste — más segundos la próxima.","Dos sesiones en zona — progresá.","Listo para más tiempo. Consolidado."],
+    hold:["Próxima: mismo tiempo.","Mantené. Una más así y subimos.","Zona buena — repetí.","Repetí. Vamos consolidando."],
+    down:["Próxima: bajá tiempo.","Demasiado — menos segundos.","Ajustá hacia abajo.","Bajá un poco para volver a la zona."]
   }
 };
 function pickRecPhrase(key,mode='weight'){
@@ -2156,7 +2156,7 @@ function exerciseRec(exData,target,beforeKey,mode='weight'){
     key='hold';
   }
   let p=pickRecPhrase(key,mode);
-  if(feltMajority) p+="  🔸 Foco en técnica.";
+  if(feltMajority) p+=" — Foco en técnica.";
   return p;
 }
 // Rec de la última sesión (para mostrar arriba del workout).
@@ -3510,7 +3510,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     html+=`<div class="cdown-card">
       <div class="cdown-check">✓</div>
       <div style="font-size:13px;font-weight:500;color:var(--mt);margin-bottom:2px">Serie ${cd.si+1} guardada</div>
-      ${recHtml?`<div class="cdown-rec">🔹 ${recHtml}</div>`:''}
+      ${recHtml?`<div class="cdown-rec">${recHtml}</div>`:''}
       <div class="cdown-label">${nextLabel} en</div>
       <div class="cdown-num">${cd.secondsLeft}</div>
       <div class="cdown-btns">
@@ -3842,9 +3842,10 @@ function renderWork(){
   let html=`<div class="ex-tabs">${tabsHtml}</div><div class="sec">`;
 
   if(curExI===-1){
-    // ── Mobility view ──
-    html+=`<div class="row mb-4" style="align-items:center;gap:10px"><span style="font-size:28px">🤸</span><span style="font-size:22px;font-weight:700;color:var(--tx);letter-spacing:-0.4px">Movilidad</span></div>`;
-    html+=`<div class="text-sm text-mt mb-18">Entrada en calor — marcá cada ejercicio cuando lo completes.</div>`;
+    // ── Mobility view · Sport v3 editorial ──
+    html+=`<div class="sec-h" style="padding:0;margin-bottom:14px"><span class="sec-h-idx">M</span><span class="sec-h-title">Movilidad</span><span class="sec-h-rule"></span></div>`;
+    html+=`<div style="font-family:var(--fd);font-size:32px;font-weight:800;letter-spacing:-1px;color:var(--tx);font-variation-settings:'wdth' 82;line-height:1;margin-bottom:10px">Entrada en calor</div>`;
+    html+=`<div style="font-size:13px;color:var(--mt);font-weight:500;margin-bottom:22px;line-height:1.45">Marcá cada ejercicio cuando lo completes. Una vez hecho, andá al primer bloque.</div>`;
     mobility.forEach(m=>{
       const done=curSess.mobility&&curSess.mobility[m.id];
       const lib=m.exerciseId?getExercise(m.exerciseId):null;
@@ -3961,7 +3962,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card';
+const _HAPTIC_WRAP_SEL='.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
 function applyHapticWrapping(root){
   if(!_hapticTouch) return;
   root=root||document.body;
