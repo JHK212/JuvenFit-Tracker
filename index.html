@@ -496,6 +496,32 @@ label.haptic-switch.rpe-btn-min{
 .last-pr-badge{font-family:var(--fd);font-size:11px;font-weight:800;letter-spacing:1.5px;color:#062414;background:var(--gn);padding:5px 9px;border-radius:6px;flex-shrink:0;font-variation-settings:"wdth" 88;}
 .last-pr-text{font-size:13.5px;color:var(--tx);font-weight:600;line-height:1.25;letter-spacing:-0.1px;}
 .last-pr-val{color:var(--gn);font-family:var(--fd);font-weight:800;font-variation-settings:"wdth" 88;letter-spacing:-0.3px;}
+
+/* ─── Workout header editorial ─── */
+.work-header-new{
+  padding:14px 22px 18px;padding-top:calc(14px + env(safe-area-inset-top));
+  position:sticky;top:0;z-index:10;
+  background:
+    radial-gradient(ellipse 130% 80% at 50% 0%, rgba(215,121,62,0.10) 0%, transparent 65%),
+    var(--bg);
+  border-bottom:1px solid var(--bd);
+}
+.work-top-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.work-back{width:34px;height:34px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;color:var(--mt);border:1px solid var(--bd);border-radius:10px;background:rgba(21,21,26,0.6);font-size:14px;cursor:pointer;}
+.work-tag{font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--yw);display:flex;align-items:center;gap:7px;flex:1;}
+.work-tag .b2-pulse-dot{flex-shrink:0;}
+.work-finish{
+  font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;
+  color:var(--mt);background:rgba(21,21,26,0.6);border:1px solid var(--bd);
+  padding:7px 12px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.work-finish:active{background:var(--sf);color:var(--tx);}
+.work-name-stage{position:relative;padding:2px 0 4px;}
+.work-ghost-mini{position:absolute;top:-10px;right:0;font-family:var(--fd);font-size:70px;font-weight:800;letter-spacing:-3px;line-height:0.85;font-variation-settings:"wdth" 78;color:transparent;-webkit-text-stroke:1px rgba(215,121,62,0.18);pointer-events:none;user-select:none;}
+.work-name-new{position:relative;font-family:var(--fd);font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1;font-variation-settings:"wdth" 85;color:var(--tx);}
+.work-sub-new{font-family:var(--fs);font-size:12px;color:var(--mt);margin-top:4px;font-weight:500;letter-spacing:0.1px;position:relative;}
+.work-ref{font-family:var(--fm);font-size:9.5px;color:var(--mt2);font-weight:500;letter-spacing:1.5px;text-transform:uppercase;margin-top:8px;display:flex;gap:12px;align-items:center;}
+.work-ref-sep{flex:1;height:1px;background:var(--bd);}
 </style>
 </head>
 <body>
@@ -659,18 +685,21 @@ label.haptic-switch.rpe-btn-min{
 
 <!-- ══ WORKOUT ══ -->
 <div id="work" class="page">
-  <!-- Header de workout · gradient negro→naranja (continuo con la barra del teléfono arriba) -->
-  <div class="header" style="padding:14px 20px 16px;padding-top:calc(14px + env(safe-area-inset-top));align-items:flex-start;background:linear-gradient(180deg,var(--bg) 0%,var(--bg) 35%,rgba(251,146,60,0.14) 100%)">
-    <button class="icon-btn" onclick="confirmExit()" style="margin-top:2px">←</button>
-    <div style="flex:1;padding-left:10px;min-width:0">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-        <span class="b2-pulse-dot"></span>
-        <span style="font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--yw)">En entrenamiento</span>
-      </div>
-      <div id="work-day" style="font-size:18px;font-weight:600;color:var(--tx);letter-spacing:-0.3px;line-height:1.1"></div>
-      <div id="work-sub" style="font-size:12px;color:var(--mt);margin-top:2px;font-weight:500"></div>
+  <!-- Header de workout · editorial sport · ghost number lateral + REF mono -->
+  <div class="work-header-new">
+    <div class="work-top-row">
+      <button class="work-back" onclick="confirmExit()" aria-label="Salir">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="work-tag"><span class="b2-pulse-dot"></span>EN ENTRENAMIENTO</div>
+      <button class="work-finish" onclick="confirmFinishWorkout()" aria-label="Finalizar entrenamiento">Finalizar</button>
     </div>
-    <button class="b2-press" onclick="confirmFinishWorkout()" aria-label="Finalizar entrenamiento" style="background:transparent;border:1px solid var(--bd);color:var(--mt);font-size:11px;font-weight:600;letter-spacing:0.3px;cursor:pointer;padding:7px 11px;border-radius:10px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;margin-top:2px;line-height:1"><span style="font-size:13px">🏁</span> Finalizar</button>
+    <div class="work-name-stage">
+      <div class="work-ghost-mini" id="work-ghost">—</div>
+      <div id="work-day" class="work-name-new"></div>
+      <div id="work-sub" class="work-sub-new"></div>
+    </div>
+    <div class="work-ref"><span id="work-ref-label">—</span><span class="work-ref-sep"></span><span id="work-ref-day">D—/—</span></div>
   </div>
   <div id="work-content"></div>
   <div id="timer" class="timer-bar">
@@ -3711,7 +3740,15 @@ function renderWork(){
   _lastCurExI=curExI;
   const day=routine.days.find(d=>d.id===curDayId);
   const compounds=getCompounds(day);const accessories=getAccessories(day);const mobility=getMobilityExs(day);
-  $("work-day").textContent=day.name;$("work-sub").textContent=day.sub;
+  $("work-day").textContent=day.name;
+  $("work-sub").textContent=day.sub||'';
+  // Ghost number + REF · D x/y (consistente con hero del home)
+  const _wIdx=routine.days.findIndex(d=>d.id===curDayId);
+  const _wNum=String(_wIdx+1).padStart(2,'0');
+  const _wRef=day.name.toUpperCase().replace(/\s+/g,'-').replace(/[^A-Z0-9-]/g,'');
+  if($("work-ghost")) $("work-ghost").textContent=_wNum;
+  if($("work-ref-label")) $("work-ref-label").textContent=`REF · ${_wRef}-${_wNum}`;
+  if($("work-ref-day")) $("work-ref-day").textContent=`D${_wIdx+1}/${routine.days.length}`;
 
   // Tabs: [MOV] + compounds + [ACC]
   let tabsHtml='';
