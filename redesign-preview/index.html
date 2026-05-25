@@ -653,6 +653,15 @@ label.haptic-switch.rpe-btn-min{
 .grp-rec-label{font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);margin-bottom:4px;}
 .grp-rec-text{font-size:12.5px;color:var(--tx);line-height:1.45;font-weight:500;}
 
+/* Workout single · info colapsable (tip del coach + última sesión) */
+.wkt-info-row{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.wkt-info{background:transparent;border:1px solid var(--bd);border-radius:10px;}
+.wkt-info summary{padding:10px 14px;font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;}
+.wkt-info summary::after{content:"+";font-family:var(--fs);font-size:14px;font-weight:500;color:var(--mt);}
+.wkt-info[open] summary::after{content:"−";}
+.wkt-info[open] summary{color:var(--tx);border-bottom:1px solid var(--bd);}
+.wkt-info-body{padding:12px 14px;font-size:13px;color:var(--tx);line-height:1.5;font-weight:500;white-space:pre-wrap;}
+
 /* ─── Workout header editorial ─── */
 .work-header-new{
   padding:14px 22px 18px;padding-top:calc(14px + env(safe-area-inset-top));
@@ -3310,17 +3319,18 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
   // números gigantes centrados, dividers internos, RPE segmented sin emojis.
   // ════════════════════════════════════════════════════════════════
   if(focused){
-    // Edit mode: el usuario tocó un pill done para editar. Dot azul + botón "Salir ✕".
-    // Sin edit mode: el set es el "current natural" del flujo. Dot naranja.
     const isEditMode = curWorkSetEdit !== null;
-    const dotColor = isEditMode ? 'var(--ac)' : 'var(--yw)';
-    const labelText = isEditMode ? `Editando serie ${si+1}` : `Serie ${si+1} en curso`;
-
-    let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:22px;padding:0 4px">
-      <span class="b2-pulse-dot" style="background:${dotColor}"></span>
-      <span style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:${dotColor};flex:1">${labelText}</span>
-      ${isEditMode?`<button onclick="curWorkSetEdit=null;renderWork()" style="background:var(--cd);border:1px solid var(--ac);color:var(--ac);font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;padding:6px 12px;border-radius:8px;display:inline-flex;align-items:center;gap:5px">Salir <span style="font-size:11px;line-height:1">✕</span></button>`:''}
-    </div>`;
+    let html='';
+    // Header solo si NO se está wrapeando desde afuera (grp-round-active ya tiene su propio header)
+    if(!opts.skipHeader){
+      const dotColor = isEditMode ? 'var(--ac)' : 'var(--yw)';
+      const labelText = isEditMode ? `Editando serie ${si+1}` : `Serie ${si+1} en curso`;
+      html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:22px;padding:0 4px">
+        <span class="b2-pulse-dot" style="background:${dotColor}"></span>
+        <span style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:${dotColor};flex:1">${labelText}</span>
+        ${isEditMode?`<button onclick="curWorkSetEdit=null;renderWork()" style="background:var(--cd);border:1px solid var(--ac);color:var(--ac);font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;padding:6px 12px;border-radius:8px;display:inline-flex;align-items:center;gap:5px">Salir <span style="font-size:11px;line-height:1">✕</span></button>`:''}
+      </div>`;
+    }
 
     // Campos numéricos centrados, sin caja. Los steppers +/− ahora son <label> con
     // checkbox switch invisible adentro · disparan haptic nativo iOS al tap real del usuario.
@@ -3602,43 +3612,17 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
     </button>
   </div>`;
-  // Tip del coach · solid border azul, mono label
-  if(ex.notes){
-    html+=`<div class="card mb-14" style="cursor:default;background:var(--cd);border:1px solid var(--bd);padding:12px 14px;box-shadow:var(--lift-in);border-radius:10px">
-      <div style="font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);margin-bottom:6px">Tip del coach</div>
-      <div style="font-size:13px;color:var(--tx);line-height:1.45;white-space:pre-wrap">${ex.notes}</div>
-    </div>`;
-  }
-  // Última sesión · resumen breve
-  if(prevSessRec){
-    html+=`<div class="card mb-14" style="cursor:pointer;background:var(--cd);border:1px solid var(--bd);padding:10px 14px;box-shadow:var(--lift-in);border-radius:10px" onclick="openExInfoSheet(${ci});setExInfoTab('last')">
-      <div style="font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:4px">Última sesión</div>
-      <div style="font-size:12.5px;color:var(--tx);line-height:1.45;font-weight:500">${prevSessRec}</div>
-    </div>`;
-  }
-
-  // PILLS · un pill por set + add/remove
-  html+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;padding:0 2px;align-items:center">`;
-  sets.forEach((s,si)=>{
-    const isDone=s.rpe!==null;
-    const isCurrent=si===currentSi;
-    let valLabel='';
-    if(mode==='weight') valLabel=`${s.w}kg×${s.r}`;
-    else if(mode==='time') valLabel=`${s.r}s`;
-    else valLabel=`×${s.r}`;
-    if(isCurrent && !isCountdownActive){
-      html+=`<span class="ws-pill ws-pill-current"><span class="b2-pulse-dot" style="margin-right:2px"></span>Serie ${si+1}</span>`;
-    } else if(isDone){
-      html+=`<button class="ws-pill ws-pill-done" onclick="setForcedSetEdit(${si})" title="Tap para editar"><span style="font-weight:700">S${si+1}</span><span style="opacity:0.85">${valLabel}</span><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>`;
-    } else {
-      html+=`<span class="ws-pill ws-pill-pending">S${si+1} —</span>`;
+  // Tip del coach + Última sesión · COLAPSABLES (closed por default, menos data visible)
+  if(ex.notes || prevSessRec){
+    html+=`<div class="wkt-info-row">`;
+    if(ex.notes){
+      html+=`<details class="wkt-info"><summary>Tip del coach</summary><div class="wkt-info-body">${ex.notes}</div></details>`;
     }
-  });
-  html+=`<button class="ws-pill ws-pill-add" onclick="addWorkSet(${ci})" title="Agregar serie"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`;
-  if(sets.length>1){
-    html+=`<button class="ws-pill ws-pill-add" onclick="removeWorkSet(${ci})" title="Quitar última"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`;
+    if(prevSessRec){
+      html+=`<details class="wkt-info"><summary>Última sesión</summary><div class="wkt-info-body">${prevSessRec}</div></details>`;
+    }
+    html+=`</div>`;
   }
-  html+=`</div>`;
 
   // TIP DEL SET ANTERIOR · colapsable arriba del set actual (cuando se viene del countdown)
   if(_lastSetTip && _lastSetTip.ci===ci && _lastSetTip.si===currentSi-1 && currentSi>=0 && !isCountdownActive){
@@ -3652,11 +3636,9 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     </div>`;
   }
 
-  // CUERPO: estado C (countdown) / D (completo) / A o B (set card normal)
+  // CUERPO: estado C (countdown) o focused-by-set (igual patron que biseries)
   if(isCountdownActive){
-    // Estado C — countdown card grande
     const cd=_workCountdown;
-    const nextLabel=currentSi>=0?`Pasando a la serie ${currentSi+1}`:'Pasando a la siguiente';
     const recHtml=cd.rec?cd.rec.replace(/\n/g,'<br>'):'';
     html+=`<div class="cdown-card">
       <div class="cdown-top">
@@ -3668,45 +3650,83 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
       <div class="cdown-label">${currentSi>=0?'en':''}</div>
       <div class="cdown-num">${cd.secondsLeft}</div>
       <div class="cdown-btns">
-        <button class="btn" onclick="nextSetNow()" style="padding:14px 0;display:flex;align-items:center;justify-content:center;gap:8px">
-          Siguiente ahora
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-        </button>
+        <button class="btn" onclick="nextSetNow()" style="padding:14px 0;display:flex;align-items:center;justify-content:center;gap:8px">Siguiente ahora <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></button>
         <button class="btn-out" onclick="cancelSetCountdown()" style="padding:11px 0;font-size:13px">Mantener este set</button>
       </div>
     </div>`;
-  } else if(currentSi>=0){
-    // Estado A o B (depende de s.rpe / s.felt internos)
-    html+=renderSetCardHTML(sets[currentSi],currentSi,sets,ex,mode,{ci,allowAddRemove:false,focused:true});
   } else {
-    // Estado D · todos sets completos · "Ejercicio completo" + siguiente/finalizar
-    html+=`<div class="card" style="cursor:default;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.30);padding:22px 18px;text-align:center;box-shadow:var(--lift-in)">
-      <div style="font-size:38px;margin-bottom:4px">✅</div>
-      <div style="font-size:16px;font-weight:600;color:var(--gn);letter-spacing:-0.2px">Ejercicio completo</div>
-      <div style="font-size:12px;color:var(--mt);margin-top:4px;font-weight:500">${sets.length} set${sets.length===1?'':'s'} registrado${sets.length===1?'':'s'}</div>
-    </div>`;
-    const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps,null,mode);
-    if(gr) html+=`<div class="card mt-12" style="cursor:default;background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.25);padding:14px 16px;box-shadow:var(--lift-in)"><div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);margin-bottom:8px">🎯 Para la próxima sesión</div><div style="font-size:14px;color:var(--tx);font-weight:500;line-height:1.5">${gr}</div></div>`;
-    // Botón "Siguiente ejercicio" / "Finalizar entreno" — chequear si soy el último
-    const units=[];const seenIdx=new Set();
-    compounds.forEach((e,i)=>{
-      if(seenIdx.has(i)) return;
-      const grp=groupOfCompoundIdx(compounds,i);
-      if(grp){grp.indexes.forEach(idx=>seenIdx.add(idx));units.push({firstIdx:grp.indexes[0]});}
-      else{seenIdx.add(i);units.push({firstIdx:i});}
+    // FOCUSED-BY-SET · cada set como una vuelta (done collapsed · active expanded · pending placeholder)
+    sets.forEach((s,si)=>{
+      const isLast=si===sets.length-1;
+      const setComplete = s.rpe!==null && s.felt!==null;
+      let vState;
+      if(si===currentSi) vState='active';
+      else if(setComplete) vState='done';
+      else vState='pending';
+
+      if(vState==='done'){
+        const valLabel=mode==='weight'?`${s.w} <span class="grp-sum-unit">kg ×</span> ${s.r}`:mode==='reps'?`${s.r} <span class="grp-sum-unit">reps</span>`:`${s.r}<span class="grp-sum-unit">s</span>`;
+        const rpeCls=s.rpe==='liviano'?'gn':s.rpe==='justo'?'yw':s.rpe==='limite'?'dn':'';
+        html+=`<div class="grp-round grp-round-done" onclick="setForcedSetEdit(${si})" title="Tocá para editar">
+          <div class="grp-round-h">
+            <span class="grp-round-tag">SET ${si+1}/${sets.length}</span>
+            <span class="grp-round-mark grp-round-mark-done">Cerrado · editar <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-left:3px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
+          </div>
+          <div class="grp-round-body">
+            <div class="grp-sum-row" style="padding-left:4px">
+              <span class="grp-sum-val">${valLabel}</span>
+              ${rpeCls?`<span class="grp-sum-rpe grp-sum-rpe-${rpeCls}"></span>`:''}
+            </div>
+          </div>
+        </div>`;
+      } else if(vState==='active'){
+        const isEditMode = curWorkSetEdit!==null;
+        html+=`<div class="grp-round grp-round-active">
+          <div class="grp-round-h">
+            <span class="grp-round-tag">SET ${si+1}/${sets.length}</span>
+            ${isEditMode?`<button class="grp-edit-exit" onclick="exitGroupedEdit()">Salir <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg></button>`:`<span class="grp-round-mark grp-round-mark-active">En curso</span>`}
+          </div>
+          <div style="margin-top:14px">
+            ${renderSetCardHTML(s,si,sets,ex,mode,{ci,allowAddRemove:false,focused:true,skipHeader:true})}
+          </div>
+          <div class="grp-round-controls">
+            ${sets.length>1?`<button class="grp-round-ctrl" onclick="removeWorkSet(${ci})">− Serie</button>`:''}
+            <button class="grp-round-ctrl" onclick="addWorkSet(${ci})">+ Serie</button>
+            ${restSec?`<button class="grp-rest-btn" onclick="startTimer(${restSec})">Descansar</button>`:''}
+          </div>
+        </div>`;
+      } else {
+        html+=`<div class="grp-round grp-round-pending">
+          <div class="grp-round-h">
+            <span class="grp-round-tag">SET ${si+1}/${sets.length}</span>
+            <span class="grp-round-mark grp-round-mark-pending">Pendiente</span>
+          </div>
+        </div>`;
+      }
     });
-    let myUnit=-1;
-    for(let i=0;i<units.length;i++){if(units[i].firstIdx<=ci){myUnit=i;}else break;}
-    const isLastEx=myUnit===units.length-1;
-    if(isLastEx){
-      html+=`<button class="btn mt-16" onclick="confirmExit()" style="padding:16px 0;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--gn);color:var(--action-tx)">
-        🏁 Finalizar entrenamiento
-      </button>`;
-    } else {
-      html+=`<button class="btn mt-16" onclick="gotoNextExercise()" style="padding:16px 0;display:flex;align-items:center;justify-content:center;gap:8px">
-        Siguiente ejercicio
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-      </button>`;
+
+    // Estado D · todos sets completos · rec + siguiente
+    if(currentSi===-1){
+      const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps,null,mode);
+      if(gr){
+        html+=`<div class="grp-rec" style="margin-top:14px"><div class="grp-rec-label">Próxima sesión</div><div class="grp-rec-text">${gr}</div></div>`;
+      }
+      // Siguiente ejercicio / Finalizar
+      const units=[];const seenIdx=new Set();
+      compounds.forEach((e,i)=>{
+        if(seenIdx.has(i)) return;
+        const grp=groupOfCompoundIdx(compounds,i);
+        if(grp){grp.indexes.forEach(idx=>seenIdx.add(idx));units.push({firstIdx:grp.indexes[0]});}
+        else{seenIdx.add(i);units.push({firstIdx:i});}
+      });
+      let myUnit=-1;
+      for(let i=0;i<units.length;i++){if(units[i].firstIdx<=ci){myUnit=i;}else break;}
+      const isLastEx=myUnit===units.length-1;
+      if(isLastEx){
+        html+=`<button class="btn mt-16" onclick="confirmExit()" style="padding:16px 0;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--gn);color:var(--action-tx)">Finalizar entrenamiento</button>`;
+      } else {
+        html+=`<button class="btn mt-16" onclick="gotoNextExercise()" style="padding:16px 0;display:flex;align-items:center;justify-content:center;gap:8px">Siguiente ejercicio <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></button>`;
+      }
     }
   }
 
