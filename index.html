@@ -149,11 +149,18 @@ textarea.xfl-inp{resize:none;min-height:48px;font-size:14px;}
 .badge{font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;letter-spacing:0.4px;display:inline-block;}
 .badge-custom{background:var(--sf);color:var(--mt);}
 .editor-header-be{position:sticky;top:0;background:var(--bg);padding:16px 0 12px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--bd);margin-bottom:20px;}
-.timer-bar{position:fixed;bottom:0;left:0;right:0;background:var(--cd);border-top:1px solid var(--bd);box-shadow:0 -12px 28px -10px rgba(0,0,0,0.55),var(--lift-in);padding:16px 20px;padding-bottom:calc(16px + env(safe-area-inset-bottom));z-index:90;display:none;align-items:center;gap:12px;max-width:480px;margin:0 auto;}
+.timer-bar{position:fixed;bottom:0;left:0;right:0;background:var(--cd);border-top:1px solid var(--bd);box-shadow:0 -12px 28px -10px rgba(0,0,0,0.55),var(--lift-in);padding:14px 18px;padding-bottom:calc(14px + env(safe-area-inset-bottom));z-index:90;display:none;align-items:center;gap:12px;max-width:480px;margin:0 auto;transition:background 250ms ease;}
 .timer-bar.show{display:flex;}
-.timer-num{font-family:var(--fm);font-size:30px;font-weight:800;color:var(--ac);min-width:70px;text-align:right;cursor:pointer;}
+.timer-label-new{font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--mt);margin-bottom:6px;}
+.timer-num{font-family:var(--fm);font-size:32px;font-weight:700;color:var(--ac);min-width:78px;text-align:right;cursor:pointer;letter-spacing:-1px;font-variant-numeric:tabular-nums;}
 .timer-track{height:4px;background:var(--bd);border-radius:4px;overflow:hidden;flex:1;}
 .timer-fill{height:100%;background:var(--ac);border-radius:4px;transition:width 1s linear;}
+/* Estado finalizado · queda visible en 0:00 con pulse verde hasta que el user cierre */
+.timer-bar.ended{background:#10171A;}
+.timer-bar.ended .timer-label-new{color:var(--gn);}
+.timer-bar.ended .timer-num{color:var(--gn);animation:timerEndedPulse 1.2s ease-in-out infinite;}
+.timer-bar.ended .timer-fill{background:var(--gn);width:100%!important;box-shadow:0 0 12px -3px rgba(61,214,140,0.6);}
+@keyframes timerEndedPulse{0%,100%{opacity:1;}50%{opacity:0.55;}}
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:100;display:none;align-items:flex-end;justify-content:center;}
 .modal-overlay.show{display:flex;}
 .modal{background:var(--sf);border-radius:24px 24px 0 0;padding:28px 20px 40px;padding-bottom:calc(40px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:85dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
@@ -718,10 +725,10 @@ label.haptic-switch.rpe-btn-min{
   </div>
   <div id="work-content"></div>
   <div id="timer" class="timer-bar">
-    <div style="flex:1"><div class="text-xs text-mt fw-700 mb-4">DESCANSO</div><div class="timer-track"><div id="timer-fill" class="timer-fill" style="width:0%"></div></div></div>
+    <div style="flex:1"><div id="timer-label" class="timer-label-new">DESCANSO</div><div class="timer-track"><div id="timer-fill" class="timer-fill" style="width:0%"></div></div></div>
     <div id="timer-num" class="timer-num" onclick="tapTimerNum()">0:00</div>
-    <button class="icon-btn" onclick="if(timerTotal)startTimer(timerTotal)" style="width:40px;height:40px;font-size:16px">↻</button>
-    <button class="icon-btn" onclick="stopTimer()" style="width:40px;height:40px;font-size:14px">✕</button>
+    <button class="icon-btn" onclick="if(timerTotal)startTimer(timerTotal)" style="width:36px;height:36px;font-size:14px;border-radius:8px">↻</button>
+    <button class="icon-btn" onclick="stopTimer()" style="width:36px;height:36px;font-size:13px;border-radius:8px">✕</button>
   </div>
   <div id="exit-modal" class="modal-overlay" onclick="closeExitModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -3115,6 +3122,8 @@ function renderRoutine(){
 
 // ══ WORKOUT ══
 function startWorkout(dayId,customDate){
+  // Unlock AudioContext en el gesto de tap/hold del usuario — habilita beeps del timer end.
+  try{ if(typeof _mbEnsureAudio==='function') _mbEnsureAudio(); }catch(e){}
   const day=routine.days.find(d=>d.id===dayId);curDayId=dayId;
   const compounds=getCompounds(day);const accessories=getAccessories(day);
   // Si hay movilidad, arrancar en el tab MOV (curExI=-1); si no, primer compound
@@ -4621,7 +4630,9 @@ let timerStart=0;
 function startTimer(secs){
   stopTimer();timerTotal=secs;timerStart=Date.now();
   save("gym-timer",{start:timerStart,duration:secs});
-  $("timer").classList.add('show');timerTick();
+  $("timer").classList.add('show');$("timer").classList.remove('ended');
+  if($("timer-label")) $("timer-label").textContent='DESCANSO';
+  timerTick();
   timerRef=setInterval(timerTick,500);
 }
 function timerTick(){
@@ -4629,32 +4640,36 @@ function timerTick(){
   const elapsed=Math.floor((Date.now()-saved.start)/1000);
   timerLeft=saved.duration-elapsed;timerTotal=saved.duration;
   if(timerLeft<=0){
+    // Visual final: 0:00 verde pulsante, label "LISTO", barra full verde.
+    // NO se cierra automaticamente · el usuario cierra con ✕ o reinicia con ↻.
+    timerLeft=0;
+    updateTimerDisplay();
     notifyTimerEnd();
-    stopTimer();
+    if(timerRef){clearInterval(timerRef);timerRef=null;}
+    $("timer").classList.add('ended');
+    if($("timer-label")) $("timer-label").textContent='LISTO';
+    save("gym-timer",null);
     return;
   }
   updateTimerDisplay();
 }
-// Notificación al finalizar el timer · web-haptics si está disponible (presets que envuelven
-// label+switch trick en iOS pre-26.5 + navigator.vibrate en Android), fallback al vibrate desnudo.
+// Notificación al finalizar el timer · 3 caminos para maxima cobertura:
+// 1) mbCueFinish (audio + navigator.vibrate Android — funciona iOS si AudioContext esta unlocked)
+// 2) web-haptics (label+switch trick iOS pre-26.5)
+// 3) navigator.vibrate directo como respaldo (no es no-op en Android)
 function notifyTimerEnd(){
-  try{
-    if(window.webHaptics){
-      // Pattern "alerta de descanso": 3 pulsos cortos crecientes — atención sin agresividad.
-      window.webHaptics.trigger([180,90,180,90,240]).catch(()=>{});
-    } else if(navigator.vibrate){
-      navigator.vibrate([200,100,200]);
-    }
-  }catch(e){}
+  try{ if(typeof mbCueFinish==='function') mbCueFinish(); }catch(e){}
+  try{ if(window.webHaptics) window.webHaptics.trigger([200,100,200,100,400]).catch(()=>{}); }catch(e){}
+  try{ if(navigator.vibrate) navigator.vibrate([200,100,200,100,400]); }catch(e){}
 }
 function resumeTimer(){
   const t=load("gym-timer",null);if(!t) return;
   const elapsed=Math.floor((Date.now()-t.start)/1000);const remaining=t.duration-elapsed;
-  if(remaining>0){timerTotal=t.duration;timerLeft=remaining;$("timer").classList.add('show');updateTimerDisplay();timerRef=setInterval(timerTick,500);}
+  if(remaining>0){timerTotal=t.duration;timerLeft=remaining;$("timer").classList.add('show');$("timer").classList.remove('ended');if($("timer-label")) $("timer-label").textContent='DESCANSO';updateTimerDisplay();timerRef=setInterval(timerTick,500);}
   else{save("gym-timer",null);}
 }
 function updateTimerDisplay(){const m=Math.floor(Math.max(0,timerLeft)/60);const s=Math.max(0,timerLeft)%60;$("timer-num").textContent=m+":"+String(s).padStart(2,"0");$("timer-fill").style.width=((timerTotal-timerLeft)/timerTotal*100)+"%";}
-function stopTimer(){if(timerRef){clearInterval(timerRef);timerRef=null;}$("timer").classList.remove('show');save("gym-timer",null);}
+function stopTimer(){if(timerRef){clearInterval(timerRef);timerRef=null;}$("timer").classList.remove('show','ended');if($("timer-label")) $("timer-label").textContent='DESCANSO';save("gym-timer",null);}
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden) return;
   const t=load("gym-timer",null);
