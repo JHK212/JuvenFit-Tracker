@@ -3681,7 +3681,11 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
         </div>`;
       } else if(vState==='active'){
         const isEditMode = curWorkSetEdit!==null;
-        html+=`<div class="grp-round grp-round-active">
+        // Border color dinamico segun RPE marcado · feedback consistente con set card biserie
+        const rpeBorder=s.rpe
+          ? ({liviano:'var(--gn)',justo:'var(--yw)',limite:'var(--dn)'}[s.rpe])
+          : 'var(--bd)';
+        html+=`<div class="grp-round grp-round-active" style="border-color:${rpeBorder};transition:border-color 220ms ease">
           <div class="grp-round-h">
             <span class="grp-round-tag">SET ${si+1}/${sets.length}</span>
             ${isEditMode?`<button class="grp-edit-exit" onclick="exitGroupedEdit()">Salir <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg></button>`:`<span class="grp-round-mark grp-round-mark-active">En curso</span>`}
