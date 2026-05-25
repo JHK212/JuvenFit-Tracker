@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0E0E10">
+<title>Tracker · design preview</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0E0E10;
+  --sf:#16161A;
+  --cd:#16161A;
+  --bd:#26262C;
+  --bd2:#1E1E22;
+  --tx:#EDEAE3;
+  --mt:#7B7984;
+  --mt2:#55545C;
+  --ac:#5B9DF8;
+  --action-tx:#0E0E10;
+  --gn:#3DD68C;
+  --yw:#F19052;
+  --dn:#E36A6A;
+  --fs:'IBM Plex Sans',-apple-system,system-ui,sans-serif;
+  --fm:'IBM Plex Mono',ui-monospace,monospace;
+}
+body{
+  background:var(--bg);color:var(--tx);font-family:var(--fs);
+  max-width:480px;margin:0 auto;min-height:100vh;min-height:100dvh;
+  overflow-x:hidden;font-size:14px;line-height:1.4;
+  padding-bottom:env(safe-area-inset-bottom);
+  font-feature-settings:"ss01","ss02","cv11";
+}
+button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer;font-size:inherit;}
+
+/* ─── Header ─── */
+.header{
+  padding:20px 22px 12px;padding-top:calc(20px + env(safe-area-inset-top));
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:var(--bg);z-index:10;
+}
+.brand{font-size:14px;font-weight:600;letter-spacing:-0.1px;color:var(--tx);}
+.brand-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ac);margin-right:7px;vertical-align:middle;transform:translateY(-1px);}
+.icon-btn{
+  width:38px;height:38px;display:inline-flex;align-items:center;justify-content:center;
+  color:var(--mt);border-radius:10px;border:1px solid var(--bd);
+}
+.icon-btn:active{background:var(--sf);}
+.icon-bar{display:flex;gap:8px;}
+
+/* ─── Saludo + fecha ─── */
+.greet{padding:6px 22px 22px;}
+.greet-h{font-size:14px;color:var(--mt);font-weight:400;}
+.greet-d{font-size:14px;color:var(--mt2);font-weight:400;margin-top:1px;}
+
+/* ─── Hero "Hoy te toca" ─── */
+.hero{padding:0 22px 28px;}
+.hero-label{font-size:12px;color:var(--mt);font-weight:500;margin-bottom:10px;}
+.hero-name{font-size:32px;font-weight:600;line-height:1.05;letter-spacing:-0.8px;color:var(--tx);}
+.hero-name .sub{color:var(--mt);font-weight:500;}
+.hero-preview{font-size:14px;color:var(--mt);margin-top:8px;font-weight:400;}
+.hero-meta{display:flex;gap:18px;margin-top:14px;font-size:12px;color:var(--mt);}
+.hero-meta b{color:var(--tx);font-weight:500;font-variant-numeric:tabular-nums;}
+.hero-cta{
+  margin-top:20px;width:100%;
+  background:var(--ac);color:var(--action-tx);
+  padding:14px 0;border-radius:10px;
+  font-size:14px;font-weight:600;letter-spacing:-0.1px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.hero-cta:active{filter:brightness(0.9);}
+
+/* ─── Stats fila ─── */
+.stats{padding:0 22px 24px;display:flex;gap:14px;}
+.stat{flex:1;padding:18px 18px 16px;border:1px solid var(--bd);border-radius:16px;background:var(--cd);}
+.stat-label{font-size:12px;color:var(--mt);font-weight:500;margin-bottom:8px;}
+.stat-num{font-family:var(--fm);font-size:32px;font-weight:500;line-height:1;letter-spacing:-1px;}
+.stat-num.acc-yw{color:var(--yw);}
+.stat-num.acc-tx{color:var(--tx);}
+.stat-detail{font-size:12px;color:var(--mt);margin-top:6px;font-weight:400;}
+.stat-detail .hi{color:var(--tx);font-weight:500;font-variant-numeric:tabular-nums;}
+.week-bars{display:flex;gap:3px;align-items:flex-end;height:18px;margin-top:10px;}
+.bar{flex:1;height:30%;background:var(--bd);border-radius:2px;}
+.bar.on{height:100%;background:var(--yw);}
+.bar.today{height:100%;border:1px solid var(--yw);background:transparent;border-radius:2px;}
+.bar-row{display:flex;gap:3px;margin-top:4px;}
+.bar-d{flex:1;text-align:center;font-size:9.5px;color:var(--mt2);font-weight:500;}
+.bar-d.today{color:var(--yw);}
+
+/* ─── Sección title (más calmo) ─── */
+.sec-h{font-size:13px;font-weight:500;color:var(--mt);padding:0 22px;margin-bottom:10px;}
+
+/* ─── Otros días grid ─── */
+.days{padding:0 22px 28px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.day{border:1px solid var(--bd);background:var(--cd);border-radius:16px;padding:16px;display:flex;flex-direction:column;min-height:130px;}
+.day:active{background:var(--sf);}
+.day-name{font-size:11.5px;color:var(--mt);font-weight:500;}
+.day-sub{font-size:16px;color:var(--tx);font-weight:500;margin-top:4px;letter-spacing:-0.2px;line-height:1.15;}
+.day-preview{font-size:12px;color:var(--mt);margin-top:6px;line-height:1.35;flex:1;font-weight:400;}
+.day-cta{font-size:12px;color:var(--ac);font-weight:500;margin-top:12px;padding-top:10px;border-top:1px solid var(--bd2);display:flex;align-items:center;justify-content:space-between;}
+.day-cta svg{width:13px;height:13px;}
+
+/* ─── Calendar ─── */
+.cal{padding:0 22px 28px;}
+.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.cal-month{font-size:14px;font-weight:500;color:var(--tx);text-transform:capitalize;}
+.cal-nav{display:flex;gap:6px;}
+.cal-nav button{width:30px;height:30px;border:1px solid var(--bd);border-radius:8px;color:var(--mt);font-size:14px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-day-h{font-size:10px;color:var(--mt2);text-align:center;font-weight:500;padding:4px 0;}
+.cal-cell{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:12px;color:var(--mt);font-weight:400;border-radius:8px;}
+.cal-cell.trained{background:var(--gn);color:var(--bg);font-weight:500;}
+.cal-cell.today{border:1px solid var(--tx);color:var(--tx);}
+.cal-cell.muted{color:var(--mt2);}
+
+/* ─── Última sesión ─── */
+.last{padding:0 22px 36px;}
+.last-card{border:1px solid var(--bd);background:var(--cd);border-radius:16px;padding:18px 20px;}
+.last-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.last-label{font-size:12px;color:var(--mt);font-weight:500;}
+.last-date{font-size:11px;color:var(--mt2);font-weight:400;font-variant-numeric:tabular-nums;}
+.last-title{font-size:18px;font-weight:500;color:var(--tx);letter-spacing:-0.3px;line-height:1.1;}
+.last-title .sub{color:var(--mt);font-weight:400;}
+.last-meta{font-size:12px;color:var(--mt);margin-top:4px;font-weight:400;}
+.last-pr{
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--bd2);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.last-pr-left{display:flex;align-items:center;gap:10px;min-width:0;}
+.last-pr-dot{width:6px;height:6px;border-radius:50%;background:var(--gn);flex-shrink:0;}
+.last-pr-text{font-size:13px;color:var(--tx);font-weight:500;letter-spacing:-0.1px;}
+.last-pr-text .val{color:var(--gn);font-family:var(--fm);font-weight:500;}
+.last-pr-meta{font-size:11px;color:var(--mt);font-weight:400;}
+
+/* ─── Footer note (preview-only) ─── */
+.preview-note{padding:24px 22px 40px;text-align:center;font-size:11px;color:var(--mt2);}
+.preview-note b{color:var(--mt);font-weight:500;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand"><span class="brand-dot"></span>Tracker</div>
+  <div class="icon-bar">
+    <button class="icon-btn" aria-label="historial">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+    </button>
+    <button class="icon-btn" aria-label="settings">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="greet">
+  <div class="greet-h">Buenas, Joaco.</div>
+  <div class="greet-d">Lunes 25 de mayo</div>
+</div>
+
+<div class="hero">
+  <div class="hero-label">Hoy te toca</div>
+  <div class="hero-name">Empuje <span class="sub">· pecho, hombros, tríceps</span></div>
+  <div class="hero-preview">Press banca · Press militar · Aperturas · Extensión tríceps</div>
+  <div class="hero-meta">
+    <span><b>4</b> ejercicios</span>
+    <span style="color:var(--mt2)">·</span>
+    <span><b>2</b> bloques</span>
+    <span style="color:var(--mt2)">·</span>
+    <span><b>14</b> sets</span>
+  </div>
+  <button class="hero-cta">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>
+    Empezar
+  </button>
+</div>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-label">Racha</div>
+    <div class="stat-num acc-yw">4</div>
+    <div class="stat-detail">Esta semana <span class="hi">2/3</span></div>
+    <div class="week-bars">
+      <div class="bar on"></div>
+      <div class="bar"></div>
+      <div class="bar on"></div>
+      <div class="bar"></div>
+      <div class="bar today"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-d">L</div>
+      <div class="bar-d">M</div>
+      <div class="bar-d">M</div>
+      <div class="bar-d">J</div>
+      <div class="bar-d today">V</div>
+      <div class="bar-d">S</div>
+      <div class="bar-d">D</div>
+    </div>
+  </div>
+  <div class="stat">
+    <div class="stat-label">Sesiones</div>
+    <div class="stat-num acc-tx">38</div>
+    <div class="stat-detail"><span class="hi">+3</span> últimos 7 días</div>
+    <div style="height:18px;margin-top:10px"></div>
+    <div style="height:14px"></div>
+  </div>
+</div>
+
+<div class="sec-h">Otros días</div>
+<div class="days">
+  <div class="day">
+    <div class="day-name">Día 2</div>
+    <div class="day-sub">Tirón</div>
+    <div class="day-preview">Dominadas · Remo · Curl bíceps</div>
+    <div class="day-cta">
+      Empezar
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </div>
+  </div>
+  <div class="day">
+    <div class="day-name">Día 3</div>
+    <div class="day-sub">Piernas</div>
+    <div class="day-preview">Sentadilla · Peso muerto · Hip thrust</div>
+    <div class="day-cta">
+      Empezar
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </div>
+  </div>
+</div>
+
+<div class="cal">
+  <div class="cal-h">
+    <div class="cal-month">Mayo</div>
+    <div class="cal-nav">
+      <button>‹</button>
+      <button>›</button>
+    </div>
+  </div>
+  <div class="cal-grid">
+    <div class="cal-day-h">L</div>
+    <div class="cal-day-h">M</div>
+    <div class="cal-day-h">M</div>
+    <div class="cal-day-h">J</div>
+    <div class="cal-day-h">V</div>
+    <div class="cal-day-h">S</div>
+    <div class="cal-day-h">D</div>
+    <div class="cal-cell muted">28</div>
+    <div class="cal-cell muted">29</div>
+    <div class="cal-cell muted">30</div>
+    <div class="cal-cell">1</div>
+    <div class="cal-cell">2</div>
+    <div class="cal-cell">3</div>
+    <div class="cal-cell">4</div>
+    <div class="cal-cell trained">5</div>
+    <div class="cal-cell">6</div>
+    <div class="cal-cell trained">7</div>
+    <div class="cal-cell">8</div>
+    <div class="cal-cell trained">9</div>
+    <div class="cal-cell">10</div>
+    <div class="cal-cell">11</div>
+    <div class="cal-cell trained">12</div>
+    <div class="cal-cell">13</div>
+    <div class="cal-cell trained">14</div>
+    <div class="cal-cell">15</div>
+    <div class="cal-cell trained">16</div>
+    <div class="cal-cell">17</div>
+    <div class="cal-cell">18</div>
+    <div class="cal-cell trained">19</div>
+    <div class="cal-cell">20</div>
+    <div class="cal-cell trained">21</div>
+    <div class="cal-cell">22</div>
+    <div class="cal-cell trained">23</div>
+    <div class="cal-cell">24</div>
+    <div class="cal-cell today">25</div>
+    <div class="cal-cell">26</div>
+    <div class="cal-cell">27</div>
+    <div class="cal-cell">28</div>
+    <div class="cal-cell">29</div>
+    <div class="cal-cell">30</div>
+    <div class="cal-cell">31</div>
+  </div>
+</div>
+
+<div class="sec-h">Última sesión</div>
+<div class="last">
+  <div class="last-card">
+    <div class="last-top">
+      <div class="last-label">Hace 2 días</div>
+      <div class="last-date">23/05 · 18:32</div>
+    </div>
+    <div class="last-title">Empuje <span class="sub">· pecho, hombros, tríceps</span></div>
+    <div class="last-meta">4 ejercicios · 14 sets registrados</div>
+    <div class="last-pr">
+      <div class="last-pr-left">
+        <div class="last-pr-dot"></div>
+        <div>
+          <div class="last-pr-text">Press banca · <span class="val">82.5 kg × 8</span></div>
+          <div class="last-pr-meta">Nuevo PR</div>
+        </div>
+      </div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mt)" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </div>
+</div>
+
+<div class="preview-note">
+  Mockup de dirección de diseño · <b>IBM Plex Sans + IBM Plex Mono</b><br>
+  Datos ficticios · no funcional
+</div>
+
+</body>
+</html>
