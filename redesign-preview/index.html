@@ -2480,7 +2480,7 @@ function renderHome(){
     db.innerHTML=`<div class="card" style="cursor:default;background:rgba(215,121,62,0.08);border-color:rgba(215,121,62,0.30);box-shadow:var(--lift-in)">
       <div class="row mb-8" style="align-items:center;gap:8px">
         <span class="b2-pulse-dot"></span>
-        <span style="color:var(--yw);font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase">Borrador en curso</span>
+        <span style="font-family:var(--fm);color:var(--yw);font-size:9.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase">Borrador en curso</span>
         <span class="text-xs text-mt" style="margin-left:auto">${fd(draft.date)} · ${dayDef?.name||'?'}</span>
       </div>
       <div class="text-sm text-mt mb-14">Cerraste sin finalizar. ¿Continuás?</div>
@@ -3397,7 +3397,7 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
       const labelText = isEditMode ? `Editando serie ${si+1}` : `Serie ${si+1} en curso`;
       html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:22px;padding:0 4px">
         <span class="b2-pulse-dot" style="background:${dotColor}"></span>
-        <span style="font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:${dotColor};flex:1">${labelText}</span>
+        <span style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:${dotColor};flex:1">${labelText}</span>
         ${isEditMode?`<button onclick="curWorkSetEdit=null;renderWork()" style="background:var(--cd);border:1px solid var(--ac);color:var(--ac);font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;padding:6px 12px;border-radius:8px;display:inline-flex;align-items:center;gap:5px">Salir <span style="font-size:11px;line-height:1">✕</span></button>`:''}
       </div>`;
     }
@@ -3407,16 +3407,16 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
     if(mode==='weight'){
       html+=`<div style="display:flex;justify-content:center;gap:36px;margin:8px 0 24px;flex-wrap:wrap">
         <div style="text-align:center">
-          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Peso</div>
+          <div style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Peso</div>
           <div style="display:flex;align-items:center;gap:12px">
             <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjW(${si},-2.5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
             <div id="val-w-${ci}-${si}" class="mono fw-700" style="font-size:34px;min-width:70px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1" onclick="typeVal(${si},'w',null,${ci})">${s.w}</div>
             <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjW(${si},2.5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">+</label>
           </div>
-          <div style="font-size:10px;color:var(--mt2);margin-top:8px;font-weight:600;letter-spacing:0.5px">kg</div>
+          <div style="font-family:var(--fm);font-size:10px;color:var(--mt2);margin-top:8px;font-weight:500;letter-spacing:1px">KG</div>
         </div>
         <div style="text-align:center">
-          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Reps</div>
+          <div style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Reps</div>
           <div style="display:flex;align-items:center;gap:12px">
             <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},-1,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
             <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:34px;min-width:50px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
@@ -3427,7 +3427,7 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
     } else if(mode==='reps'){
       html+=`<div style="display:flex;justify-content:center;margin:8px 0 24px">
         <div style="text-align:center">
-          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Repeticiones</div>
+          <div style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Repeticiones</div>
           <div style="display:flex;align-items:center;gap:16px">
             <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},-1,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
             <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:52px;min-width:100px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1.8px;line-height:1" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
@@ -3438,13 +3438,13 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
     } else if(mode==='time'){
       html+=`<div style="display:flex;justify-content:center;margin:8px 0 24px">
         <div style="text-align:center">
-          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Tiempo</div>
+          <div style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Tiempo</div>
           <div style="display:flex;align-items:center;gap:16px">
             <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},-5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
             <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:52px;min-width:120px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1.8px;line-height:1" onclick="typeVal(${si},'r','Tiempo (segs)',${ci})">${s.r}</div>
             <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">+</label>
           </div>
-          <div style="font-size:10px;color:var(--mt2);margin-top:8px;font-weight:600;letter-spacing:0.5px">segs</div>
+          <div style="font-family:var(--fm);font-size:10px;color:var(--mt2);margin-top:8px;font-weight:500;letter-spacing:1px">SEGS</div>
         </div>
       </div>`;
     }
