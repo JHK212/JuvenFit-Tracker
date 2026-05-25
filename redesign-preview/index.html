@@ -733,43 +733,46 @@ label.haptic-switch.rpe-btn-min{
     <div class="greet-d" id="home-date"></div>
   </div>
   <div id="home-welcome" style="display:none">
-    <!-- Brand header sutil · shield chico + "JuvenFIT" tracked -->
-    <div class="header" style="padding:18px 20px 8px;padding-top:calc(18px + env(safe-area-inset-top));justify-content:flex-start;gap:10px;background:transparent">
-      <img src="./shield.png" alt="" width="28" height="28" style="flex-shrink:0">
-      <span style="font-family:var(--fm);font-size:12.5px;font-weight:700;letter-spacing:1.8px;color:var(--mt)">JUVENFIT</span>
+    <!-- Brand header (mismo que home logueado) -->
+    <div class="header reveal r1" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
+      <div class="brand">
+        <div class="brand-name"><span class="brand-dot"></span>Tracker</div>
+        <div class="brand-meta">VOL. 00</div>
+      </div>
     </div>
 
-    <!-- Hero saludo · "Bienvenido" grande + microcopy direccional -->
-    <div class="sec" style="padding-top:42px;text-align:center;padding-bottom:8px">
-      <div style="font-size:32px;font-weight:600;color:var(--tx);letter-spacing:-0.6px;line-height:1.1;margin-bottom:10px">Bienvenido</div>
-      <div style="font-size:14px;color:var(--mt);font-weight:500;line-height:1.55;max-width:280px;margin:0 auto">Empecemos importando<br>la rutina de tu coach.</div>
+    <!-- Hero editorial Bricolage display (consistente con home) -->
+    <div class="reveal r2" style="padding:32px 22px 8px;text-align:center">
+      <div style="font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--mt);margin-bottom:14px;display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:1px;background:currentColor;opacity:0.5"></span>BIENVENIDO<span style="width:18px;height:1px;background:currentColor;opacity:0.5"></span></div>
+      <div style="font-family:var(--fd);font-size:48px;font-weight:800;color:var(--tx);letter-spacing:-1.6px;line-height:0.95;font-variation-settings:'wdth' 82;text-transform:uppercase">Empezamos</div>
+      <div style="font-size:14px;color:var(--mt);font-weight:500;line-height:1.55;margin-top:14px;max-width:280px;margin-left:auto;margin-right:auto">Importá la rutina que te mandó tu coach,<br>o armala desde cero.</div>
     </div>
 
-    <!-- Card principal · CTA QR azul · QR icon grande arriba como visual lock -->
-    <div class="sec" style="padding-top:14px;padding-bottom:8px">
-      <div class="card" style="cursor:default;padding:26px 22px;box-shadow:var(--lift-in)">
+    <!-- Card principal · CTA QR -->
+    <div class="reveal r3" style="padding:24px 22px 14px">
+      <div style="background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);padding:24px 22px;box-shadow:0 12px 32px -16px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.025)">
         <div style="display:flex;justify-content:center;margin-bottom:16px">
-          <div style="width:68px;height:68px;border-radius:18px;background:rgba(96,165,250,0.10);border:1px solid rgba(96,165,250,0.25);display:flex;align-items:center;justify-content:center;color:var(--ac);box-shadow:var(--lift-in)">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square">
+          <div style="width:64px;height:64px;border-radius:14px;background:var(--sf);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--ac)">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square">
               <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
               <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
               <rect x="18" y="18" width="3" height="3"/><rect x="14" y="19" width="3" height="2"/>
             </svg>
           </div>
         </div>
-        <div style="text-align:center;font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;margin-bottom:6px">Importar rutina del coach</div>
+        <div style="text-align:center;font-size:17px;font-weight:600;color:var(--tx);letter-spacing:-0.3px;margin-bottom:8px">Importar rutina del coach</div>
         <div style="text-align:center;font-size:12.5px;color:var(--mt);font-weight:500;line-height:1.55;margin-bottom:20px">Escaneá el QR que te mandó<br>o pegá el código de 8 caracteres.</div>
-        <button class="btn" onclick="openImportRoutine()" style="display:flex;align-items:center;justify-content:center;gap:8px">
-          <span style="font-size:15px;line-height:1">📷</span>
-          Escanear QR de mi coach
+        <button class="btn" onclick="openImportRoutine()" style="display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--fm);font-size:11.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;padding:14px 0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          Escanear QR
         </button>
       </div>
     </div>
 
-    <!-- CTA secundario · armar manual (link · no card) -->
-    <div class="sec" style="padding-top:14px;text-align:center">
-      <div style="font-size:11.5px;color:var(--mt2);font-weight:500;margin-bottom:6px;letter-spacing:0.2px">¿No tenés coach?</div>
-      <button class="b2-press" onclick="showPage('editR')" style="background:none;border:none;color:var(--ac);font-size:13px;font-weight:600;cursor:pointer;padding:8px 14px;border-radius:8px">Armar mi rutina manualmente →</button>
+    <!-- CTA secundario · armar manual (link) -->
+    <div class="reveal r4" style="padding:18px 22px 32px;text-align:center">
+      <div style="font-family:var(--fm);font-size:9.5px;color:var(--mt2);font-weight:600;margin-bottom:10px;letter-spacing:1.5px;text-transform:uppercase">¿Sin coach?</div>
+      <button class="b2-press" onclick="showPage('editR')" style="background:transparent;border:1px solid var(--bd);color:var(--ac);font-family:var(--fm);font-size:10.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;padding:11px 18px;border-radius:8px">Armar manual →</button>
     </div>
   </div>
   <div id="home-main">
@@ -878,12 +881,15 @@ label.haptic-switch.rpe-btn-min{
   </div>
   <div id="exit-modal" class="modal-overlay" onclick="closeExitModal()">
     <div class="modal" onclick="event.stopPropagation()">
-      <div style="font-size:18px;font-weight:800;margin-bottom:8px">¿Salir del entrenamiento?</div>
-      <div class="text-sm text-mt mb-24">Podés guardar lo que llevas o descartarlo.</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--mt);margin-bottom:12px">
+        <span style="display:flex;align-items:center;gap:7px"><span style="width:14px;height:1px;background:currentColor;opacity:0.4"></span>SALIR DEL ENTRENO</span>
+      </div>
+      <div style="font-size:20px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;margin-bottom:6px;line-height:1.2">¿Cerrás la sesión?</div>
+      <div style="font-size:13px;color:var(--mt);line-height:1.55;margin-bottom:22px">Podés guardar lo que llevas o descartar todo.</div>
       <div class="flex" style="flex-direction:column;gap:10px">
         <button class="btn" onclick="confirmFinishWorkout()">Guardar y salir</button>
-        <button class="btn-out" onclick="discardWorkout()">Descartar</button>
         <button class="btn-out" onclick="closeExitModal()">Seguir entrenando</button>
+        <button class="btn-danger" onclick="discardWorkout()" style="font-size:12px;padding:11px 18px">Descartar todo</button>
       </div>
     </div>
   </div>
@@ -930,44 +936,74 @@ label.haptic-switch.rpe-btn-min{
 
 <!-- ══ ROUTINE VIEW ══ -->
 <div id="routine" class="page">
-  <div class="header">
-    <button class="icon-btn" onclick="showPage('home')">←</button>
-    <div class="fw-700" style="font-size:16px;text-align:center;flex:1">Mi Rutina</div>
-    <div style="width:44px"></div>
+  <div class="header" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
+    <button class="icon-btn" onclick="showPage('home')" style="width:38px;height:38px;border-radius:10px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;text-align:center;flex:1;color:var(--tx)">Mi Rutina</div>
+    <div style="width:38px"></div>
   </div>
   <div id="routine-content"></div>
 </div>
 
 <!-- ══ SETTINGS ══ -->
 <div id="editR" class="page">
-  <div class="header">
-    <button class="icon-btn" onclick="showPage('home')">←</button>
-    <div class="fw-700" style="font-size:16px;text-align:center;flex:1">Configuración</div>
-    <div style="width:44px"></div>
+  <div class="header" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
+    <button class="icon-btn" onclick="showPage('home')" style="width:38px;height:38px;border-radius:10px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;text-align:center;flex:1;color:var(--tx)">Configuración</div>
+    <div style="width:38px"></div>
   </div>
-  <div class="sec"><div class="sec-title">Días mínimos por semana</div><div class="card" style="cursor:default"><div class="text-xs text-mt mb-12">Con este valor se cuenta tu racha 🔥 — sumás una semana cuando entrenás al menos esta cantidad de días.</div><div id="dpw-selector" class="flex gap-8" style="justify-content:center"></div></div></div>
-  <div class="sec">
-    <div class="sec-title">Historial</div>
-    <button class="btn-out" onclick="window._delHistFrom='editR';showPage('delHist')" style="margin-bottom:12px">Borrar sesiones del historial</button>
+  <div class="sec-h" style="padding-top:8px"><span class="sec-h-idx">01</span><span class="sec-h-title">Días por semana</span><span class="sec-h-rule"></span></div>
+  <div class="sec" style="padding-top:0;padding-bottom:14px">
+    <div class="card" style="cursor:default;border-radius:var(--r-card)">
+      <div style="font-size:13px;color:var(--mt);margin-bottom:14px;line-height:1.5">Con este valor se cuenta tu racha · sumás una semana cuando entrenás al menos esta cantidad de días.</div>
+      <div id="dpw-selector" class="flex gap-8" style="justify-content:center"></div>
+    </div>
   </div>
-  <div class="sec" style="padding-top:0">
-    <div class="sec-title">Datos</div>
-    <button class="btn-out" onclick="exportData()" style="margin-bottom:12px">📤 Exportar mis datos</button>
-    <label class="btn-out" style="display:block;text-align:center;cursor:pointer;margin-bottom:12px">📥 Importar datos<input type="file" accept=".json" onchange="importData(event)" style="display:none"></label>
-    <button class="btn-out" onclick="manualSyncLibrary(this)" style="margin-bottom:8px">🔄 Sincronizar biblioteca</button>
+  <div class="sec-h"><span class="sec-h-idx">02</span><span class="sec-h-title">Historial</span><span class="sec-h-rule"></span></div>
+  <div class="sec" style="padding-top:0;padding-bottom:14px">
+    <button class="btn-out" onclick="window._delHistFrom='editR';showPage('delHist')">Borrar sesiones del historial</button>
+  </div>
+  <div class="sec-h"><span class="sec-h-idx">03</span><span class="sec-h-title">Datos</span><span class="sec-h-rule"></span></div>
+  <div class="sec" style="padding-top:0;padding-bottom:14px">
+    <button class="btn-out" onclick="exportData()" style="margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Exportar mis datos
+    </button>
+    <label class="btn-out" style="display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;margin-bottom:10px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Importar datos
+      <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+    </label>
+    <button class="btn-out" onclick="manualSyncLibrary(this)" style="margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.3-8.55"/><path d="M21 4v6h-6"/></svg>
+      Sincronizar biblioteca
+    </button>
     <div id="sync-status" class="text-xs text-mt" style="text-align:center"></div>
   </div>
-  <div class="sec" style="padding-top:0" id="sec-routines">
-    <div class="sec-title">Mis rutinas</div>
-    <div id="routines-info" class="text-xs text-mt mb-8"></div>
-    <button class="btn-out" id="btn-switch-routine" onclick="openRoutineSwitcher()" style="margin-bottom:8px">⇄ Cambiar rutina activa</button>
+  <div id="sec-routines">
+    <div class="sec-h"><span class="sec-h-idx">04</span><span class="sec-h-title">Mis rutinas</span><span class="sec-h-rule"></span></div>
+    <div class="sec" style="padding-top:0;padding-bottom:14px">
+      <div id="routines-info" style="font-size:12.5px;color:var(--mt);margin-bottom:12px;line-height:1.5"></div>
+      <button class="btn-out" id="btn-switch-routine" onclick="openRoutineSwitcher()" style="display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        Cambiar rutina activa
+      </button>
+    </div>
   </div>
-  <div class="sec" style="padding-top:0"><button class="btn-danger" onclick="resetRoutine()">Borrar toda la rutina</button></div>
+  <div class="sec-h"><span class="sec-h-idx">05</span><span class="sec-h-title">Zona peligro</span><span class="sec-h-rule"></span></div>
+  <div class="sec" style="padding-top:0;padding-bottom:32px"><button class="btn-danger" onclick="resetRoutine()">Borrar toda la rutina</button></div>
 </div>
 
 <!-- ══ EDIT DAY (BLOQUES) ══ -->
 <div id="editD" class="page">
-  <div class="header"><button class="icon-btn" onclick="closeDayBlockEditor()">←</button><div id="editD-title" class="fw-700" style="font-size:16px;text-align:center;flex:1">Editar día</div><button class="btn-sm" onclick="saveDayBlockEditor()" style="background:var(--ac);color:var(--action-tx);font-weight:700">Listo</button></div>
+  <div class="header" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
+    <button class="icon-btn" onclick="closeDayBlockEditor()" style="width:38px;height:38px;border-radius:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div id="editD-title" style="font-size:17px;font-weight:600;letter-spacing:-0.3px;text-align:center;flex:1;color:var(--tx)">Editar día</div>
+    <button class="btn-sm" onclick="saveDayBlockEditor()" style="background:var(--ac);color:var(--action-tx);font-family:var(--fm);font-size:10.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;border-radius:8px;padding:8px 14px;border:none">Listo</button>
+  </div>
   <div class="sec">
     <div class="mb-16">
       <label class="label">Nombre del día</label>
@@ -989,20 +1025,37 @@ label.haptic-switch.rpe-btn-min{
 
 <!-- ══ EDIT EXERCISE ══ -->
 <div id="editE" class="page">
-  <div class="header"><button class="icon-btn" onclick="showPage('editR')">←</button><div class="fw-700" style="font-size:16px;text-align:center;flex:1">Editar Ejercicio</div><div style="width:44px"></div></div>
+  <div class="header" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
+    <button class="icon-btn" onclick="showPage('editR')" style="width:38px;height:38px;border-radius:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;text-align:center;flex:1;color:var(--tx)">Editar Ejercicio</div>
+    <div style="width:38px"></div>
+  </div>
   <div id="editE-content" class="sec"></div>
 </div>
 
 <!-- ══ EDIT SESSION ══ -->
 <div id="editS" class="page">
-  <div class="header"><button class="icon-btn" onclick="showPage('home')">←</button><div class="fw-700" style="font-size:16px;text-align:center;flex:1">Editar Sesión</div><div style="width:44px"></div></div>
+  <div class="header" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
+    <button class="icon-btn" onclick="showPage('home')" style="width:38px;height:38px;border-radius:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;text-align:center;flex:1;color:var(--tx)">Editar Sesión</div>
+    <div style="width:38px"></div>
+  </div>
   <div id="editS-content" class="sec"></div>
 </div>
 
 <!-- ══ DELETE HISTORY ══ -->
 <div id="delHist" class="page">
-  <div class="header"><button class="icon-btn" onclick="showPage(window._delHistFrom||'editR')">←</button><div class="fw-700" style="font-size:16px;text-align:center;flex:1">Borrar Sesiones</div><div style="width:44px"></div></div>
-  <div class="sec"><div class="text-sm text-mt mb-12">Tocá las sesiones que querés eliminar</div><div id="del-list"></div><button id="del-btn" class="btn-danger mt-20" onclick="deleteSelected()" style="display:none">Eliminar</button><button class="btn-out mt-12" onclick="selectAllSessions()">Seleccionar todas</button></div>
+  <div class="header" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
+    <button class="icon-btn" onclick="showPage(window._delHistFrom||'editR')" style="width:38px;height:38px;border-radius:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;text-align:center;flex:1;color:var(--tx)">Borrar Sesiones</div>
+    <div style="width:38px"></div>
+  </div>
+  <div class="sec">
+    <div style="font-size:13px;color:var(--mt);margin-bottom:14px;line-height:1.5">Tocá las sesiones que querés eliminar.</div>
+    <div id="del-list"></div>
+    <button id="del-btn" class="btn-danger mt-20" onclick="deleteSelected()" style="display:none">Eliminar seleccionadas</button>
+    <button class="btn-out mt-12" onclick="selectAllSessions()" style="font-family:var(--fm);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase">Seleccionar todas</button>
+  </div>
 </div>
 
 <!-- ══ PROGRESS ══ -->
@@ -3225,16 +3278,14 @@ function renderRoutine(){
     // El botón ✕ "eliminar día" se sacó de acá — era muy accesible y se tappeaba por
     // accidente. Ahora vive dentro del editor del día (page editD) como acción destructiva
     // separada, después del listado de bloques.
+    const dayNum=String(dayIdx+1).padStart(2,'0');
     const headerActions=`
-      <button class="micro-btn" style="font-size:13px;color:var(--ac)" onclick="editDayPrompt(${d.id})" title="Renombrar día">✎</button>
+      <button class="micro-btn" style="font-size:13px;color:var(--ac)" onclick="editDayPrompt(${d.id})" title="Renombrar día"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
       ${dayIdx>0?`<button class="micro-btn" style="font-size:15px;color:var(--ac)" onclick="moveRoutineDayInList(${dayIdx},-1)" title="Subir">↑</button>`:''}
       ${dayIdx<nDays-1?`<button class="micro-btn" style="font-size:15px;color:var(--ac)" onclick="moveRoutineDayInList(${dayIdx},1)" title="Bajar">↓</button>`:''}
     `;
-    html+=`<div class="sec">
-      <div class="row mb-12" style="align-items:center;gap:6px">
-        <div class="sec-title" style="margin-bottom:0;flex:1;min-width:0">${d.name}${d.sub?' — '+d.sub:''}</div>
-        ${headerActions}
-      </div>`;
+    html+=`<div class="sec-h"><span class="sec-h-idx">${dayNum}</span><span class="sec-h-title">${d.name}${d.sub?' · '+d.sub:''}</span><span class="sec-h-rule"></span>${headerActions}</div>
+    <div class="sec" style="padding-top:0">`;
     if(hasTypedBlocks){
       blocks.forEach(b=>{
         const bt=BLOCK_TYPES[b.type]||BLOCK_TYPES.custom;
@@ -3259,7 +3310,7 @@ function renderRoutine(){
       });
       const accs=getAccessories(d);
       if(accs.length){
-        html+=`<div class="sec-title mt-12">Accesorios</div>`;
+        html+=`<div style="font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin:18px 0 10px">Accesorios</div>`;
         accs.forEach(a=>{
           const tag=a.type==='triserie'?'<span class="acc-tag acc-tag-tri">Triserie</span>':'<span class="acc-tag acc-tag-bi">Biserie</span>';
           html+=`<div class="card" style="cursor:default"><div class="row mb-8"><span class="fw-700">${a.name}</span>${tag}</div><div style="margin-bottom:8px">${(a.items||[]).map(it=>`<div class="text-sm" style="padding:2px 0;color:var(--mt)">• ${it.name} — <span class="mono">${it.reps}</span></div>`).join('')}</div><div class="text-xs text-mt">${a.sets}×${fmtTime(restAsSeconds(a.rest))} desc. ${a.notes?'· '+a.notes:''}</div></div>`;
@@ -3267,14 +3318,14 @@ function renderRoutine(){
       }
     }
     // Botón "Editar bloques" — abre editor de día (page completa). backTo='routine' para volver acá.
-    html+=`<button class="btn-out mt-12" style="font-size:13px;padding:10px 16px;color:var(--ac);border-color:rgba(96,165,250,0.30);background:rgba(96,165,250,0.06);display:flex;align-items:center;justify-content:center;gap:6px" onclick="openDayBlockEditor(${d.id},'routine')">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-      Editar bloques y ejercicios de este día
+    html+=`<button class="btn-out mt-12" style="font-size:11px;font-family:var(--fm);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;padding:11px 16px;color:var(--ac);border:1px solid var(--ac);background:transparent;display:flex;align-items:center;justify-content:center;gap:8px" onclick="openDayBlockEditor(${d.id},'routine')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Editar día
     </button>`;
     html+=`</div>`;
   });
   // Botón "+ Agregar día" al final
-  html+=`<div class="sec" style="padding-top:0"><button class="btn-out" style="border-style:dashed;color:var(--ac);border-color:rgba(96,165,250,0.40);background:rgba(96,165,250,0.04)" onclick="addDay()">+ Agregar día de entrenamiento</button></div>`;
+  html+=`<div class="sec" style="padding-top:0"><button class="btn-out" style="border-style:dashed;color:var(--ac);border-color:var(--ac);background:transparent;font-family:var(--fm);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase" onclick="addDay()">+ Agregar día</button></div>`;
   $("routine-content").innerHTML=html;
 }
 
@@ -4133,7 +4184,7 @@ function renderWork(){
     });
   } else if(curExI<compounds.length){
     // Compound exercise view (single o grupo unificado)
-    html+=`<div id="work-pr" class="pr-banner"><span style="font-size:24px">🔥</span><div><div class="text-sm fw-700 text-ac">Nuevo PR</div><div id="work-pr-name" class="text-xs text-mt"></div></div></div>`;
+    html+=`<div id="work-pr" class="pr-banner"><div style="font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.5px;color:#062414;background:var(--gn);padding:4px 8px;border-radius:5px">PR</div><div><div style="font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gn)">Nuevo récord</div><div id="work-pr-name" class="text-xs text-mt"></div></div></div>`;
     const grp=groupOfCompoundIdx(compounds,curExI);
     if(grp){
       // Redirigir al primero del grupo si no estamos parados ahí
@@ -4148,13 +4199,31 @@ function renderWork(){
     }
 
   } else {
-    // Accessories view
-    html+=`<div style="font-size:22px;font-weight:800;margin-bottom:16px;color:var(--ac)">Accesorios</div>`;
+    // Accessories view · editorial Sport v3
+    html+=`<div class="sec-h" style="padding:0;margin-bottom:14px"><span class="sec-h-idx">A</span><span class="sec-h-title">Accesorios</span><span class="sec-h-rule"></span></div>`;
+    html+=`<div style="font-size:22px;font-weight:600;letter-spacing:-0.4px;color:var(--tx);line-height:1.1;margin-bottom:8px">Bloque final</div>`;
+    html+=`<div style="font-size:13px;color:var(--mt);font-weight:500;margin-bottom:22px;line-height:1.45">Marcá cada accesorio cuando lo completes. Tocá el ⏱ para arrancar descanso.</div>`;
     accessories.forEach(a=>{
       const done=curSess.accessories[a.id];
-      const tag=a.type==='triserie'?'<span class="acc-tag acc-tag-tri">Triserie</span>':'<span class="acc-tag acc-tag-bi">Biserie</span>';
+      const tagLabel=a.type==='triserie'?'TRISERIE':'BISERIE';
       const aRestSec=restAsSeconds(a.rest);
-      html+=`<div class="acc-group${done?' done':''}" style="cursor:pointer"><div class="flex gap-12" style="align-items:flex-start"><div class="acc-check${done?' done':''}" onclick="toggleAcc('${a.id}',${aRestSec})">${done?'✓':''}</div><div style="flex:1" onclick="toggleAcc('${a.id}',${aRestSec})"><div class="row mb-4"><span class="fw-700">${a.name}</span>${tag}</div>${(a.items||[]).map(it=>`<div class="text-sm" style="color:var(--mt)">• ${it.name} — <span class="mono">${it.reps}</span></div>`).join('')}<div class="text-xs text-mt mt-4">${a.sets} rondas · ${fmtTime(aRestSec)} desc.</div>${a.notes?`<div class="text-xs text-mt mt-4">${a.notes}</div>`:''}</div><button class="icon-btn" onclick="event.stopPropagation();startTimer(${aRestSec})" style="width:32px;height:32px;font-size:14px;flex-shrink:0">⏱</button></div></div>`;
+      html+=`<div class="acc-group${done?' done':''}" style="cursor:pointer">
+        <div class="flex gap-12" style="align-items:flex-start">
+          <div class="acc-check${done?' done':''}" onclick="toggleAcc('${a.id}',${aRestSec})">${done?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+          <div style="flex:1" onclick="toggleAcc('${a.id}',${aRestSec})">
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px">
+              <span style="font-size:15px;font-weight:600;color:var(--tx);letter-spacing:-0.2px">${a.name}</span>
+              <span style="font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--mt);text-transform:uppercase">${tagLabel}</span>
+            </div>
+            ${(a.items||[]).map(it=>`<div style="font-size:12.5px;color:var(--tx);font-weight:500;line-height:1.5">${it.name} <span style="font-family:var(--fm);color:var(--mt);font-weight:500;margin-left:4px">${it.reps}</span></div>`).join('')}
+            <div style="font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;color:var(--mt2);margin-top:8px">${a.sets} RONDAS · ${fmtTime(aRestSec)} DESC</div>
+            ${a.notes?`<div style="font-size:12px;color:var(--mt);margin-top:6px;font-weight:500;line-height:1.4">${a.notes}</div>`:''}
+          </div>
+          <button class="icon-btn" onclick="event.stopPropagation();startTimer(${aRestSec})" style="width:32px;height:32px;font-size:14px;flex-shrink:0;border-radius:8px" aria-label="Iniciar descanso">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg>
+          </button>
+        </div>
+      </div>`;
     });
   }
   
