@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0A0A0B">
+<title>Tracker · galería de direcciones</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{background:#0A0A0B;color:#fff;}
+body{
+  max-width:480px;margin:0 auto;
+  min-height:100vh;min-height:100dvh;
+  font-family:'Manrope',-apple-system,sans-serif;font-size:14px;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+button{font-family:inherit;border:none;background:none;color:inherit;cursor:pointer;font-size:inherit;}
+
+/* ─── Intro ─── */
+.intro{padding:24px 22px 28px;padding-top:calc(24px + env(safe-area-inset-top));text-align:center;border-bottom:1px solid #222;}
+.intro-h{font-size:18px;font-weight:700;color:#fff;letter-spacing:-0.3px;}
+.intro-sub{font-size:13px;color:#888;margin-top:6px;font-weight:400;line-height:1.4;}
+.intro-tag{display:inline-block;margin-top:14px;padding:5px 11px;border:1px solid #444;border-radius:6px;font-size:11px;color:#aaa;font-weight:500;}
+
+/* ─── Label de variante ─── */
+.var-label{
+  padding:28px 22px 8px;display:flex;align-items:center;gap:10px;
+}
+.var-num{
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  letter-spacing:1.5px;color:#aaa;
+  background:#1a1a1d;border:1px solid #333;
+  padding:4px 9px;border-radius:5px;
+}
+.var-name{font-size:14px;font-weight:600;color:#fff;letter-spacing:-0.1px;}
+.var-mood{font-size:12px;color:#888;margin-top:-2px;}
+
+/* ════════════════════════════════════════════════════ */
+/* VARIANTE 1 — QUIET TECH (Manrope · Linear-ish · sombras suaves) */
+/* ════════════════════════════════════════════════════ */
+.v1{
+  font-family:'Manrope',-apple-system,sans-serif;
+  background:#0C0C0F;
+  padding:24px 22px 30px;
+  margin:10px 16px;
+  border-radius:24px;
+  border:1px solid #1F1F23;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.025),
+    0 24px 40px -20px rgba(0,0,0,0.7),
+    0 4px 12px -4px rgba(0,0,0,0.4);
+}
+.v1-hero{text-align:center;padding-bottom:24px;}
+.v1-hero-label{font-size:11.5px;color:#777;font-weight:500;letter-spacing:0.2px;margin-bottom:10px;}
+.v1-hero-name{font-size:36px;font-weight:700;color:#F5F4EF;letter-spacing:-1.2px;line-height:1;}
+.v1-hero-sub{font-size:13px;color:#888;margin-top:10px;font-weight:400;}
+.v1-meta{display:flex;justify-content:center;gap:0;margin-top:18px;font-size:12.5px;}
+.v1-meta span{padding:0 14px;color:#888;border-right:1px solid #1f1f23;}
+.v1-meta span:last-child{border-right:none;}
+.v1-meta b{color:#F5F4EF;font-weight:600;font-variant-numeric:tabular-nums;margin-right:3px;}
+.v1-cta{
+  margin:22px auto 0;width:100%;max-width:280px;
+  background:#5B9DF8;color:#0A0A0B;padding:14px 0;border-radius:11px;
+  font-size:14px;font-weight:700;letter-spacing:-0.1px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 1px 0 rgba(255,255,255,0.2) inset, 0 12px 28px -10px rgba(91,157,248,0.55);
+}
+.v1-stat{
+  margin-top:20px;padding:18px 16px;background:#13131A;
+  border-radius:14px;border:1px solid #1F1F23;text-align:center;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.02),0 4px 12px -4px rgba(0,0,0,0.5);
+}
+.v1-stat-lbl{font-size:12px;color:#777;font-weight:500;margin-bottom:10px;}
+.v1-stat-num{font-size:42px;font-weight:700;color:#F19052;letter-spacing:-1.5px;line-height:1;}
+.v1-stat-det{font-size:12px;color:#888;margin-top:8px;}
+.v1-stat-det b{color:#F5F4EF;font-weight:600;}
+
+/* ════════════════════════════════════════════════════ */
+/* VARIANTE 2 — SPORT (Bricolage variable · Strava-ish · color forte) */
+/* ════════════════════════════════════════════════════ */
+.v2{
+  font-family:'Bricolage Grotesque','Manrope',sans-serif;
+  background:#0A0A0B;
+  padding:24px 22px 30px;
+  margin:10px 16px;
+  border-radius:24px;
+  border:1px solid #1F1F23;
+  box-shadow:
+    0 24px 40px -20px rgba(0,0,0,0.7),
+    0 4px 12px -4px rgba(0,0,0,0.4);
+}
+.v2-hero-block{
+  background:linear-gradient(135deg, #F19052 0%, #D77843 100%);
+  border-radius:18px;padding:22px;color:#1A0E05;
+  box-shadow:0 16px 36px -12px rgba(241,144,82,0.45);
+  position:relative;overflow:hidden;
+}
+.v2-hero-block::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 50%);
+  pointer-events:none;
+}
+.v2-hero-tag{font-size:10.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;opacity:0.7;position:relative;}
+.v2-hero-name{font-size:44px;font-weight:800;letter-spacing:-2px;line-height:0.95;margin-top:6px;font-variation-settings:"wdth" 85;position:relative;}
+.v2-hero-sub{font-size:13px;opacity:0.7;margin-top:8px;font-weight:500;position:relative;}
+.v2-meta{display:flex;gap:14px;margin-top:18px;font-size:12px;font-weight:500;position:relative;}
+.v2-meta span{display:flex;align-items:baseline;gap:5px;}
+.v2-meta b{font-size:18px;font-weight:800;font-variation-settings:"wdth" 85;}
+.v2-cta{
+  margin-top:18px;width:100%;background:#1A0E05;color:#F19052;
+  padding:14px 0;border-radius:10px;font-size:14px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-0.1px;
+  position:relative;
+}
+.v2-stat{
+  margin-top:18px;padding:20px;background:#121215;border-radius:18px;
+  border:1px solid #1F1F23;display:flex;align-items:center;gap:20px;
+  box-shadow:0 8px 24px -10px rgba(0,0,0,0.6);
+}
+.v2-stat-num{font-size:64px;font-weight:800;color:#F19052;line-height:0.85;letter-spacing:-3px;font-variation-settings:"wdth" 85;flex-shrink:0;}
+.v2-stat-info{flex:1;}
+.v2-stat-lbl{font-size:11px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;}
+.v2-stat-det{font-size:13px;color:#F5F4EF;margin-top:4px;font-weight:600;}
+.v2-stat-bars{display:flex;gap:4px;align-items:flex-end;height:32px;margin-top:10px;}
+.v2-stat-bars div{flex:1;height:20%;background:#222;border-radius:2px;}
+.v2-stat-bars div.on{height:100%;background:#F19052;}
+.v2-stat-bars div.today{height:100%;border:1.5px solid #F19052;background:rgba(241,144,82,0.15);}
+
+/* ════════════════════════════════════════════════════ */
+/* VARIANTE 3 — MONO TECHNICAL (todo mono · Nothing-ish · grid · brutalista) */
+/* ════════════════════════════════════════════════════ */
+.v3{
+  font-family:'JetBrains Mono',monospace;
+  background:#0B0B0D;
+  padding:24px 22px 30px;
+  margin:10px 16px;
+  border-radius:6px;
+  border:1px solid #2A2A2E;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.025),
+    0 24px 40px -20px rgba(0,0,0,0.7);
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
+  background-size:14px 14px;
+}
+.v3-hero{padding-bottom:24px;border-bottom:1px solid #1F1F23;}
+.v3-hero-top{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;color:#888;letter-spacing:1px;}
+.v3-hero-top .dot{width:6px;height:6px;background:#F19052;border-radius:50%;box-shadow:0 0 8px #F19052;display:inline-block;margin-right:6px;vertical-align:middle;}
+.v3-hero-name{
+  font-size:46px;font-weight:700;color:#F5F4EF;
+  letter-spacing:-3px;margin-top:18px;line-height:0.9;
+  text-transform:lowercase;
+}
+.v3-hero-sub{font-size:11px;color:#888;margin-top:10px;letter-spacing:0.3px;}
+.v3-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;margin-top:20px;background:#1F1F23;border:1px solid #1F1F23;border-radius:4px;overflow:hidden;}
+.v3-meta-cell{background:#0B0B0D;padding:10px 12px;text-align:center;}
+.v3-meta-cell b{display:block;font-size:18px;color:#F5F4EF;font-weight:700;line-height:1;letter-spacing:-1px;}
+.v3-meta-cell span{display:block;font-size:9.5px;color:#888;margin-top:4px;letter-spacing:1px;text-transform:uppercase;}
+.v3-cta{
+  margin-top:18px;width:100%;background:#5B9DF8;color:#0B0B0D;
+  padding:14px 0;border-radius:4px;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  letter-spacing:1.5px;text-transform:uppercase;
+  box-shadow:0 1px 0 rgba(255,255,255,0.15) inset, 0 12px 28px -10px rgba(91,157,248,0.5);
+}
+.v3-stat{
+  margin-top:22px;padding:18px;border:1px solid #2A2A2E;border-radius:4px;background:#0F0F11;
+  box-shadow:0 8px 20px -8px rgba(0,0,0,0.5);
+}
+.v3-stat-head{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#888;letter-spacing:1.5px;text-transform:uppercase;}
+.v3-stat-head::before{content:'[ ';color:#555;}
+.v3-stat-head::after{content:' ]';color:#555;}
+.v3-stat-row{display:flex;align-items:flex-end;gap:18px;margin-top:14px;}
+.v3-stat-num{font-size:54px;font-weight:700;color:#F19052;line-height:0.9;letter-spacing:-3px;}
+.v3-stat-side{flex:1;font-size:11px;color:#888;line-height:1.5;}
+.v3-stat-side b{color:#F5F4EF;display:block;font-size:13px;}
+.v3-stat-bars{display:flex;gap:2px;align-items:flex-end;height:14px;margin-top:14px;}
+.v3-stat-bars div{flex:1;height:25%;background:#2A2A2E;}
+.v3-stat-bars div.on{height:100%;background:#F19052;}
+.v3-stat-bars div.today{height:100%;border:1px solid #F19052;background:transparent;}
+.v3-stat-grid{display:flex;gap:2px;margin-top:4px;}
+.v3-stat-grid div{flex:1;text-align:center;font-size:9px;color:#555;}
+.v3-stat-grid div.today{color:#F19052;}
+
+/* ─── Footer pick ─── */
+.pick{padding:32px 22px 40px;text-align:center;}
+.pick h3{font-size:13px;color:#aaa;font-weight:600;margin-bottom:6px;}
+.pick p{font-size:11.5px;color:#666;line-height:1.5;}
+.pick code{font-family:'JetBrains Mono',monospace;color:#F19052;background:#1A1A1D;padding:1px 6px;border-radius:3px;font-size:10.5px;}
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <div class="intro-h">3 direcciones para comparar</div>
+  <div class="intro-sub">Scrolleá. Cada bloque es la misma info (hero "Empuje" + racha) con un mood distinto.<br>Decime "el 1", "el 2 con el bg del 3", o lo que sea.</div>
+  <div class="intro-tag">Misma info · 3 personalidades</div>
+</div>
+
+<!-- ═════════ VARIANTE 1 ═════════ -->
+<div class="var-label">
+  <div class="var-num">V.1</div>
+  <div>
+    <div class="var-name">Quiet Tech</div>
+    <div class="var-mood">Manrope · Linear / Cursor · sombras suaves · restraint</div>
+  </div>
+</div>
+<div class="v1">
+  <div class="v1-hero">
+    <div class="v1-hero-label">Hoy te toca</div>
+    <div class="v1-hero-name">Empuje</div>
+    <div class="v1-hero-sub">pecho · hombros · tríceps</div>
+    <div class="v1-meta">
+      <span><b>4</b>ej</span>
+      <span><b>2</b>bloques</span>
+      <span><b>14</b>sets</span>
+    </div>
+    <button class="v1-cta">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>
+      Empezar
+    </button>
+  </div>
+  <div class="v1-stat">
+    <div class="v1-stat-lbl">Racha</div>
+    <div class="v1-stat-num">4</div>
+    <div class="v1-stat-det"><b>2/3</b> esta semana</div>
+  </div>
+</div>
+
+<!-- ═════════ VARIANTE 2 ═════════ -->
+<div class="var-label">
+  <div class="var-num">V.2</div>
+  <div>
+    <div class="var-name">Sport</div>
+    <div class="var-mood">Bricolage Grotesque · Strava-ish · bloque naranja · números enormes</div>
+  </div>
+</div>
+<div class="v2">
+  <div class="v2-hero-block">
+    <div class="v2-hero-tag">Hoy · Día 01</div>
+    <div class="v2-hero-name">Empuje</div>
+    <div class="v2-hero-sub">pecho · hombros · tríceps</div>
+    <div class="v2-meta">
+      <span><b>4</b>ej</span>
+      <span><b>2</b>bloques</span>
+      <span><b>14</b>sets</span>
+    </div>
+    <button class="v2-cta">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>
+      Empezar
+    </button>
+  </div>
+  <div class="v2-stat">
+    <div class="v2-stat-num">4</div>
+    <div class="v2-stat-info">
+      <div class="v2-stat-lbl">Racha</div>
+      <div class="v2-stat-det">2/3 esta semana</div>
+      <div class="v2-stat-bars">
+        <div class="on"></div><div></div><div class="on"></div><div></div>
+        <div class="today"></div><div></div><div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═════════ VARIANTE 3 ═════════ -->
+<div class="var-label">
+  <div class="var-num">V.3</div>
+  <div>
+    <div class="var-name">Mono Technical</div>
+    <div class="var-mood">JetBrains Mono · Nothing-ish · grid sutil · brutalista · datos crudos</div>
+  </div>
+</div>
+<div class="v3">
+  <div class="v3-hero">
+    <div class="v3-hero-top">
+      <span><span class="dot"></span>DAY_01</span>
+      <span>25.05 · MON</span>
+    </div>
+    <div class="v3-hero-name">empuje</div>
+    <div class="v3-hero-sub">pecho · hombros · tríceps</div>
+    <div class="v3-meta">
+      <div class="v3-meta-cell"><b>4</b><span>EJER</span></div>
+      <div class="v3-meta-cell"><b>2</b><span>BLOQ</span></div>
+      <div class="v3-meta-cell"><b>14</b><span>SETS</span></div>
+    </div>
+    <button class="v3-cta">
+      <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>
+      Start
+    </button>
+  </div>
+  <div class="v3-stat">
+    <div class="v3-stat-head">streak.current</div>
+    <div class="v3-stat-row">
+      <div class="v3-stat-num">04</div>
+      <div class="v3-stat-side">
+        this_week<br>
+        <b>2 / 3</b>
+      </div>
+    </div>
+    <div class="v3-stat-bars">
+      <div class="on"></div><div></div><div class="on"></div><div></div>
+      <div class="today"></div><div></div><div></div>
+    </div>
+    <div class="v3-stat-grid">
+      <div>L</div><div>M</div><div>M</div><div>J</div>
+      <div class="today">V</div><div>S</div><div>D</div>
+    </div>
+  </div>
+</div>
+
+<div class="pick">
+  <h3>Cuál te tira?</h3>
+  <p>Decime <code>V.1</code> / <code>V.2</code> / <code>V.3</code> o una combinación (ej. <code>V.1 con el bloque naranja del V.2</code>). De ahí desarrollo el home completo.</p>
+</div>
+
+</body>
+</html>
