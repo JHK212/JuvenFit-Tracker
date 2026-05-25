@@ -455,9 +455,14 @@ label.haptic-switch.rpe-btn-min{
 .stat-mini-foot{font-family:var(--fm);font-size:10px;color:var(--mt);letter-spacing:0.5px;text-transform:uppercase;margin-top:auto;padding-top:14px;}
 .stat-mini-foot b{color:var(--gn);font-weight:700;}
 
-/* Days list */
+/* Days list · hold-to-start con fill azul (mismo patron que hero-cta) */
 .days{padding:0 22px 16px;display:flex;flex-direction:column;gap:10px;}
-.day-card{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);padding:16px 18px;display:flex;align-items:center;gap:18px;cursor:pointer;box-shadow:0 8px 24px -12px rgba(0,0,0,0.6),var(--lift-in);}
+.day-card{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r-card);padding:16px 18px;display:flex;align-items:center;gap:18px;cursor:pointer;box-shadow:0 8px 24px -12px rgba(0,0,0,0.6),var(--lift-in);position:relative;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;}
+.day-card::before{content:'';position:absolute;inset:0;background:var(--ac);transform:translateX(-101%);transition:none;border-radius:inherit;pointer-events:none;}
+.day-card.holding::before{transform:translateX(0);transition:transform 1000ms linear;}
+.day-card.holding .day-num,.day-card.holding .day-name,.day-card.holding .day-arrow{color:#fff;transition:color 1000ms linear;}
+.day-card.holding .day-preview{color:rgba(255,255,255,0.75);transition:color 1000ms linear;}
+.day-card > *{position:relative;z-index:1;}
 .day-card:active{background:var(--cd-hi);}
 .day-num{font-family:var(--fd);font-size:44px;font-weight:800;color:var(--mt2);line-height:0.85;flex-shrink:0;letter-spacing:-2px;font-variation-settings:"wdth" 80;width:50px;text-align:center;}
 .day-info{flex:1;min-width:0;}
@@ -2299,7 +2304,11 @@ function renderHome(){
       const idx=routine.days.findIndex(x=>x.id===d.id);
       const num=String(idx+1).padStart(2,'0');
       return `
-        <div class="day-card" onclick="startWorkout(${d.id})">
+        <div class="day-card" data-day="${d.id}"
+          onpointerdown="startHoldCTA(this,event)"
+          onpointerup="cancelHoldCTA(this)"
+          onpointerleave="cancelHoldCTA(this)"
+          onpointercancel="cancelHoldCTA(this)">
           <div class="day-num">${num}</div>
           <div class="day-info">
             <div class="day-name">${d.name}</div>
