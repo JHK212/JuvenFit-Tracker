@@ -675,6 +675,9 @@ label.haptic-switch.rpe-btn-min{
       <div class="brand-meta" id="home-vol"></div>
     </div>
     <div class="flex gap-8">
+      <button id="install-btn" class="icon-btn" onclick="triggerInstallPrompt()" title="Instalar app" aria-label="Instalar app" style="width:38px;height:38px;border-radius:10px;display:none;color:var(--ac);border-color:var(--ac)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
       <button class="icon-btn" onclick="openImportRoutine()" title="Importar rutina del coach" aria-label="Importar rutina del coach" style="width:38px;height:38px;border-radius:10px">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square">
           <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
@@ -6364,8 +6367,52 @@ function doImport(mode){
   x.fillStyle='#A1A1AA';x.beginPath();x.roundRect(54,by-10,8,20,3);x.fill();x.beginPath();x.roundRect(118,by-10,8,20,3);x.fill();
   x.restore();
   const u=c.toDataURL('image/png');const l=document.createElement('link');l.rel='apple-touch-icon';l.href=u;document.head.appendChild(l);const f=document.createElement('link');f.rel='icon';f.type='image/png';f.href=u;document.head.appendChild(f);};img.src='./shield.png';}catch{}
-  try{const m={name:"JuvenFIT Tracker",short_name:"JuvenFIT",start_url:location.href,display:"standalone",background_color:"#0A0A0B",theme_color:"#0A0A0B",icons:[{src:"./shield.png",sizes:"512x512",type:"image/png",purpose:"any"}]};const b=new Blob([JSON.stringify(m)],{type:'application/json'});const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(b);document.head.appendChild(l);}catch{}
+  try{
+    const m={
+      id:"juvenfit-tracker",
+      name:"JuvenFIT Tracker",
+      short_name:"JuvenFIT",
+      description:"Tracker de gym personal · rutinas, sets, RPE, AMRAP/EMOM",
+      start_url:location.pathname,
+      scope:location.pathname,
+      display:"standalone",
+      orientation:"portrait",
+      lang:"es-AR",
+      dir:"ltr",
+      background_color:"#0A0A0B",
+      theme_color:"#0A0A0B",
+      categories:["fitness","health","lifestyle","productivity"],
+      icons:[
+        {src:"./shield.png",sizes:"192x192",type:"image/png",purpose:"any"},
+        {src:"./shield.png",sizes:"512x512",type:"image/png",purpose:"any"}
+      ]
+    };
+    const b=new Blob([JSON.stringify(m)],{type:'application/json'});
+    const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(b);document.head.appendChild(l);
+  }catch{}
   try{if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});}catch{}
+
+  // Install prompt · captura el evento, expone UI cuando la app es instalable.
+  // El boton #install-btn (en el header del home) se muestra solo si hay prompt
+  // disponible (no instalada aun, criterios de installability cumplidos).
+  let _deferredInstallPrompt=null;
+  window.addEventListener('beforeinstallprompt',(e)=>{
+    e.preventDefault();
+    _deferredInstallPrompt=e;
+    const btn=document.getElementById('install-btn');
+    if(btn) btn.style.display='inline-flex';
+  });
+  window.addEventListener('appinstalled',()=>{
+    _deferredInstallPrompt=null;
+    const btn=document.getElementById('install-btn');
+    if(btn) btn.style.display='none';
+  });
+  window.triggerInstallPrompt=async function(){
+    if(!_deferredInstallPrompt) return;
+    _deferredInstallPrompt.prompt();
+    const choice=await _deferredInstallPrompt.userChoice;
+    if(choice.outcome==='accepted'){_deferredInstallPrompt=null;const btn=document.getElementById('install-btn');if(btn) btn.style.display='none';}
+  };
 })();
 
 // ══ Bento Tri · MOBILE PRESS FEEDBACK ══
