@@ -729,7 +729,7 @@ label.haptic-switch.rpe-btn-min{
     </div>
   </div>
   <div class="greet reveal r1">
-    <div class="greet-h">Buenas, <b id="home-greeting"></b>.</div>
+    <div class="greet-h" id="home-greeting"></div>
     <div class="greet-d" id="home-date"></div>
   </div>
   <div id="home-welcome" style="display:none">
@@ -2416,6 +2416,18 @@ function renderCalendar(){
   $("home-calendar").innerHTML=html;
 }
 
+// Slug para REF tags · colapsa runs de no-alphanum a 1 dash, recorta a 16 chars sin
+// cortar palabras (ej: 'DA 1-FULL BODY BASE' → 'DA-1-FULL-BODY').
+function slugRef(name){
+  const parts=String(name||'').toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-+|-+$/g,'').split('-').filter(Boolean);
+  let out='';
+  for(const p of parts){
+    if(out.length+p.length+(out?1:0)>16) break;
+    out=out?out+'-'+p:p;
+  }
+  return out||(parts[0]||'').slice(0,16);
+}
+
 // ══ Hold-to-start CTA (hero) · 1s press + vibración pulsante + fill azul ══
 function startHoldCTA(btn,ev){
   if(btn._holding) return;
@@ -2486,7 +2498,7 @@ function renderHome(){
   const sgIdx=routine.days.findIndex(d=>d.id===sg);
   const sgNum=String(sgIdx+1).padStart(2,'0');
   const totalDays=routine.days.length;
-  const refSlug=sgD.name.toUpperCase().replace(/\s+/g,'-').replace(/[^A-Z0-9-]/g,'');
+  const refSlug=slugRef(sgD.name);
   $("home-suggested").innerHTML=`
     <div class="hero-top">
       <span><span class="tag-rule"></span>REF · ${refSlug}-${sgNum}</span>
@@ -4090,7 +4102,7 @@ function renderWork(){
   // Ghost number + REF · D x/y (consistente con hero del home)
   const _wIdx=routine.days.findIndex(d=>d.id===curDayId);
   const _wNum=String(_wIdx+1).padStart(2,'0');
-  const _wRef=day.name.toUpperCase().replace(/\s+/g,'-').replace(/[^A-Z0-9-]/g,'');
+  const _wRef=slugRef(day.name);
   if($("work-ghost")) $("work-ghost").textContent=_wNum;
   if($("work-ref-label")) $("work-ref-label").textContent=`REF · ${_wRef}-${_wNum}`;
   if($("work-ref-day")) $("work-ref-day").textContent=`D${_wIdx+1}/${routine.days.length}`;
