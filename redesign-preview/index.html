@@ -3930,7 +3930,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab';
+const _HAPTIC_WRAP_SEL='.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card';
 function applyHapticWrapping(root){
   if(!_hapticTouch) return;
   root=root||document.body;
