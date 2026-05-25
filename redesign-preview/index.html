@@ -2230,13 +2230,12 @@ function renderHome(){
     $("home-others").innerHTML=others.map(d=>{
       const idx=routine.days.findIndex(x=>x.id===d.id);
       const num=String(idx+1).padStart(2,'0');
-      const preview=formatDayPreview(d)||d.sub||'';
       return `
         <div class="day-card" onclick="startWorkout(${d.id})">
           <div class="day-num">${num}</div>
           <div class="day-info">
             <div class="day-name">${d.name}</div>
-            ${preview?`<div class="day-preview">${preview}</div>`:''}
+            ${d.sub?`<div class="day-preview">${d.sub}</div>`:''}
           </div>
           <svg class="day-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>`;
