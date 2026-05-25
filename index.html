@@ -3562,7 +3562,40 @@ function renderWork(){
   if(curSess) saveDraft();
 }
 
+// ══ HAPTIC FEEDBACK (Bento Tri · Nivel 2 · selectivo en acciones clave) ══
+// Truco para iOS 17.4-26.4: <input type="checkbox" switch> dentro de un <label>
+// dispara haptic nativo de Safari cuando el LABEL recibe click (no el input directo).
+// Android: navigator.vibrate(50) directo. Otros: no-op silencioso. Apple parchó esto
+// en iOS 26.5 — degrada gracefully (cero error visible). Crédito: tijnjh/ios-haptics.
+const _hapticTouch=typeof window!=='undefined'&&typeof window.matchMedia==='function'
+  &&window.matchMedia('(pointer: coarse)').matches;
+function haptic(){
+  try{
+    if(navigator.vibrate){navigator.vibrate(50);return;}
+    if(!_hapticTouch) return;
+    const label=document.createElement('label');
+    label.setAttribute('aria-hidden','true');
+    label.style.display='none';
+    const input=document.createElement('input');
+    input.type='checkbox';
+    input.setAttribute('switch','');
+    label.appendChild(input);
+    document.head.appendChild(label);
+    label.click();
+    document.head.removeChild(label);
+  }catch{}
+}
+haptic.confirm=()=>{
+  if(navigator.vibrate){navigator.vibrate([50,70,50]);return;}
+  haptic();setTimeout(haptic,120);
+};
+haptic.error=()=>{
+  if(navigator.vibrate){navigator.vibrate([50,70,50,70,50]);return;}
+  haptic();setTimeout(haptic,120);setTimeout(haptic,240);
+};
+
 function addWorkSet(ci){
+  haptic();
   ci=(ci==null)?curExI:ci;
   const day=routine.days.find(d=>d.id===curDayId);
   const compounds=getCompounds(day);
@@ -3577,6 +3610,7 @@ function addWorkSet(ci){
   curWorkSetEdit=null;saveDraft();renderWork();
 }
 function setFelt(si,val,ci){
+  haptic();
   ci=(ci==null)?curExI:ci;
   curSess.exercises[ci].sets[si].felt=val;
   saveDraft();
@@ -3606,6 +3640,7 @@ function setFelt(si,val,ci){
   curWorkSetEdit=null;renderWork();
 }
 function removeWorkSet(ci){
+  haptic();
   ci=(ci==null)?curExI:ci;
   const day=routine.days.find(d=>d.id===curDayId);
   const compounds=getCompounds(day);
@@ -3617,7 +3652,7 @@ function removeWorkSet(ci){
   curWorkSetEdit=null;saveDraft();renderWork();
 }
 // Focused mode: tap en un pill done trae ese set a card grande para edición.
-function setForcedSetEdit(si){curWorkSetEdit=si;cancelSetCountdown(true);renderWork();}
+function setForcedSetEdit(si){haptic();curWorkSetEdit=si;cancelSetCountdown(true);renderWork();}
 
 // ══ Fase 4 · Auto-paso post-felt + bottom sheet de info ══
 function startSetCountdown(ci,si,rec){
@@ -3764,7 +3799,7 @@ function toggleMobility(exId,restSec){
   renderWork();
 }
 
-function adjW(si,delta,ci){
+function adjW(si,delta,ci){haptic();
   ci=(ci==null)?curExI:ci;
   const s=curSess.exercises[ci].sets[si];s.w=Math.max(0,s.w+delta);
   const el=$("val-w-"+ci+"-"+si);if(el) el.innerHTML=s.w+'<span class="text-sm text-mt">kg</span>';
@@ -3776,6 +3811,7 @@ function adjW(si,delta,ci){
   checkPR(si,ci);document.activeElement?.blur();saveDraft();
 }
 function adjR(si,delta,ci){
+  haptic();
   ci=(ci==null)?curExI:ci;
   const s=curSess.exercises[ci].sets[si];s.r=Math.max(1,s.r+delta);
   const el=$("val-r-"+ci+"-"+si);if(el) el.textContent=s.r;
@@ -3816,6 +3852,8 @@ function setRpe(si,v,ci){
   ci=(ci==null)?curExI:ci;
   // Detectar si es el primer setRpe del set (sino, re-editar no debe disparar PR modal de nuevo)
   const wasNullBefore=curSess.exercises[ci].sets[si].rpe==null;
+  // Haptic solo al MARCAR RPE por primera vez · no al cambiarlo (sino sería ruido)
+  if(wasNullBefore) haptic();
   curSess.exercises[ci].sets[si].rpe=v;
   const day=routine.days.find(d=>d.id===curDayId);
   const compounds=getCompounds(day);
@@ -3853,6 +3891,7 @@ function jumpInSuperset(targetIdx){
 }
 function finishWorkout(){
   if(!curSess) return;
+  haptic.confirm(); // celebración doble pulso al cerrar el workout
   const day=routine.days.find(d=>d.id===curDayId);
   // Capturar PRs previos ANTES de guardar la sesión actual (sino el "PR previo" ya incluye el actual)
   const prevPRs={};
@@ -3982,6 +4021,7 @@ function closeSummaryAndGoHome(){
 // ══ PR achievement modal ══
 let _prModalTimer=null;
 function showPRModal(name,value,mode,delta){
+  haptic.confirm(); // doble pulso de logro al disparar el modal de PR
   const valLbl=formatPR(value,mode);
   const deltaLbl=mode==='weight'
     ?`+${delta.toFixed(1).replace(/\.0$/,'')} kg`
