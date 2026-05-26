@@ -1158,7 +1158,7 @@ const BLOCK_TYPES={
   // Esta paleta categórica se REUSA en otras apps del sistema (ej. Alimentacion-tracker
   // → escenarios mañana/tarde/descanso/fútbol también toman estos colores).
   // ════════════════════════════════════════════════════════════════
-  movilidad:{label:'Movilidad',color:'#14B8A6'},        // turquesa · preparación / activación
+  movilidad:{label:'Movilidad + Core',color:'#14B8A6'}, // turquesa · preparación / activación + circuitos de core
   principal:{label:'Principal',color:'#8B5CF6'},        // violeta · foco / lo más importante
   complementario:{label:'Complementario',color:'#EAB308'}, // mostaza · refuerzo accesorio
   finisher:{label:'Finisher',color:'#EC4899'},          // magenta · intensidad final
@@ -1843,6 +1843,9 @@ function groupOfCompoundIdx(compounds,idx){
 
 // ══ AMRAP/EMOM helpers ══
 function isMetabolicFormat(fmt){return fmt==='amrap'||fmt==='emom';}
+function isCoreFormat(fmt){return fmt==='core';}
+// Color violeta del bloque core (matchea Coach FORMAT_META.core)
+const CORE_COLOR='#7c3aed';
 function fmtMMSS(totalSecs){
   totalSecs=Math.max(0,Math.round(totalSecs));
   const m=Math.floor(totalSecs/60), s=totalSecs%60;
@@ -4171,18 +4174,28 @@ function renderWork(){
   let html=`<div class="ex-tabs">${tabsHtml}</div><div class="sec">`;
 
   if(curExI===-1){
-    // ── Mobility view · Sport v3 editorial ──
-    html+=`<div class="sec-h" style="padding:0;margin-bottom:14px"><span class="sec-h-idx">M</span><span class="sec-h-title">Movilidad</span><span class="sec-h-rule"></span></div>`;
+    // ── Mobility + Core view · Sport v3 editorial ──
+    // Split: ej. sueltos (sin grupo core) van bajo "MOVILIDAD"; grupos core van bajo "CORE" como cards.
+    const looseMov=[]; const coreGroupsMap={};
+    mobility.forEach(m=>{
+      if(m.groupId&&isCoreFormat(m.format)){
+        const g=coreGroupsMap[m.groupId]||(coreGroupsMap[m.groupId]={items:[],meta:m.formatConfig||{},gid:m.groupId});
+        g.items.push(m);
+      } else {
+        looseMov.push(m);
+      }
+    });
+    const coreGroups=Object.values(coreGroupsMap);
     html+=`<div style="font-size:26px;font-weight:700;letter-spacing:-0.6px;color:var(--tx);line-height:1.05;margin-bottom:10px">Entrada en calor</div>`;
     html+=`<div style="font-size:13px;color:var(--mt);font-weight:500;margin-bottom:22px;line-height:1.45">Marcá cada ejercicio cuando lo completes. Una vez hecho, andá al primer bloque.</div>`;
-    mobility.forEach(m=>{
+    const renderMovItem=(m)=>{
       const done=curSess.mobility&&curSess.mobility[m.id];
       const lib=m.exerciseId?getExercise(m.exerciseId):null;
       const cues=(lib&&lib.cues)||m.notes||'';
       const restSec=restAsSeconds(m.rest);
       const repsLbl=m.reps||'';
       const setsLbl=m.sets&&m.sets>1?`${m.sets}× `:'';
-      html+=`<div class="acc-group${done?' done':''}" style="cursor:pointer">
+      return `<div class="acc-group${done?' done':''}" style="cursor:pointer">
         <div class="flex gap-12" style="align-items:flex-start">
           <div class="acc-check${done?' done':''}" onclick="toggleMobility('${m.id}',${restSec})">${done?'✓':''}</div>
           <div style="flex:1" onclick="toggleMobility('${m.id}',${restSec})">
@@ -4193,7 +4206,31 @@ function renderWork(){
           ${m.rest?`<button class="icon-btn" onclick="event.stopPropagation();startTimer(${restSec})" style="width:32px;height:32px;font-size:14px;flex-shrink:0">⏱</button>`:''}
         </div>
       </div>`;
-    });
+    };
+    if(looseMov.length){
+      html+=`<div class="sec-h" style="padding:0;margin-bottom:14px"><span class="sec-h-idx">M</span><span class="sec-h-title">Movilidad</span><span class="sec-h-rule"></span></div>`;
+      html+=looseMov.map(renderMovItem).join('');
+    }
+    if(coreGroups.length){
+      html+=`<div class="sec-h" style="padding:0;margin:${looseMov.length?'26px':'0'} 0 14px 0"><span class="sec-h-idx" style="color:${CORE_COLOR}">C</span><span class="sec-h-title">Core</span><span class="sec-h-rule"></span></div>`;
+      coreGroups.forEach(g=>{
+        const first=g.items[0]||{};
+        const rounds=first.sets||g.meta.rounds||'?';
+        const rest=first.rest||g.meta.rest||'';
+        const presetName=g.meta.presetName||'';
+        const sizeLbl=g.items.length===2?'BISERIE':g.items.length===3?'TRISERIE':`×${g.items.length}`;
+        const allDone=g.items.every(it=>curSess.mobility&&curSess.mobility[it.id]);
+        html+=`<div style="border:1.5px solid ${CORE_COLOR};border-radius:14px;padding:14px;margin-bottom:14px;background:rgba(124,58,237,0.04);${allDone?'opacity:0.6':''}">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <span style="font-family:var(--fm);font-size:10px;font-weight:800;letter-spacing:1.5px;color:${CORE_COLOR};text-transform:uppercase">💪 CORE · ${sizeLbl}</span>
+            ${allDone?`<span style="font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--gn);text-transform:uppercase">✓ DONE</span>`:''}
+          </div>
+          ${presetName?`<div style="font-size:15px;font-weight:600;color:var(--tx);letter-spacing:-0.2px;margin-bottom:4px">${presetName}</div>`:''}
+          <div style="font-family:var(--fm);font-size:10.5px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--mt);margin-bottom:12px">${rounds} VUELTA${rounds===1?'':'S'}${rest?` · ${rest} DESC`:''}</div>
+          ${g.items.map(renderMovItem).join('')}
+        </div>`;
+      });
+    }
   } else if(curExI<compounds.length){
     // Compound exercise view (single o grupo unificado)
     html+=`<div id="work-pr" class="pr-banner"><div style="font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.5px;color:#062414;background:var(--gn);padding:4px 8px;border-radius:5px">PR</div><div><div style="font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gn)">Nuevo récord</div><div id="work-pr-name" class="text-xs text-mt"></div></div></div>`;
