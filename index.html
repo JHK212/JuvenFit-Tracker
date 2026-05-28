@@ -1844,6 +1844,9 @@ function groupOfCompoundIdx(compounds,idx){
 // ══ AMRAP/EMOM helpers ══
 function isMetabolicFormat(fmt){return fmt==='amrap'||fmt==='emom';}
 function isCoreFormat(fmt){return fmt==='core';}
+// Escape de texto externo (nombres importados del Coach) antes de inyectar en innerHTML.
+// El briefing flaggea XSS latente — esta función se aplica al menos a presetName y a labels concatenados.
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 // Color rust del bloque core (matchea Coach FORMAT_META.core — paleta cálida Sport v3)
 const CORE_COLOR='#D7793E';
 const CORE_BG='rgba(215,121,62,0.06)';
@@ -3434,6 +3437,8 @@ function renderRoutine(){
 function startWorkout(dayId,customDate){
   // Unlock AudioContext en el gesto de tap/hold del usuario — habilita beeps del timer end.
   try{ if(typeof _mbEnsureAudio==='function') _mbEnsureAudio(); }catch(e){}
+  // Reset state UI por-día — evita bleed entre días/sesiones
+  _coreRoundExpanded={};
   const day=routine.days.find(d=>d.id===dayId);curDayId=dayId;
   const compounds=getCompounds(day);const accessories=getAccessories(day);
   // Si hay movilidad, arrancar en el tab MOV (curExI=-1); si no, primer compound
@@ -4313,12 +4318,12 @@ function renderWork(){
           <span style="font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--mt);text-transform:uppercase">${total} VUELTA${total===1?'':'S'}</span>
           ${allDone?`<span style="font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:var(--gn);text-transform:uppercase">DONE</span>`:''}
         </div>
-        ${circuit.presetName?`<div style="font-size:19px;font-weight:600;color:var(--tx);letter-spacing:-0.3px;line-height:1.15;margin-bottom:14px">${circuit.presetName}</div>`:''}`;
+        ${circuit.presetName?`<div style="font-size:19px;font-weight:600;color:var(--tx);letter-spacing:-0.3px;line-height:1.15;margin-bottom:14px">${esc(circuit.presetName)}</div>`:''}`;
       circuit.rounds.forEach((round,ri)=>{
         const restSec=restAsSeconds(round.rest);
         const state=allDone?'done':ri<activeRi?'done':ri===activeRi?'active':'pending';
         const expanded=isCoreRoundExpanded(ci,ri,state==='active');
-        const exsLabel=round.items.map(e=>getExName(e)).join(' + ');
+        const exsLabel=round.items.map(e=>esc(getExName(e))).join(' + ');
         const roundLbl=`VUELTA ${ri+1}/${total}`;
         const stateLbl=state==='done'?'Hecha':state==='active'?'En curso':'Pendiente';
         const stateColor=state==='done'?'var(--gn)':state==='active'?CORE_COLOR:'var(--mt)';
@@ -4334,36 +4339,45 @@ function renderWork(){
           ${!expanded?`<div style="font-size:12.5px;color:var(--mt);font-weight:500;line-height:1.4;margin-top:6px">${exsLabel}</div>`:''}`;
         if(expanded){
           // Ej. de la vuelta + chips de tiempo + descanso
-          // El tiempo configurado del primer ej (todos comparten en core)
-          const cfgDuration=parseCoreDuration(round.items[0]?.reps)||30;
+          // Cada ej. puede tener su propio duration (coach editable inline). Si todos coinciden
+          // marcamos el chip "activo"; si difieren, no resaltamos chip y mostramos el tiempo de
+          // cada ej. junto al nombre.
+          const durations=round.items.map(ex=>parseCoreDuration(ex.reps)||30);
+          const uniform=durations.every(d=>d===durations[0]);
+          const sharedDuration=uniform?durations[0]:null;
+          const fmtSec=s=>s<60?s+'s':(s%60===0?(s/60)+'m':Math.floor(s/60)+'m'+(s%60)+'s');
           html+=`<div style="margin-top:12px">`;
           round.items.forEach((ex,ei)=>{
             const isDone=isCoreRoundExDone(ex.id,ri);
             const lib=ex.exerciseId?getExercise(ex.exerciseId):null;
             const cues=(lib&&lib.cues)||ex.notes||'';
+            const exDur=durations[ei];
+            // Si el duration de este ej. difiere del resto, lo mostramos al lado del nombre.
+            const durBadge=(!uniform)?`<span style="font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:0.5px;color:${CORE_COLOR};background:${CORE_BG};padding:2px 6px;border-radius:4px;margin-left:8px">${fmtSec(exDur)}</span>`:'';
             html+=`<div class="acc-group${isDone?' done':''}" style="cursor:pointer;margin-bottom:8px">
               <div class="flex gap-12" style="align-items:flex-start">
                 <div class="acc-check${isDone?' done':''}" onclick="toggleCoreRoundEx('${ex.id}',${ri},${restSec})">${isDone?'✓':''}</div>
                 <div style="flex:1" onclick="toggleCoreRoundEx('${ex.id}',${ri},${restSec})">
                   <div class="row mb-4">
                     <span style="font-family:var(--fm);font-size:10px;font-weight:700;color:var(--mt);margin-right:8px">${String(ei+1).padStart(2,'0')}</span>
-                    <span class="fw-700">${getExName(ex)}</span>
+                    <span class="fw-700">${esc(getExName(ex))}</span>
+                    ${durBadge}
                   </div>
-                  ${cues?`<button class="tips-btn mt-4" style="font-size:11px;padding:4px 8px" onclick="event.stopPropagation();const tip=this.nextElementSibling;tip.style.display=tip.style.display==='none'?'block':'none';this.textContent=tip.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none;font-size:13px">${cues}</div>`:''}
+                  ${cues?`<button class="tips-btn mt-4" style="font-size:11px;padding:4px 8px" onclick="event.stopPropagation();const tip=this.nextElementSibling;tip.style.display=tip.style.display==='none'?'block':'none';this.textContent=tip.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none;font-size:13px">${esc(cues)}</div>`:''}
                 </div>
               </div>
             </div>`;
           });
-          // Chips de tiempo (compartido por todos los ej. del circuito · core se hace por tiempo uniforme)
+          // Chips de tiempo. Resalta el "activo" sólo si los ej. comparten duration; si difieren no hay
+          // un consenso y los chips son meramente shortcuts para arrancar timer.
           const chipOptions=[15,20,30,45,60,90,120];
-          if(!chipOptions.includes(cfgDuration)) chipOptions.push(cfgDuration);
+          if(sharedDuration!=null&&!chipOptions.includes(sharedDuration)) chipOptions.push(sharedDuration);
           chipOptions.sort((a,b)=>a-b);
           html+=`<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--bd)">
             <span style="font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:var(--mt);text-transform:uppercase;margin-right:4px">Timer</span>
             ${chipOptions.map(s=>{
-              const isCfg=s===cfgDuration;
-              const lbl=s<60?s+'s':(s%60===0?(s/60)+'m':Math.floor(s/60)+'m'+(s%60)+'s');
-              return `<button class="btn-sm" onclick="startTimer(${s})" style="padding:5px 10px;font-size:11px;font-family:var(--fm);font-weight:700;letter-spacing:0.5px;border-radius:6px;${isCfg?`background:${CORE_COLOR};color:var(--cd);border:1px solid ${CORE_COLOR};`:`background:transparent;color:${CORE_COLOR};border:1px solid ${CORE_COLOR_SOFT};`}">${lbl}</button>`;
+              const isCfg=sharedDuration!=null&&s===sharedDuration;
+              return `<button class="btn-sm" onclick="startTimer(${s})" style="padding:5px 10px;font-size:11px;font-family:var(--fm);font-weight:700;letter-spacing:0.5px;border-radius:6px;${isCfg?`background:${CORE_COLOR};color:var(--cd);border:1px solid ${CORE_COLOR};`:`background:transparent;color:${CORE_COLOR};border:1px solid ${CORE_COLOR_SOFT};`}">${fmtSec(s)}</button>`;
             }).join('')}
           </div>`;
           if(restSec){
@@ -4846,6 +4860,7 @@ function jumpInSuperset(targetIdx){
 function finishWorkout(){
   if(!curSess) return;
   haptic.confirm(); // celebración doble pulso al cerrar el workout
+  _coreRoundExpanded={};
   const day=routine.days.find(d=>d.id===curDayId);
   // Capturar PRs previos ANTES de guardar la sesión actual (sino el "PR previo" ya incluye el actual)
   const prevPRs={};
@@ -5116,10 +5131,23 @@ function discardWorkout(){curSess=null;clearDraft();stopTimer();closeExitModal()
 function resumeDraft(){
   const d=load("gym-draft",null);if(!d)return;
   curSess=d;curDayId=d.dayId;
-  // Si la sesión tiene movilidad y aún quedan ejercicios sin marcar, arrancar en MOV
+  // Si la sesión tiene movilidad y aún quedan ejercicios sin marcar, arrancar en MOV.
+  // Los ej. de circuito core tienen claves compuestas 'exId:rN' (no se chequean con bare m.id).
   const day=routine.days.find(x=>x.id===d.dayId);
-  const movs=day?getMobilityExs(day):[];
-  const movPending=movs.length&&movs.some(m=>!d.mobility||!d.mobility[m.id]);
+  const looseMovsPending=day?(day.blocks||[])
+    .filter(isMobilityBlock)
+    .flatMap(b=>b.exercises||[])
+    .filter(ex=>!(ex.groupId&&isCoreFormat(ex.format)))
+    .some(m=>!d.mobility||!d.mobility[m.id]):false;
+  const coreCircuits=day?(day.blocks||[])
+    .filter(isMobilityBlock)
+    .flatMap(b=>buildCoreCircuitsForBlock(b)):[];
+  // Para chequear circuitos sin pisar curSess actual, evaluamos manualmente.
+  const coreCircuitsPending=coreCircuits.some(circuit=>{
+    return circuit.rounds.some((round,ri)=>round.items.some(ex=>!d.mobility||!d.mobility[ex.id+':r'+ri]));
+  });
+  const hasMov=day&&(day.blocks||[]).filter(isMobilityBlock).flatMap(b=>b.exercises||[]).length>0;
+  const movPending=hasMov&&(looseMovsPending||coreCircuitsPending);
   curExI=movPending?-1:0;
   showPage('work');renderWork();
 }
