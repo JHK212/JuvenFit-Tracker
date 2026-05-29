@@ -1952,19 +1952,6 @@ function metabolicTotalSecs(fmt,cfg,nEx){
   }
   return 0;
 }
-function metabolicHeaderLabel(fmt,cfg,nEx){
-  if(!cfg) return fmt.toUpperCase();
-  if(fmt==='amrap'){
-    const w=cfg.workSecs||'?', r=cfg.restSecs!=null?cfg.restSecs:'?', n=cfg.rounds||'?';
-    return `🔥 AMRAP ${w}s/${r}s × ${n} vuelta${n===1?'':'s'}`+(nEx>1?` · ${nEx} ej.`:'');
-  }
-  if(fmt==='emom'){
-    const n=cfg.rounds||'?', it=cfg.interval||60;
-    return `⏱ EMOM ${n} vuelta${n===1?'':'s'} × ${it}s`+(nEx>1?` · ${nEx} ej.`:'');
-  }
-  return fmt.toUpperCase();
-}
-
 // ══ Audio cues (Web Audio API, sin assets) ══
 let _mbAudioCtx=null;
 function _mbEnsureAudio(){
@@ -2023,6 +2010,17 @@ function mbBuildPhases(fmt,cfg,exIndexes){
   return phases;
 }
 
+let _wakeLock=null;
+async function mbAcquireWakeLock(){
+  try{
+    if(!('wakeLock' in navigator)||_wakeLock) return;
+    _wakeLock=await navigator.wakeLock.request('screen');
+    _wakeLock.addEventListener('release',()=>{_wakeLock=null;});
+  }catch(e){ _wakeLock=null; }
+}
+function mbReleaseWakeLock(){
+  try{ if(_wakeLock){ _wakeLock.release(); _wakeLock=null; } }catch(e){ _wakeLock=null; }
+}
 function mbStart(grp,compounds){
   const cfg=grp.formatConfig||{};
   const phases=mbBuildPhases(grp.format,cfg,grp.indexes);
@@ -2056,7 +2054,7 @@ function mbResume(){
 }
 function mbReset(){
   if(!_mbState) return;
-  if(!confirm('¿Reiniciar el AMRAP/EMOM? Se pierde el progreso del timer.')) return;
+  if(!confirm('¿Reiniciar el bloque de Intervalos/EMOM? Se pierde el progreso del timer.')) return;
   mbStopTick();
   clearMbState();
   renderWork();
@@ -2096,9 +2094,11 @@ function mbAdvancePhase(){
 function mbStartTick(){
   mbStopTick();
   _mbTickHandle=setInterval(mbTick,100);
+  mbAcquireWakeLock();
 }
 function mbStopTick(){
   if(_mbTickHandle){clearInterval(_mbTickHandle);_mbTickHandle=null;}
+  mbReleaseWakeLock();
 }
 function mbTick(){
   if(!_mbState||_mbState.pausedAt||_mbState.completedAt) return;
@@ -2156,7 +2156,7 @@ function mbResyncOnVisible(){
     renderWork();
   }
 }
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible') mbResyncOnVisible();});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){ mbResyncOnVisible(); if(_mbState&&!_mbState.completedAt&&!_mbState.pausedAt) mbAcquireWakeLock(); }});
 function saveMbState(){if(_mbState) save('gym-mb-state',_mbState); else localStorage.removeItem('gym-mb-state');}
 function clearMbState(){_mbState=null; localStorage.removeItem('gym-mb-state'); _mbLastBeepedSec=null;}
 function loadMbStateForGroup(gid){
@@ -2365,10 +2365,10 @@ function setRecData(rpe,r,target,felt,mode='weight'){
     else if(range==='medio') phrase=`No llegaste — ajustá la próxima`;
     else phrase="Quedaste corto. Completá el rango primero";
   } else if(isAmrap){
-    // AMRAP: el target es "lo que puedas". Solo el RPE manda.
-    if(rpe==='liviano') phrase=`AMRAP liviano. ${upWord}`;
-    else if(rpe==='justo') phrase="AMRAP bien medido";
-    else phrase="AMRAP al límite — todo OK, cuidá técnica";
+    // Sin target numérico (al fallo / por tiempo): solo el RPE manda.
+    if(rpe==='liviano') phrase=`Al fallo liviano. ${upWord}`;
+    else if(rpe==='justo') phrase="Al fallo bien medido";
+    else phrase="Al fallo al límite — todo OK, cuidá técnica";
   } else if(rpe==='liviano'){
     if(range==='bajo') phrase=`Muy liviano. ${upWord}`;
     else if(range==='medio') phrase="Hay margen — un toque más";
@@ -3366,7 +3366,7 @@ function renderRoutineExCard(ex,gi){
   const groupCont=(inGroup&&!gi.isFirst)?` <span class="text-xs" style="color:var(--mt);font-weight:600;margin-left:6px">+${gi.groupIndex+1}</span>`:'';
   const restSec=restAsSeconds(ex.rest);
   const restLbl=ex.rest?`Descanso: ${fmtTime(restSec)}`:'';
-  return `<div class="card" style="cursor:default;${groupBorder}">${groupBadge}<div class="row mb-4"><span class="fw-700" style="color:var(--ac)">${name}${groupCont}</span><span class="text-xs text-mt mono">${setsReps}</span></div>${restLbl||ex.objective?`<div class="text-xs text-mt">${restLbl}${restLbl&&ex.objective?' · ':''}${ex.objective||''}</div>`:''}${ex.notes?`<div class="tips-box mt-8">${ex.notes}</div>`:''}</div>`;
+  return `<div class="card" style="cursor:default;${groupBorder}">${groupBadge}<div class="row mb-4"><span class="fw-700" style="color:var(--ac)">${esc(name)}${groupCont}</span><span class="text-xs text-mt mono">${setsReps}</span></div>${restLbl||ex.objective?`<div class="text-xs text-mt">${restLbl}${restLbl&&ex.objective?' · ':''}${esc(ex.objective||'')}</div>`:''}${ex.notes?`<div class="tips-box mt-8">${esc(ex.notes)}</div>`:''}</div>`;
 }
 
 function renderRoutine(){
@@ -3388,7 +3388,7 @@ function renderRoutine(){
       ${dayIdx>0?`<button class="micro-btn" style="font-size:15px;color:var(--ac)" onclick="moveRoutineDayInList(${dayIdx},-1)" title="Subir">↑</button>`:''}
       ${dayIdx<nDays-1?`<button class="micro-btn" style="font-size:15px;color:var(--ac)" onclick="moveRoutineDayInList(${dayIdx},1)" title="Bajar">↓</button>`:''}
     `;
-    html+=`<div class="sec-h"><span class="sec-h-idx">${dayNum}</span><span class="sec-h-title">${d.name}${d.sub?' · '+d.sub:''}</span><span class="sec-h-rule"></span>${headerActions}</div>
+    html+=`<div class="sec-h"><span class="sec-h-idx">${dayNum}</span><span class="sec-h-title">${esc(d.name)}${d.sub?' · '+esc(d.sub):''}</span><span class="sec-h-rule"></span>${headerActions}</div>
     <div class="sec" style="padding-top:0">`;
     if(hasTypedBlocks){
       blocks.forEach(b=>{
@@ -3401,7 +3401,7 @@ function renderRoutine(){
             html+=renderRoutineExCard(ex,groupInfo[exIdx]);
           } else {
             const tag=ex.type==='triserie'?'<span class="acc-tag acc-tag-tri">Triserie</span>':'<span class="acc-tag acc-tag-bi">Biserie</span>';
-            html+=`<div class="card" style="cursor:default"><div class="row mb-8"><span class="fw-700">${ex.name}</span>${tag}</div><div style="margin-bottom:8px">${(ex.items||[]).map(it=>`<div class="text-sm" style="padding:2px 0;color:var(--mt)">• ${it.name} — <span class="mono">${it.reps}</span></div>`).join('')}</div><div class="text-xs text-mt">${ex.sets}×${fmtTime(restAsSeconds(ex.rest))} desc. ${ex.notes?'· '+ex.notes:''}</div></div>`;
+            html+=`<div class="card" style="cursor:default"><div class="row mb-8"><span class="fw-700">${esc(ex.name)}</span>${tag}</div><div style="margin-bottom:8px">${(ex.items||[]).map(it=>`<div class="text-sm" style="padding:2px 0;color:var(--mt)">• ${esc(it.name)} — <span class="mono">${esc(it.reps)}</span></div>`).join('')}</div><div class="text-xs text-mt">${ex.sets}×${fmtTime(restAsSeconds(ex.rest))} desc. ${ex.notes?'· '+esc(ex.notes):''}</div></div>`;
           }
         });
       });
@@ -3439,6 +3439,7 @@ function startWorkout(dayId,customDate){
   try{ if(typeof _mbEnsureAudio==='function') _mbEnsureAudio(); }catch(e){}
   // Reset state UI por-día — evita bleed entre días/sesiones
   _coreRoundExpanded={};
+  cancelSetCountdown(true);
   const day=routine.days.find(d=>d.id===dayId);curDayId=dayId;
   const compounds=getCompounds(day);const accessories=getAccessories(day);
   // Si hay movilidad, arrancar en el tab MOV (curExI=-1); si no, primer compound
@@ -3700,8 +3701,8 @@ function renderCompoundHeaderHTML(ex,ci,day,opts){
   const metaLine=metaParts.join('  ·  ');
   const titleSize=opts.compact?'18px':'24px';
   const titleSizeNew=opts.compact?'16px':'20px';
-  let html=`<div class="${opts.compact?'mb-12':'mb-20'}"><div class="row" style="margin-bottom:6px;align-items:flex-start;gap:10px"><div style="font-size:${titleSizeNew};font-weight:600;color:var(--tx);letter-spacing:-0.3px;flex:1;min-width:0;line-height:1.15">${opts.compact?'':blockTagHtml}${exDisplayName}</div><button class="icon-btn" onclick="showExHistoryModal('${eidOf(ex)}')" style="width:32px;height:32px;font-size:14px;flex-shrink:0;border-radius:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg></button></div>${metaLine?`<div style="font-family:var(--fm);font-size:10.5px;color:var(--mt);font-weight:500;letter-spacing:0.5px;text-transform:uppercase">${metaLine}</div>`:''}${ex.objective?`<div style="font-size:12px;color:var(--mt);margin-top:4px;font-weight:500">${ex.objective}</div>`:''}`;
-  if(ex.notes) html+=`<button class="tips-btn" style="font-size:11px;font-family:var(--fm);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-top:8px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver tips':'Ocultar tips'">Ver tips</button><div class="tips-box" style="display:none;font-size:13px">${ex.notes}</div>`;
+  let html=`<div class="${opts.compact?'mb-12':'mb-20'}"><div class="row" style="margin-bottom:6px;align-items:flex-start;gap:10px"><div style="font-size:${titleSizeNew};font-weight:600;color:var(--tx);letter-spacing:-0.3px;flex:1;min-width:0;line-height:1.15">${opts.compact?'':blockTagHtml}${esc(exDisplayName)}</div><button class="icon-btn" onclick="showExHistoryModal('${eidOf(ex)}')" style="width:32px;height:32px;font-size:14px;flex-shrink:0;border-radius:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg></button></div>${metaLine?`<div style="font-family:var(--fm);font-size:10.5px;color:var(--mt);font-weight:500;letter-spacing:0.5px;text-transform:uppercase">${metaLine}</div>`:''}${ex.objective?`<div style="font-size:12px;color:var(--mt);margin-top:4px;font-weight:500">${esc(ex.objective)}</div>`:''}`;
+  if(ex.notes) html+=`<button class="tips-btn" style="font-size:11px;font-family:var(--fm);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-top:8px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver tips':'Ocultar tips'">Ver tips</button><div class="tips-box" style="display:none;font-size:13px">${esc(ex.notes)}</div>`;
   html+=`</div>`;
   return html;
 }
@@ -3768,9 +3769,9 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   let html=`<div class="row mb-12" style="align-items:stretch;gap:12px">
     ${exBlockColor?`<div style="width:3px;background:${exBlockColor};border-radius:2px;flex-shrink:0;align-self:stretch"></div>`:''}
     <div style="flex:1;min-width:0">
-      <div style="font-size:22px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;line-height:1.1">${getExName(ex)}</div>
+      <div style="font-size:22px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;line-height:1.1">${esc(getExName(ex))}</div>
       ${headerMetaLine?`<div style="font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:8px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase">${headerMetaLine}</div>`:''}
-      ${ex.objective?`<div style="font-size:12.5px;color:var(--tx);margin-top:6px;font-weight:500;line-height:1.4">${ex.objective}</div>`:''}
+      ${ex.objective?`<div style="font-size:12.5px;color:var(--tx);margin-top:6px;font-weight:500;line-height:1.4">${esc(ex.objective)}</div>`:''}
     </div>
     <button class="icon-btn" onclick="showHist('${eid}')" title="Ver historial / progresión" aria-label="Ver historial completo" style="width:36px;height:36px;font-size:14px;flex-shrink:0;align-self:flex-start;margin-top:-2px;border-radius:8px">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
@@ -3780,7 +3781,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   if(ex.notes || prevSessRec){
     html+=`<div class="wkt-info-row">`;
     if(ex.notes){
-      html+=`<details class="wkt-info"><summary>Tip del coach</summary><div class="wkt-info-body">${ex.notes}</div></details>`;
+      html+=`<details class="wkt-info"><summary>Tip del coach</summary><div class="wkt-info-body">${esc(ex.notes)}</div></details>`;
     }
     if(prevSessRec){
       html+=`<details class="wkt-info"><summary>Última sesión</summary><div class="wkt-info-body">${prevSessRec}</div></details>`;
@@ -3941,7 +3942,7 @@ function renderMetabolicUnitHTML(grp,compounds,day){
   }
   const active=_mbState&&_mbState.groupId===grp.groupId&&!_mbState.completedAt;
   const paused=!!(active&&_mbState.pausedAt);
-  const fmtLabel=fmt==='amrap'?'AMRAP':'EMOM';
+  const fmtLabel=fmt==='amrap'?'Intervalos':'EMOM';
   const totalRounds=parseInt(cfg.rounds)||0;
   let html='';
 
@@ -3974,16 +3975,16 @@ function renderMetabolicUnitHTML(grp,compounds,day){
     html+=`<div class="mb-phase-label">${phLabel}${paused?' · PAUSADO':''}</div>`;
     html+=`<div id="mb-timer-display" class="mb-phase-time">${fmtMMSS(remainingSec)}</div>`;
     html+=`</div>`;
-    html+=`<div class="mb-ex-name">${exName}</div>`;
+    html+=`<div class="mb-ex-name">${esc(exName)}</div>`;
     if(grp.size>1) html+=`<div class="mb-ex-meta">Ejercicio ${ph.ei+1} de ${grp.size}</div>`;
-    if(reps) html+=`<div class="mb-ex-target">Objetivo · <b>${reps}</b></div>`;
+    if(reps) html+=`<div class="mb-ex-target">Objetivo · <b>${esc(reps)}</b></div>`;
     const nextPh=_mbState.phases[_mbState.phaseIdx+1];
     if(nextPh){
       const nextEx=compounds[nextPh.exIdx]||{};
       let nextLabel;
       if(nextPh.kind==='rest') nextLabel=`Descanso ${fmtMMSS(nextPh.durationMs/1000)}`;
-      else if(nextPh.isFirstOfRound) nextLabel=`Vuelta ${nextPh.round+1} · ${getExName(nextEx)}`;
-      else nextLabel=getExName(nextEx);
+      else if(nextPh.isFirstOfRound) nextLabel=`Vuelta ${nextPh.round+1} · ${esc(getExName(nextEx))}`;
+      else nextLabel=esc(getExName(nextEx));
       html+=`<div class="mb-next">Próximo · ${nextLabel}</div>`;
     } else {
       html+=`<div class="mb-next">Próximo · Fin del bloque</div>`;
@@ -4010,7 +4011,7 @@ function renderMetabolicUnitHTML(grp,compounds,day){
   html+=`<div class="mb-cycle-label">Cycle</div>`;
   exObjs.forEach((e,i)=>{
     const r=e.reps||(fmt==='amrap'?'libre':'');
-    html+=`<div class="mb-cycle-row"><span><b>${String(i+1).padStart(2,'0')}</b> ${getExName(e)}</span>${r?`<span class="mb-cycle-reps">${r}</span>`:''}</div>`;
+    html+=`<div class="mb-cycle-row"><span><b>${String(i+1).padStart(2,'0')}</b> ${esc(getExName(e))}</span>${r?`<span class="mb-cycle-reps">${esc(r)}</span>`:''}</div>`;
   });
   html+=`</div>`;
   if(fmt==='amrap'){
@@ -4073,7 +4074,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
       <span><span class="tag-rule"></span>${groupLabel.toUpperCase()} · ${grp.size} EJ</span>
       <span>SIN DESCANSO ENTRE<span class="tag-rule"></span></span>
     </div>
-    <div class="grp-banner-name">${exs.map((e,i)=>`<span class="grp-banner-ex"><span class="grp-banner-num">${String(i+1).padStart(2,'0')}</span>${getExName(e)}</span>`).join('<span class="grp-banner-plus">+</span>')}</div>
+    <div class="grp-banner-name">${exs.map((e,i)=>`<span class="grp-banner-ex"><span class="grp-banner-num">${String(i+1).padStart(2,'0')}</span>${esc(getExName(e))}</span>`).join('<span class="grp-banner-plus">+</span>')}</div>
   </div>`;
   // Numero de vueltas + vuelta activa
   const maxSets=Math.max(...indexes.map(ci=>(curSess.exercises[ci]?.sets||[]).length));
@@ -4101,7 +4102,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
     const rpeCls=s.rpe==='liviano'?'gn':s.rpe==='justo'?'yw':s.rpe==='limite'?'dn':'';
     return `<div class="grp-sum-row">
       <span class="grp-sum-num">${String(gi+1).padStart(2,'0')}</span>
-      <span class="grp-sum-name">${getExName(ex)}</span>
+      <span class="grp-sum-name">${esc(getExName(ex))}</span>
       <span class="grp-sum-val">${valLabel}</span>
       ${rpeCls?`<span class="grp-sum-rpe grp-sum-rpe-${rpeCls}"></span>`:''}
     </div>`;
@@ -4144,7 +4145,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
         html+=`<div class="grp-active-ex">
           <div class="grp-active-ex-h">
             <span class="grp-active-ex-num">${String(gi+1).padStart(2,'0')}</span>
-            <span class="grp-active-ex-name">${getExName(ex)}</span>
+            <span class="grp-active-ex-name">${esc(getExName(ex))}</span>
             <button class="grp-active-ex-info" onclick="showExHistoryModal('${eidOf(ex)}')" aria-label="Ver historial"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg></button>
           </div>
           ${metaLine?`<div class="grp-active-ex-meta">${metaLine}</div>`:''}
@@ -4176,10 +4177,10 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
     const allEval=sets.length&&sets.every(s=>s.rpe&&(s.felt===true||s.felt===false));
     if(allEval){
       const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps,null,mode);
-      if(gr) html+=`<div class="grp-rec"><div class="grp-rec-label">${getExName(ex)}</div><div class="grp-rec-text">${gr}</div></div>`;
+      if(gr) html+=`<div class="grp-rec"><div class="grp-rec-label">${esc(getExName(ex))}</div><div class="grp-rec-text">${gr}</div></div>`;
     }
     const sessNote=curSess.exercises[ci]?.note||'';
-    html+=`<textarea class="note-input" placeholder="Nota de ${getExName(ex)}..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${sessNote}</textarea>`;
+    html+=`<textarea class="note-input" placeholder="Nota de ${esc(getExName(ex))}..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${sessNote}</textarea>`;
   });
   html+=`</div>`;
   return html;
@@ -4254,7 +4255,7 @@ function renderWork(){
     if(u.type==='group'){
       if(u.isMetabolic){
         const done=!!(curSess.metabolic&&curSess.metabolic[u.groupId]);
-        const label=u.format==='amrap'?'AMRAP':'EMOM';
+        const label=u.format==='amrap'?'Intervalos':'EMOM';
         const mbVar=u.format==='amrap'?'var(--yw)':'var(--ac)';
         const blockDot=`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${mbVar}"></span>`;
         return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="${active?`border-color:${mbVar};color:${mbVar};`:''}min-width:64px;padding:8px 10px">${blockDot}${done?doneDot:''}${label}</button>`;
@@ -4293,9 +4294,9 @@ function renderWork(){
         <div class="flex gap-12" style="align-items:flex-start">
           <div class="acc-check${done?' done':''}" onclick="toggleMobility('${m.id}',${restSec})">${done?'✓':''}</div>
           <div style="flex:1" onclick="toggleMobility('${m.id}',${restSec})">
-            <div class="row mb-4"><span class="fw-700">${getExName(m)}</span></div>
+            <div class="row mb-4"><span class="fw-700">${esc(getExName(m))}</span></div>
             ${repsLbl?`<div class="text-sm text-mt">${setsLbl}${repsLbl}${m.rest?` · ${fmtTime(restSec)} desc.`:''}</div>`:''}
-            ${cues?`<button class="tips-btn mt-4" style="font-size:11px;padding:4px 8px" onclick="event.stopPropagation();const tip=this.nextElementSibling;tip.style.display=tip.style.display==='none'?'block':'none';this.textContent=tip.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none;font-size:13px">${cues}</div>`:''}
+            ${cues?`<button class="tips-btn mt-4" style="font-size:11px;padding:4px 8px" onclick="event.stopPropagation();const tip=this.nextElementSibling;tip.style.display=tip.style.display==='none'?'block':'none';this.textContent=tip.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none;font-size:13px">${esc(cues)}</div>`:''}
           </div>
           ${m.rest?`<button class="icon-btn" onclick="event.stopPropagation();startTimer(${restSec})" style="width:32px;height:32px;font-size:14px;flex-shrink:0">⏱</button>`:''}
         </div>
@@ -4705,9 +4706,9 @@ function renderExInfoSheetContent(){
     const setsReps=formatSetsReps(ex);
     const restSec=restAsSeconds(ex.rest);
     const restLbl=restSec?` · Descanso: ${fmtTime(restSec)}`:'';
-    content=`<div style="font-size:12px;color:var(--mt);font-weight:500;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bd)">${setsReps}${restLbl}${ex.objective?' · '+ex.objective:''}</div>`;
+    content=`<div style="font-size:12px;color:var(--mt);font-weight:500;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bd)">${setsReps}${restLbl}${ex.objective?' · '+esc(ex.objective):''}</div>`;
     if(tips){
-      content+=`<div style="white-space:pre-wrap">${tips}</div>`;
+      content+=`<div style="white-space:pre-wrap">${esc(tips)}</div>`;
     } else {
       content+=`<div class="empty">El coach no agregó notas para este ejercicio.</div>`;
     }
@@ -4861,6 +4862,7 @@ function finishWorkout(){
   if(!curSess) return;
   haptic.confirm(); // celebración doble pulso al cerrar el workout
   _coreRoundExpanded={};
+  cancelSetCountdown(true);
   const day=routine.days.find(d=>d.id===curDayId);
   // Capturar PRs previos ANTES de guardar la sesión actual (sino el "PR previo" ya incluye el actual)
   const prevPRs={};
@@ -4935,7 +4937,7 @@ function showWorkoutSummary(sess,day,prevPRs,prevSession){
     if(parts.length) deltasHtml=`<div class="summary-deltas">vs última vez · ${parts.join(' · ')}</div>`;
   }
   // Subtítulo del hero
-  const dayName=day?(day.name+(day.sub?` · ${day.sub}`:'')):'Entrenamiento';
+  const dayName=day?(esc(day.name)+(day.sub?` · ${esc(day.sub)}`:'')):'Entrenamiento';
   const subtitle=durationLbl?`${dayName} · ${durationLbl}`:dayName;
   // Formato del delta de PR (con 1 decimal solo si es weight)
   const fmtDelta=(d,mode)=>mode==='weight'?(d.toFixed(1).replace(/\.0$/,'')+' kg'):`+${d}`;
@@ -4969,7 +4971,7 @@ function showWorkoutSummary(sess,day,prevPRs,prevSession){
         <div class="summary-section-title">PRs del día</div>
         ${prsList.map(p=>`
           <div class="summary-row">
-            <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</span>
+            <span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(p.name)}</span>
             <span style="flex-shrink:0"><span class="val">${formatPR(p.value,p.mode)}</span><span class="delta-gn">+${fmtDelta(p.delta,p.mode)}</span></span>
           </div>
         `).join('')}
@@ -5280,7 +5282,7 @@ function renderPastCal(){
 function pickPastDate(ds){
   window._pastDate=ds;
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:8px">¿Qué entrenaste?</div><div class="text-sm text-mt mb-18">${fd(ds)}</div>`;
-  html+=routine.days.map(d=>`<div class="card" onclick="closeModal();startWorkout(${d.id},window._pastDate)" style="cursor:pointer"><div class="row"><div><div style="font-size:16px;font-weight:700">${d.name}</div><div class="text-sm text-mt">${d.sub}</div></div><div style="font-size:20px;color:var(--ac)">→</div></div></div>`).join('');
+  html+=routine.days.map(d=>`<div class="card" onclick="closeModal();startWorkout(${d.id},window._pastDate)" style="cursor:pointer"><div class="row"><div><div style="font-size:16px;font-weight:700">${esc(d.name)}</div><div class="text-sm text-mt">${esc(d.sub)}</div></div><div style="font-size:20px;color:var(--ac)">→</div></div></div>`).join('');
   html+='<button class="btn-out mt-12" onclick="renderPastCal()">← Volver</button>';
   $("modal-content").innerHTML=html;
 }
@@ -5449,7 +5451,7 @@ function renderEditR(){
   const sec=$("sec-routines"),info=$("routines-info");
   if(sec){
     sec.style.display=total>1?'block':'none';
-    if(info&&total>1) info.innerHTML=`Activa: <strong>${routine?.name||'?'}</strong> · Tenés ${total} rutinas`;
+    if(info&&total>1) info.innerHTML=`Activa: <strong>${esc(routine?.name||'?')}</strong> · Tenés ${total} rutinas`;
   }
 }
 
@@ -5601,8 +5603,8 @@ function deleteCurrentEditDay(){
 function editDayPrompt(dayId){
   const d=routine.days.find(x=>x.id===dayId);
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:16px">Editar día</div>`;
-  html+=`<div class="mb-12"><label class="label">NOMBRE</label><input id="ed-name" class="input" value="${d.name}"></div>`;
-  html+=`<div class="mb-18"><label class="label">SUBTÍTULO</label><input id="ed-sub" class="input" value="${d.sub}"></div>`;
+  html+=`<div class="mb-12"><label class="label">NOMBRE</label><input id="ed-name" class="input" value="${esc(d.name)}"></div>`;
+  html+=`<div class="mb-18"><label class="label">SUBTÍTULO</label><input id="ed-sub" class="input" value="${esc(d.sub)}"></div>`;
   html+=`<button class="btn" onclick="d=routine.days.find(x=>x.id===${dayId});d.name=$('ed-name').value||d.name;d.sub=$('ed-sub').value||d.sub;saveRoutine();closeModal();rerenderRoutineList()">Guardar</button>`;
   html+=`<button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>`;
   $("modal-content").innerHTML=html;$("modal").classList.add('show');
@@ -5668,7 +5670,7 @@ function _doLoadDemoRoutine(){
         blocks:[
           {id:uid(),type:'principal',label:'',exercises:[
             {id:uid(),exerciseId:'remo-barra',name:'Remo con barra',sets:4,reps:'8-10',rest:'90 segs',notes:'',type:'compound',objective:'hipertrofia'},
-            {id:uid(),exerciseId:'dominadas',name:'Dominadas',sets:3,reps:'AMRAP',rest:'90 segs',notes:'',type:'compound',objective:''}
+            {id:uid(),exerciseId:'dominadas',name:'Dominadas',sets:3,reps:'Al fallo',rest:'90 segs',notes:'',type:'compound',objective:''}
           ]},
           {id:uid(),type:'complementario',label:'',exercises:[
             {id:uid(),exerciseId:'curl-barra',name:'Curl con barra',sets:3,reps:'10-12',rest:'60 segs',notes:'',type:'compound',objective:''}
@@ -5979,7 +5981,7 @@ function renderBexRowHTML(ex,bi,ei,gi){
   if(ex.rest) metaParts.push(`${ex.rest} desc`);
   const meta=metaParts.join(' · ');
   const exs=editingDayState.blocks[bi].exercises;
-  const s=v=>(v!=null&&v!==undefined)?String(v):'';
+  const s=v=>(v!=null&&v!==undefined)?esc(v):'';
   // Visual de grupo (biserie/triserie)
   const inGroup=gi&&gi.groupId;
   const groupBorder=inGroup?'border-left:2px solid var(--bd);':'';
@@ -5988,12 +5990,12 @@ function renderBexRowHTML(ex,bi,ei,gi){
   let html=`<div class="bex-row" style="${groupBorder}">
     ${groupBadge}
     <div class="bex-top">
-      <span class="bex-name" id="bex-name-${bi}-${ei}" onclick="toggleExExpand(${bi},${ei})">${name}${groupContinuation}${isCustom?' <span class="badge badge-custom" style="margin-left:6px">custom</span>':''}${isLegacyAcc?` <span class="badge badge-custom" style="margin-left:6px">${ex.type}</span>`:''}</span>
+      <span class="bex-name" id="bex-name-${bi}-${ei}" onclick="toggleExExpand(${bi},${ei})">${esc(name)}${groupContinuation}${isCustom?' <span class="badge badge-custom" style="margin-left:6px">custom</span>':''}${isLegacyAcc?` <span class="badge badge-custom" style="margin-left:6px">${ex.type}</span>`:''}</span>
       ${ei>0?`<button class="micro-btn" onclick="moveExercise(${bi},${ei},-1)">↑</button>`:''}
       ${ei<exs.length-1?`<button class="micro-btn" onclick="moveExercise(${bi},${ei},1)">↓</button>`:''}
       <button class="micro-btn" style="color:var(--dn)" onclick="removeExerciseFromBlock(${bi},${ei})">✕</button>
     </div>
-    ${meta?`<div class="bex-meta">${meta}</div>`:''}`;
+    ${meta?`<div class="bex-meta">${esc(meta)}</div>`:''}`;
   if(isExp&&!isLegacyAcc){
     html+=`<div class="bex-expand">
       ${isCustom?`<div class="xfl">
@@ -6007,9 +6009,9 @@ function renderBexRowHTML(ex,bi,ei,gi){
       <div class="xfl" style="align-items:flex-start">
         <span class="xfl-lbl" style="padding-top:6px">Reps</span>
         <div style="flex:1">
-          <input id="reps-be-${bi}-${ei}" type="text" class="xfl-inp" value="${s(ex.reps)}" placeholder="8-10 / AMRAP / 30 segs" oninput="upExBE(${bi},${ei},'reps',this.value)">
+          <input id="reps-be-${bi}-${ei}" type="text" class="xfl-inp" value="${s(ex.reps)}" placeholder="8-10 / 30 segs" oninput="upExBE(${bi},${ei},'reps',this.value)">
           <div class="qchip-row">
-            ${['6-8','8-10','10-12','12-15','AMRAP','30 segs','45 segs','1 min'].map(v=>`<span class="qchip" onclick="setQuickFieldBE('reps-be-${bi}-${ei}',${bi},${ei},'reps','${v}')">${v}</span>`).join('')}
+            ${['6-8','8-10','10-12','12-15','30 segs','45 segs','1 min'].map(v=>`<span class="qchip" onclick="setQuickFieldBE('reps-be-${bi}-${ei}',${bi},${ei},'reps','${v}')">${v}</span>`).join('')}
           </div>
         </div>
       </div>
@@ -6138,7 +6140,7 @@ function upExBE(bi,ei,field,val){
   ex[field]=field==='sets'?(parseInt(val)||null):val;
   if(field==='customName'){
     const sp=$("bex-name-"+bi+"-"+ei);
-    if(sp) sp.innerHTML=(val||'Ejercicio')+' <span class="badge badge-custom" style="margin-left:6px">custom</span>';
+    if(sp) sp.innerHTML=esc(val||'Ejercicio')+' <span class="badge badge-custom" style="margin-left:6px">custom</span>';
   }
 }
 
@@ -6441,9 +6443,9 @@ function showImportPreview(remote){
   const hasActive=currentActive&&(currentActive.days||[]).some(d=>(getDayExercises(d)||[]).length>0);
   let html=`<div class="fw-800 mb-4" style="font-size:18px">Rutina del coach</div>`;
   html+=`<div class="card card-accent mt-8 mb-16" style="cursor:default">`;
-  html+=`<div class="fw-700" style="font-size:16px;color:var(--ac);margin-bottom:4px">${remote.name}</div>`;
-  html+=`<div class="text-xs text-mt">${coachName} · ${dayCount} día${dayCount===1?'':'s'} · ${exCount} ejercicio${exCount===1?'':'s'}</div>`;
-  if(remote.coach_notes) html+=`<div class="text-sm mt-12" style="font-style:italic;color:var(--mt)">📝 ${remote.coach_notes}</div>`;
+  html+=`<div class="fw-700" style="font-size:16px;color:var(--ac);margin-bottom:4px">${esc(remote.name)}</div>`;
+  html+=`<div class="text-xs text-mt">${esc(coachName)} · ${dayCount} día${dayCount===1?'':'s'} · ${exCount} ejercicio${exCount===1?'':'s'}</div>`;
+  if(remote.coach_notes) html+=`<div class="text-sm mt-12" style="font-style:italic;color:var(--mt)">📝 ${esc(remote.coach_notes)}</div>`;
   html+=`</div>`;
   if(existing){
     html+=`<div class="text-sm mb-16">Ya tenés esta rutina importada. Tu coach mandó una versión actualizada.</div>`;
@@ -6453,7 +6455,7 @@ function showImportPreview(remote){
     html+=`<button class="btn mb-8" onclick="applyImportedRoutine('replace')">Importar y empezar</button>`;
     html+=`<button class="btn-out" onclick="closeModal()">Cancelar</button>`;
   } else {
-    html+=`<div class="text-sm mb-16">Ya tenés <strong>${currentActive.name}</strong> activa.</div>`;
+    html+=`<div class="text-sm mb-16">Ya tenés <strong>${esc(currentActive.name)}</strong> activa.</div>`;
     html+=`<button class="btn mb-8" onclick="applyImportedRoutine('add')">Guardar como segunda y activar</button>`;
     html+=`<button class="btn-out mb-8" onclick="applyImportedRoutine('replace')">Reemplazar mi rutina actual</button>`;
     html+=`<button class="btn-out" onclick="closeModal()">Cancelar</button>`;
@@ -6601,8 +6603,8 @@ function openEditEx(dayId,exId){
   let html=`<div class="mb-18"><label class="label">NOMBRE</label><input id="ef-name" style="${inp}" value="${ex.name}"></div>`;
   
   if(isCompound(ex)){
-    html+=`<div class="flex gap-12 mb-12"><div class="flex-1"><label class="label">SERIES</label><input id="ef-sets" type="number" style="${inpM}" value="${ex.sets}"></div><div class="flex-1"><label class="label">REPS</label><input id="ef-reps" type="text" inputmode="text" style="${inpM};font-size:14px" value="${ex.reps}" placeholder="10 / 8-10 / AMRAP"></div></div>`;
-    html+=`<div class="qchip-row mb-18">${['6-8','8-10','10-12','12-15','AMRAP','30 segs','45 segs'].map(v=>`<span class="qchip" onclick="$('ef-reps').value='${v}'">${v}</span>`).join('')}</div>`;
+    html+=`<div class="flex gap-12 mb-12"><div class="flex-1"><label class="label">SERIES</label><input id="ef-sets" type="number" style="${inpM}" value="${ex.sets}"></div><div class="flex-1"><label class="label">REPS</label><input id="ef-reps" type="text" inputmode="text" style="${inpM};font-size:14px" value="${ex.reps}" placeholder="10 / 8-10"></div></div>`;
+    html+=`<div class="qchip-row mb-18">${['6-8','8-10','10-12','12-15','30 segs','45 segs'].map(v=>`<span class="qchip" onclick="$('ef-reps').value='${v}'">${v}</span>`).join('')}</div>`;
     html+=`<div class="mb-8"><label class="label">DESCANSO (seg)</label><input id="ef-rest" type="number" style="${inpM}" value="${typeof ex.rest==='number'?ex.rest:restAsSeconds(ex.rest)}"></div>`;
     html+=`<div class="qchip-row mb-18">${[30,45,60,90,120,180].map(v=>`<span class="qchip" onclick="$('ef-rest').value='${v}'">${v<60?v+'s':Math.floor(v/60)+'min'+(v%60?' '+(v%60)+'s':'')}</span>`).join('')}</div>`;
   } else {
@@ -6616,7 +6618,7 @@ function openEditEx(dayId,exId){
     html+=`<div id="ef-items-count" style="display:none">${(ex.items||[]).length}</div>`;
   }
   
-  html+=`<div class="mb-24"><label class="label">NOTAS / TIPS</label><textarea id="ef-notes" style="${inp};resize:vertical;min-height:60px;font-size:14px" placeholder="Ej: RIR 1...">${ex.notes||''}</textarea></div>`;
+  html+=`<div class="mb-24"><label class="label">NOTAS / TIPS</label><textarea id="ef-notes" style="${inp};resize:vertical;min-height:60px;font-size:14px" placeholder="Ej: RIR 1...">${esc(ex.notes||'')}</textarea></div>`;
   html+=`<button class="btn" onclick="saveEditEx()">Guardar cambios</button>`;
   html+=`<button class="btn-danger mt-12" onclick="deleteEx()">Eliminar</button>`;
   
@@ -6752,7 +6754,7 @@ function doImport(mode){
       id:"juvenfit-tracker",
       name:"JuvenFIT Tracker",
       short_name:"JuvenFIT",
-      description:"Tracker de gym personal · rutinas, sets, RPE, AMRAP/EMOM",
+      description:"Tracker de gym personal · rutinas, sets, RPE, Intervalos/EMOM",
       start_url:location.pathname,
       scope:location.pathname,
       display:"standalone",
