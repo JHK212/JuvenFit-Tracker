@@ -4860,6 +4860,7 @@ function jumpInSuperset(targetIdx){
 }
 function finishWorkout(){
   if(!curSess) return;
+  mbStopTick(); clearMbState(); // soltar wake lock + tick metabólico si quedó corriendo
   haptic.confirm(); // celebración doble pulso al cerrar el workout
   _coreRoundExpanded={};
   cancelSetCountdown(true);
@@ -5129,7 +5130,7 @@ function endOnboarding(){
   $("onboarding-modal").classList.remove('show');
   document.body.classList.remove('modal-open');
 }
-function discardWorkout(){curSess=null;clearDraft();stopTimer();closeExitModal();showPage('home');}
+function discardWorkout(){mbStopTick();clearMbState();curSess=null;clearDraft();stopTimer();closeExitModal();showPage('home');}
 function resumeDraft(){
   const d=load("gym-draft",null);if(!d)return;
   curSess=d;curDayId=d.dayId;
