@@ -4598,6 +4598,16 @@ function addWorkSet(ci){
   });
   curWorkSetEdit=null;saveDraft();renderWork();
 }
+// En biserie/triserie el descanso arranca solo al CERRAR la vuelta (todos los miembros con
+// RPE+felt), igual que el auto-descanso del ejercicio suelto. No corre entre A y B de la misma vuelta.
+function maybeStartGroupRest(grp,si,compounds){
+  if(!grp||timerRef||curWorkSetEdit!==null) return;
+  const closed=grp.indexes.every(idx=>{const st=curSess.exercises[idx]?.sets?.[si];return st&&st.rpe!=null&&st.felt!=null;});
+  if(!closed) return;
+  const maxSets=Math.max(...grp.indexes.map(idx=>(curSess.exercises[idx]?.sets||[]).length));
+  if(si>=maxSets-1) return; // última vuelta: no hay descanso después
+  startTimer(restAsSeconds(compounds[grp.indexes[0]].rest));
+}
 function setFelt(si,val,ci){
   haptic();
   ci=(ci==null)?curExI:ci;
@@ -4625,6 +4635,8 @@ function setFelt(si,val,ci){
       return;
     }
   }
+  // Biserie: si esta felt cerró la vuelta, arrancar el descanso automáticamente.
+  if(grp && !isEditMode) maybeStartGroupRest(grp,si,compounds);
   // Sin auto-paso: comportamiento normal (reset edit y render)
   curWorkSetEdit=null;renderWork();
 }
@@ -4875,8 +4887,8 @@ function setRpe(si,v,ci){
     }
   }
   const grp=groupOfCompoundIdx(compounds,ci);
-  // En grupos el timer se arranca manualmente al terminar la vuelta (botón "Descansar" por vuelta)
   if(!timerRef&&!grp) startTimer(restAsSeconds(ex.rest));
+  else if(grp) maybeStartGroupRest(grp,si,compounds); // descanso auto al cerrar la vuelta
   renderWork();
 }
 
