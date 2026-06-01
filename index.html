@@ -2243,7 +2243,7 @@ function streak(){
 }
 function thisWeekSessions(){const now=new Date();const day=now.getDay();const start=new Date(now);start.setDate(start.getDate()-day);start.setHours(0,0,0,0);return sessions.filter(s=>new Date(s.date+"T12:00:00")>=start).length;}
 function eidOf(ex){return ex.exerciseId||ex.id;}
-function lastW(eid){for(let i=sessions.length-1;i>=0;i--){const e=sessions[i].exercises?.find(x=>x.eid===eid);if(e?.sets?.length){const s=e.sets.find(s=>s.w>0);if(s)return s.w;}}return 0;}
+function lastW(eid){for(let i=sessions.length-1;i>=0;i--){const e=sessions[i].exercises?.find(x=>x.eid===eid);if(e?.sets?.length){for(let j=e.sets.length-1;j>=0;j--){if(e.sets[j].w>0)return e.sets[j].w;}}}return 0;}
 function prW(eid){let m=0;sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid)e.sets?.forEach(st=>{if(st.w>m)m=st.w;});}));return m;}
 // ── TRACK MODE helpers (track_mode: 'weight'|'reps'|'time') ──
 // Devuelve el modo aplicable a un ejercicio del bloque/sesión, con fallback robusto.
@@ -2454,17 +2454,26 @@ function exerciseRec(exData,target,beforeKey,mode='weight'){
   if(avg>=1) key='up';
   else if(avg<=-1) key='down';
   else if(avg>=0){
-    // zona [0, 1) → mirar sesión previa con mismo valor principal
+    // zona [0, 1) → mirar sesión previa con mismo peso de trabajo
     const eid=exData.eid;
     const w=sessionValue(sets,mode);
     key='hold';
     if(eid&&w!=null){
       const prior=priorSession(eid,beforeKey);
       if(prior){
-        const priorW=sessionValue(prior.ex.sets,mode);
         const def=allCompounds().find(e=>eidOf(e)===eid);
         const priorAvg=def?avgScore(prior.ex.sets,def.reps):null;
-        if(priorW===w&&priorAvg!=null&&priorAvg>=0) key='up_streak';
+        // "Mismo peso de trabajo" = top set igual (robusto a series de calentamiento y a
+        // pesos mezclados entre series, donde la moda fallaba). En reps/time el principal es r → moda.
+        let sameWork;
+        if(mode==='weight'){
+          const top=ss=>Math.max(0,...(ss||[]).map(s=>s.w||0));
+          const cur=top(sets),prv=top(prior.ex.sets);
+          sameWork=cur>0&&Math.abs(cur-prv)<0.01;
+        } else {
+          sameWork=sessionValue(prior.ex.sets,mode)===w;
+        }
+        if(sameWork&&priorAvg!=null&&priorAvg>=0) key='up_streak';
       }
     }
   } else {
@@ -4506,6 +4515,15 @@ haptic.error=()=>{
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
 const _HAPTIC_WRAP_SEL='.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
+// El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
+// más el click sintético que la acción por defecto del label manda al checkbox interno
+// (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
+// del switch — de él depende el haptic nativo iOS. NO usar preventDefault: cancelaría el toggle.
+function _bindHapticSwitchInput(input){
+  if(!input||input.dataset.hStop==='1') return;
+  input.dataset.hStop='1';
+  input.addEventListener('click',e=>e.stopPropagation());
+}
 function applyHapticWrapping(root){
   if(!_hapticTouch) return;
   root=root||document.body;
@@ -4515,14 +4533,16 @@ function applyHapticWrapping(root){
     if(el.dataset.hWrapped==='1') return;
     // Si ya es label, solo asegurar input switch dentro (no replace)
     if(el.tagName==='LABEL'){
-      if(!el.querySelector('input[type="checkbox"][switch]')){
-        const input=document.createElement('input');
+      let input=el.querySelector('input[type="checkbox"][switch]');
+      if(!input){
+        input=document.createElement('input');
         input.type='checkbox';
         input.setAttribute('switch','');
         input.setAttribute('tabindex','-1');
         input.setAttribute('aria-hidden','true');
         el.insertBefore(input,el.firstChild);
       }
+      _bindHapticSwitchInput(input);
       el.classList.add('haptic-switch');
       el.dataset.hWrapped='1';
       return;
@@ -4538,6 +4558,7 @@ function applyHapticWrapping(root){
     input.setAttribute('switch','');
     input.setAttribute('tabindex','-1');
     input.setAttribute('aria-hidden','true');
+    _bindHapticSwitchInput(input);
     label.appendChild(input);
     while(el.firstChild) label.appendChild(el.firstChild);
     label.dataset.hWrapped='1';
@@ -4803,7 +4824,15 @@ function applyTypedVal(si,field,ci){
   ci=(ci==null)?curExI:ci;
   const val=parseFloat($("type-input").value);if(isNaN(val)||val<0) return;
   const s=curSess.exercises[ci].sets[si];
-  if(field==='w'){s.w=val;const el=$("val-w-"+ci+"-"+si);if(el) el.innerHTML=val+'<span class="text-sm text-mt">kg</span>';checkPR(si,ci);}
+  if(field==='w'){
+    s.w=val;const el=$("val-w-"+ci+"-"+si);if(el) el.innerHTML=val+'<span class="text-sm text-mt">kg</span>';
+    // Auto-copy a las series siguientes del mismo ejercicio (igual que adjW)
+    for(let j=si+1;j<curSess.exercises[ci].sets.length;j++){
+      curSess.exercises[ci].sets[j].w=val;
+      const el2=$("val-w-"+ci+"-"+j);if(el2) el2.innerHTML=val+'<span class="text-sm text-mt">kg</span>';
+    }
+    checkPR(si,ci);
+  }
   else{s.r=Math.max(1,Math.round(val));const el=$("val-r-"+ci+"-"+si);if(el) el.textContent=s.r;checkPR(si,ci);}
   saveDraft();closeModal();
 }
