@@ -2202,6 +2202,9 @@ function init(){
   });
   // Si la URL trae ?import=TOKEN (escaneado con cámara nativa), abrir flow de importación
   checkUrlImport();
+  // Bridge: reintentar sesiones no sincronizadas y chequear si el coach actualizó la rutina
+  flushUnsynced();
+  maybeSyncRoutine();
 }
 
 function showPage(id){
@@ -4922,6 +4925,8 @@ function finishWorkout(){
   const sessSnapshot=JSON.parse(JSON.stringify(curSess));
   // Guardar
   sessions.push(curSess);save("gym-s",sessions);
+  // Subir la sesión al coach (si el device está vinculado). Si falla, reintento al próximo open.
+  if(loadLink()){pushSession(sessSnapshot).then(ok=>{if(!ok)markUnsynced(sessSnapshot.id);});}
   clearDraft();stopTimer();closeExitModal();
   // Mostrar resumen post-workout (toma over: el CTA "Volver al inicio" hace el showPage('home'))
   showWorkoutSummary(sessSnapshot,day,prevPRs,prevSession);
@@ -6459,7 +6464,7 @@ async function fetchAndPreviewRoutine(token){
   $("modal-content").innerHTML=`<div class="center" style="padding:40px 0"><span class="spinner"></span><div class="text-sm text-mt mt-12">Buscando rutina...</div></div>`;
   const sb=getSupabase();
   if(!sb){toast('Sin conexión','error');closeModal();return;}
-  const {data,error}=await sb.from('routines').select('id,name,days,coach_notes,phase,coach_id,coach:coach_id(name)').eq('qr_token',token).gt('qr_expires_at',new Date().toISOString()).maybeSingle();
+  const {data,error}=await sb.from('routines').select('id,name,days,coach_notes,phase,coach_id,athlete_id,frequency_per_week,assigned_days,coach:coach_id(name)').eq('qr_token',token).gt('qr_expires_at',new Date().toISOString()).maybeSingle();
   if(error){
     let html=`<div class="fw-800 mb-4" style="font-size:18px">Error</div>`;
     html+=`<div class="text-sm text-mt mb-16">${error.message||'No se pudo conectar.'}</div>`;
@@ -6472,6 +6477,7 @@ async function fetchAndPreviewRoutine(token){
     html+=`<button class="btn-out" onclick="openImportRoutine()">Volver</button>`;
     $("modal-content").innerHTML=html;return;
   }
+  data._token=token;  // necesario para el pairing en applyImportedRoutine
   _pendingImport=data;
   showImportPreview(data);
 }
@@ -6510,7 +6516,9 @@ function applyImportedRoutine(mode){
   if(!remote){closeModal();return;}
   // Backup defensivo del store actual antes de cualquier cambio
   save("gym-r-backup-pre-import",routineStore);
-  const coachName=(remote.coach&&remote.coach.name)||'Coach';
+  // Conservar coachName previo en auto-update (get_active_routine no trae el join del coach)
+  const prevEntry=(routineStore.list||[]).find(r=>r.sourceRoutineId===remote.id);
+  const coachName=(remote.coach&&remote.coach.name)||(prevEntry&&prevEntry.coachName)||'Coach';
   const localRoutine={
     id:'coach-'+(remote.id||'').slice(0,8)+'-'+uid(),
     name:remote.name,
@@ -6518,6 +6526,8 @@ function applyImportedRoutine(mode){
     sourceRoutineId:remote.id,
     importedAt:new Date().toISOString(),
     coachName:coachName,
+    remoteHash:routineHash(remote),
+    assignedDays:remote.assigned_days||null,
     days:(remote.days||[]).map((d,i)=>({
       // day.id como número para mantener compatibilidad con startWorkout(${id}) interpolado
       id:Date.now()+i,
@@ -6547,6 +6557,11 @@ function applyImportedRoutine(mode){
     routineStore.active=localRoutine.id;
   }
   save("gym-r",routineStore);
+  // Prescripción del coach: días por semana (antes el alumno lo seteaba a mano)
+  const fpw=parseInt(remote.frequency_per_week,10);
+  if(fpw>=1&&fpw<=7){config.daysPerWeek=fpw;save("gym-cfg",config);}
+  // Pairing sin password: vincular este dispositivo al atleta (solo en import por token)
+  if(remote.athlete_id&&remote._token){claimDevice(remote.athlete_id,remote._token);}
   routine=getActiveRoutine();
   _pendingImport=null;
   closeModal();
@@ -6578,6 +6593,84 @@ function checkUrlImport(){
       setTimeout(()=>fetchAndPreviewRoutine(t),500);
     }
   }catch(e){}
+}
+
+// ══ BRIDGE Coach↔Tracker: pairing sin password + sync de sesiones ══
+// gym-link = {athleteId, deviceSecret}. El device_secret se genera local y se
+// vincula al atleta vía claim_athlete_device. A partir de ahí el Tracker sube
+// sesiones (push_session) y lee la rutina activa estable (get_active_routine).
+function loadLink(){return load("gym-link",null);}
+function genDeviceSecret(){
+  const a=new Uint8Array(18);crypto.getRandomValues(a);
+  return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+// Hash barato (djb2) del contenido relevante de la rutina remota — detecta cambios del coach.
+function routineHash(r){
+  const s=JSON.stringify({n:r.name,c:r.coach_notes,p:r.phase,f:r.frequency_per_week,a:r.assigned_days,d:r.days});
+  let h=5381;for(let i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0;}
+  return h.toString(36);
+}
+async function claimDevice(athleteId,token){
+  const sb=getSupabase();if(!sb)return false;
+  const existing=loadLink();
+  const secret=(existing&&existing.athleteId===athleteId)?existing.deviceSecret:genDeviceSecret();
+  try{
+    const {error}=await sb.rpc('claim_athlete_device',{p_athlete_id:athleteId,p_qr_token:token,p_device_secret:secret});
+    if(error)return false;
+    save("gym-link",{athleteId,deviceSecret:secret});
+    return true;
+  }catch(e){return false;}
+}
+async function pushSession(sess){
+  const link=loadLink();if(!link||!sess||!sess.id)return false;
+  const sb=getSupabase();if(!sb)return false;
+  const active=getActiveRoutine();
+  const payload={
+    id:sess.id,date:sess.date,time:sess.time||null,
+    dayId:sess.dayId==null?null:String(sess.dayId),
+    routineId:(active&&active.sourceRoutineId)||null,
+    exercises:sess.exercises||[],accessories:sess.accessories||{},
+    mobility:sess.mobility||{},metabolic:sess.metabolic||{}
+  };
+  try{
+    const {error}=await sb.rpc('push_session',{p_athlete_id:link.athleteId,p_device_secret:link.deviceSecret,p_session:payload});
+    return !error;
+  }catch(e){return false;}
+}
+function markUnsynced(id){const u=load("gym-unsynced",[]);if(!u.includes(id)){u.push(id);save("gym-unsynced",u);}}
+function clearUnsynced(id){save("gym-unsynced",load("gym-unsynced",[]).filter(x=>x!==id));}
+async function flushUnsynced(){
+  if(!loadLink()||!navigator.onLine)return;
+  const u=load("gym-unsynced",[]);if(!u.length)return;
+  for(const id of u.slice()){
+    const s=sessions.find(x=>x.id===id);
+    if(!s){clearUnsynced(id);continue;}
+    if(await pushSession(s))clearUnsynced(id);
+  }
+}
+// Auto-update con aviso: al abrir, traer la rutina activa del coach. Si cambió,
+// ofrecer aplicar. No interrumpe un workout en curso (gym-draft presente).
+async function maybeSyncRoutine(){
+  const link=loadLink();if(!link)return;
+  if(load("gym-draft",null))return;
+  const sb=getSupabase();if(!sb||!navigator.onLine)return;
+  try{
+    const {data,error}=await sb.rpc('get_active_routine',{p_athlete_id:link.athleteId,p_device_secret:link.deviceSecret});
+    if(error||!data)return;
+    const active=getActiveRoutine();
+    if(active&&active.remoteHash===routineHash(data))return;  // sin cambios
+    data._token=null;
+    _pendingImport=data;
+    showRoutineUpdateBanner(data);
+  }catch(e){}
+}
+function showRoutineUpdateBanner(remote){
+  const isNew=!(routineStore.list||[]).some(r=>r.sourceRoutineId===remote.id);
+  let html=`<div class="fw-800 mb-4" style="font-size:18px">${isNew?'Nueva rutina':'Rutina actualizada'}</div>`;
+  html+=`<div class="text-sm text-mt mb-16">Tu coach ${isNew?'te asignó una rutina nueva':'actualizó tu rutina'}: <strong>${esc(remote.name||'')}</strong>. ¿La aplicás ahora?</div>`;
+  html+=`<button class="btn mb-8" onclick="applyImportedRoutine('${isNew?'add':'update'}')">Aplicar</button>`;
+  html+=`<button class="btn-out" onclick="closeModal()">Ahora no</button>`;
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
 }
 
 // ══ TOAST GLOBAL (Fase 5) ══
