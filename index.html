@@ -6561,7 +6561,11 @@ function applyImportedRoutine(mode){
   const fpw=parseInt(remote.frequency_per_week,10);
   if(fpw>=1&&fpw<=7){config.daysPerWeek=fpw;save("gym-cfg",config);}
   // Pairing sin password: vincular este dispositivo al atleta (solo en import por token)
-  if(remote.athlete_id&&remote._token){claimDevice(remote.athlete_id,remote._token);}
+  if(remote.athlete_id&&remote._token){
+    claimDevice(remote.athlete_id,remote._token).then(r=>{if(!r.ok)toast('No se pudo vincular con tu coach','warning');});
+  } else if(remote._token){
+    console.warn('[pairing] sin athlete_id en la rutina (¿SW viejo cacheado, o la rutina no tiene atleta asignado?)');
+  }
   routine=getActiveRoutine();
   _pendingImport=null;
   closeModal();
@@ -6611,15 +6615,15 @@ function routineHash(r){
   return h.toString(36);
 }
 async function claimDevice(athleteId,token){
-  const sb=getSupabase();if(!sb)return false;
+  const sb=getSupabase();if(!sb)return {ok:false,error:'sin-sdk'};
   const existing=loadLink();
   const secret=(existing&&existing.athleteId===athleteId)?existing.deviceSecret:genDeviceSecret();
   try{
     const {error}=await sb.rpc('claim_athlete_device',{p_athlete_id:athleteId,p_qr_token:token,p_device_secret:secret});
-    if(error)return false;
+    if(error){console.warn('[pairing] claim_athlete_device:',error.message||error);return {ok:false,error:error.message||'rpc-error'};}
     save("gym-link",{athleteId,deviceSecret:secret});
-    return true;
-  }catch(e){return false;}
+    return {ok:true};
+  }catch(e){console.warn('[pairing] excepción:',e);return {ok:false,error:String(e)};}
 }
 async function pushSession(sess){
   const link=loadLink();if(!link||!sess||!sess.id)return false;
