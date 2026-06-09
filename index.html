@@ -6562,7 +6562,7 @@ function applyImportedRoutine(mode){
   if(fpw>=1&&fpw<=7){config.daysPerWeek=fpw;save("gym-cfg",config);}
   // Pairing sin password: vincular este dispositivo al atleta (solo en import por token)
   if(remote.athlete_id&&remote._token){
-    claimDevice(remote.athlete_id,remote._token).then(r=>{if(!r.ok)toast('No se pudo vincular con tu coach','warning');});
+    claimDevice(remote.athlete_id,remote._token).then(r=>{if(!r.ok)toast('No se pudo vincular: '+(r.error||'?'),'warning');});
   } else if(remote._token){
     console.warn('[pairing] sin athlete_id en la rutina (¿SW viejo cacheado, o la rutina no tiene atleta asignado?)');
   }
