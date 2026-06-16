@@ -5483,6 +5483,7 @@ function deleteSess(sid){
     confirmLabel:'Eliminar sesión',
     onConfirm:()=>{
       sessions=sessions.filter(x=>x.id!==sid);save("gym-s",sessions);
+      syncSessionDeletion(sid);
       showPage('home');
       toast('Sesión eliminada','success');
     }
@@ -6643,13 +6644,33 @@ async function pushSession(sess){
 }
 function markUnsynced(id){const u=load("gym-unsynced",[]);if(!u.includes(id)){u.push(id);save("gym-unsynced",u);}}
 function clearUnsynced(id){save("gym-unsynced",load("gym-unsynced",[]).filter(x=>x!==id));}
+function markDeletedUnsynced(id){const u=load("gym-deleted-unsynced",[]);if(!u.includes(id)){u.push(id);save("gym-deleted-unsynced",u);}}
+function clearDeletedUnsynced(id){save("gym-deleted-unsynced",load("gym-deleted-unsynced",[]).filter(x=>x!==id));}
+// Tombstone: al borrar una sesión sincronizada, el coach debe verla marcada como
+// eliminada (no desaparecer). Sacamos el id de la cola de push (si nunca se subió
+// no hay nada que marcar) y pedimos el marcado remoto, con reintento offline.
+async function markSessionDeleted(id){
+  const link=loadLink();if(!link||!id)return false;
+  const sb=getSupabase();if(!sb)return false;
+  try{
+    const {error}=await sb.rpc('mark_session_deleted',{p_athlete_id:link.athleteId,p_device_secret:link.deviceSecret,p_session_id:String(id)});
+    return !error;
+  }catch(e){return false;}
+}
+function syncSessionDeletion(id){
+  if(!loadLink())return;
+  clearUnsynced(id);
+  markSessionDeleted(id).then(ok=>{if(!ok)markDeletedUnsynced(id);});
+}
 async function flushUnsynced(){
   if(!loadLink()||!navigator.onLine)return;
-  const u=load("gym-unsynced",[]);if(!u.length)return;
-  for(const id of u.slice()){
+  for(const id of load("gym-unsynced",[]).slice()){
     const s=sessions.find(x=>x.id===id);
     if(!s){clearUnsynced(id);continue;}
     if(await pushSession(s))clearUnsynced(id);
+  }
+  for(const id of load("gym-deleted-unsynced",[]).slice()){
+    if(await markSessionDeleted(id))clearDeletedUnsynced(id);
   }
 }
 // Auto-update con aviso: al abrir, traer la rutina activa del coach. Si cambió,
@@ -6835,7 +6856,9 @@ function deleteSelected(){
     desc:'Se borran del historial de forma definitiva. La racha y los PR se recalculan sin esas sesiones.',
     confirmLabel:`Eliminar ${n} sesión${n>1?'es':''}`,
     onConfirm:()=>{
+      const delIds=[...selectedDel];
       sessions=sessions.filter(s=>!selectedDel.has(s.id));save("gym-s",sessions);
+      delIds.forEach(syncSessionDeletion);
       selectedDel=new Set();renderDelHist();
       toast(`${n} sesión${n>1?'es eliminadas':' eliminada'}`,'success');
     }
