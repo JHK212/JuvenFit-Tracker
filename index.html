@@ -2228,10 +2228,45 @@ function closeModal(){$("modal").classList.remove('show');}
 })();
 
 // ══ HELPERS ══
+// ══ DÍA EXTRA ══
+// Presets locales prearmados — entreno adicional fuera de la rutina asignada.
+// No mueven la rotación del día sugerido (sugDay ignora dayIds fuera de routine.days).
+const EXTRA_DAYS=[
+  {id:'x-full',name:'Full body express',sub:'Día extra',exercises:[
+    {id:'xf-1',exerciseId:'sentadilla-barra',sets:3,reps:'8',rest:90},
+    {id:'xf-2',exerciseId:'press-banca-plano',sets:3,reps:'8',rest:90},
+    {id:'xf-3',exerciseId:'remo-barra',sets:3,reps:'10',rest:90},
+    {id:'xf-4',exerciseId:'press-militar',sets:3,reps:'10',rest:75},
+    {id:'xf-5',exerciseId:'peso-muerto-rumano',sets:3,reps:'10',rest:90}
+  ]},
+  {id:'x-push',name:'Empuje',sub:'Día extra',exercises:[
+    {id:'xp-1',exerciseId:'press-banca-plano',sets:4,reps:'8',rest:90},
+    {id:'xp-2',exerciseId:'press-militar',sets:3,reps:'10',rest:90},
+    {id:'xp-3',exerciseId:'press-inclinado-mancuernas',sets:3,reps:'10',rest:75},
+    {id:'xp-4',exerciseId:'elevaciones-laterales',sets:3,reps:'15',rest:60},
+    {id:'xp-5',exerciseId:'extension-triceps',sets:3,reps:'12',rest:60}
+  ]},
+  {id:'x-pull',name:'Tracción',sub:'Día extra',exercises:[
+    {id:'xt-1',exerciseId:'dominadas',sets:4,reps:'8',rest:90},
+    {id:'xt-2',exerciseId:'remo-barra',sets:4,reps:'10',rest:90},
+    {id:'xt-3',exerciseId:'remo-mancuerna',sets:3,reps:'10',rest:75},
+    {id:'xt-4',exerciseId:'face-pull',sets:3,reps:'15',rest:60},
+    {id:'xt-5',exerciseId:'curl-barra',sets:3,reps:'12',rest:60}
+  ]}
+];
+function isExtraDay(dayId){return EXTRA_DAYS.some(d=>d.id===dayId);}
+function dayById(dayId){return routine.days.find(d=>d.id===dayId)||EXTRA_DAYS.find(d=>d.id===dayId);}
+function showExtraDayPicker(){
+  let html='<div style="font-size:18px;font-weight:800;margin-bottom:8px">Día extra</div><div class="text-sm text-mt mb-18">Entreno adicional — no mueve tu rotación de días.</div>';
+  html+=EXTRA_DAYS.map(d=>`<div class="card" onclick="closeModal();startWorkout('${d.id}')" style="cursor:pointer"><div class="row"><div><div style="font-size:16px;font-weight:700">${d.name}</div><div class="text-sm text-mt">${d.exercises.length} ejercicios</div></div><div style="font-size:20px;color:var(--ac)">→</div></div></div>`).join('');
+  html+='<button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>';
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
+}
 function sugDay(){
   if(!routine.days.length) return null;
-  if(!sessions.length) return routine.days[0].id;
-  const l=[...sessions].sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const routineSess=sessions.filter(s=>routine.days.some(d=>d.id===s.dayId));
+  if(!routineSess.length) return routine.days[0].id;
+  const l=[...routineSess].sort((a,b)=>b.date.localeCompare(a.date))[0];
   const gap=Math.floor((new Date(td())-new Date(l.date))/864e5);
   if(gap>5) return routine.days[0].id;
   const idx=routine.days.findIndex(d=>d.id===l.dayId);
@@ -2307,7 +2342,7 @@ function formatSetBadge(s,mode){
   if(mode==='time') return `${s.r||0} segs`;
   return `${s.w||0}kg×${s.r||0}`;
 }
-function allCompounds(){return routine.days.flatMap(d=>getCompounds(d));}
+function allCompounds(){return routine.days.concat(EXTRA_DAYS).flatMap(d=>getCompounds(d));}
 
 // ══ FEEDBACK ENGINE v3 ══
 // Score-based: cada set aporta -2..+2 según rango × completed × RPE.
@@ -2579,7 +2614,7 @@ function renderHome(){
   const draft=load("gym-draft",null);
   const db=$("draft-banner");
   if(draft){
-    const dayDef=routine.days.find(d=>d.id===draft.dayId);
+    const dayDef=dayById(draft.dayId);
     db.style.display="block";
     db.innerHTML=`<div class="card" style="cursor:default;background:rgba(215,121,62,0.08);border-color:rgba(215,121,62,0.30);box-shadow:var(--lift-in)">
       <div class="row mb-8" style="align-items:center;gap:8px">
@@ -2677,6 +2712,7 @@ function renderHome(){
         </div>`;
     }).join('');
   }
+  $("home-others").innerHTML+=`<button onclick="showExtraDayPicker()" style="width:100%;background:none;border:none;cursor:pointer;padding:12px 4px 2px;text-align:center;font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt2)">+ día extra</button>`;
 
   // CALENDAR — mes/año + streak badge en header
   const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -2695,7 +2731,7 @@ function renderHome(){
   const last=sessions.length?[...sessions].sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
   if(last){
     $("home-last-sec").style.display="block";
-    const dayDef=routine.days.find(d=>d.id===last.dayId);
+    const dayDef=dayById(last.dayId);
     const prs=homeSessionPRs(last);
     const exDone=(last.exercises||[]).filter(ex=>ex.sets&&ex.sets.some(s=>s.rpe!==null)).length;
     const setsReg=(last.exercises||[]).reduce((s,ex)=>s+(ex.sets||[]).filter(st=>st.rpe!==null).length,0);
@@ -3069,7 +3105,7 @@ function toggleProgressMonth(m){_progressMonthExpanded=_progressMonthExpanded===
 function progressShowDayDetail(date){
   const sess=sessions.find(s=>s.date===date);
   if(!sess){toast('Descanso · sin sesión','warning');return;}
-  const day=routine.days.find(d=>d.id===sess.dayId);
+  const day=dayById(sess.dayId);
   const exCount=(sess.exercises||[]).filter(ex=>(ex.sets||[]).some(st=>st.rpe!=null)).length;
   const setCount=(sess.exercises||[]).reduce((s,ex)=>s+(ex.sets||[]).filter(st=>st.rpe!=null).length,0);
   toast(sess.free?`${relativeDate(date)} · ${day?.name||'?'} · libre`:`${relativeDate(date)} · ${day?.name||'?'} · ${exCount} ej · ${setCount} sets`,'success');
@@ -3452,7 +3488,7 @@ function startWorkout(dayId,customDate){
   // Reset state UI por-día — evita bleed entre días/sesiones
   _coreRoundExpanded={};
   cancelSetCountdown(true);
-  const day=routine.days.find(d=>d.id===dayId);curDayId=dayId;
+  const day=dayById(dayId);curDayId=dayId;
   const compounds=getCompounds(day);const accessories=getAccessories(day);
   // Si hay movilidad, arrancar en el tab MOV (curExI=-1); si no, primer compound
   curExI=getMobilityExs(day).length?-1:0;
@@ -3477,6 +3513,7 @@ function startWorkout(dayId,customDate){
     mobility:mobility.reduce((o,m)=>{o[m.id]=false;return o;},{}),
     metabolic:{}  // por groupId: {completedAt, totalSecs, format, cfg}
   };
+  if(isExtraDay(dayId)) curSess.extra=true;
   // Cualquier timer metabólico colgado de una sesión anterior se descarta al abrir una nueva
   clearMbState();
   saveDraft();showPage('work');renderWork();
@@ -3931,7 +3968,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
 // Vista unificada de un grupo (biserie/triserie): vueltas con sub-cards anidadas
 // ══ AMRAP / EMOM workout view ══
 function mbStartByGroupId(gid){
-  const day=routine.days.find(d=>d.id===curDayId);
+  const day=dayById(curDayId);
   if(!day) return;
   const compounds=getCompounds(day);
   const idx=compounds.findIndex(e=>e.groupId===gid);
@@ -4202,7 +4239,7 @@ function renderWork(){
   // Al cambiar de ejercicio, resetear el edit forzado de set (vuelve al flujo "primer sin RPE")
   if(_lastCurExI!==null && _lastCurExI!==curExI) curWorkSetEdit=null;
   _lastCurExI=curExI;
-  const day=routine.days.find(d=>d.id===curDayId);
+  const day=dayById(curDayId);
   const compounds=getCompounds(day);const accessories=getAccessories(day);const mobility=getMobilityExs(day);
   // Pre-cálculo de movilidad: separar ej. sueltos vs circuitos core (focused-by-round).
   const _mobBlocks=(day.blocks||[]).filter(isMobilityBlock);
@@ -4217,11 +4254,11 @@ function renderWork(){
   $("work-sub").textContent=day.sub||'';
   // Ghost number + REF · D x/y (consistente con hero del home)
   const _wIdx=routine.days.findIndex(d=>d.id===curDayId);
-  const _wNum=String(_wIdx+1).padStart(2,'0');
+  const _wNum=_wIdx<0?'EX':String(_wIdx+1).padStart(2,'0');
   const _wRef=slugRef(day.name);
   if($("work-ghost")) $("work-ghost").textContent=_wNum;
   if($("work-ref-label")) $("work-ref-label").textContent=`REF · ${_wRef}-${_wNum}`;
-  if($("work-ref-day")) $("work-ref-day").textContent=`D${_wIdx+1}/${routine.days.length}`;
+  if($("work-ref-day")) $("work-ref-day").textContent=_wIdx<0?'EXTRA':`D${_wIdx+1}/${routine.days.length}`;
 
   // Tabs: [MOV] + compounds + [ACC]
   let tabsHtml='';
@@ -4589,7 +4626,7 @@ function applyHapticWrapping(root){
 function addWorkSet(ci){
   haptic();
   ci=(ci==null)?curExI:ci;
-  const day=routine.days.find(d=>d.id===curDayId);
+  const day=dayById(curDayId);
   const compounds=getCompounds(day);
   const grp=groupOfCompoundIdx(compounds,ci);
   // En grupo: la vuelta extra se agrega a TODOS los ejercicios del grupo (biserie alternada).
@@ -4618,7 +4655,7 @@ function setFelt(si,val,ci){
   saveDraft();
   // Auto-paso post-felt: solo en single compound (focused), no en grupo, no en edit mode,
   // y solo si quedan sets sin completar todavía en este ejercicio.
-  const day=routine.days.find(d=>d.id===curDayId);
+  const day=dayById(curDayId);
   const compounds=getCompounds(day);
   const grp=groupOfCompoundIdx(compounds,ci);
   const isEditMode=curWorkSetEdit!==null;
@@ -4646,7 +4683,7 @@ function setFelt(si,val,ci){
 function removeWorkSet(ci){
   haptic();
   ci=(ci==null)?curExI:ci;
-  const day=routine.days.find(d=>d.id===curDayId);
+  const day=dayById(curDayId);
   const compounds=getCompounds(day);
   const grp=groupOfCompoundIdx(compounds,ci);
   const targets=grp?grp.indexes:[ci];
@@ -4704,7 +4741,7 @@ function nextSetNow(){
 // Único caller activo: tarjeta "Última sesión" en renderEx (workout) — ver onclick "openExInfoSheet(...)" más arriba.
 function openExInfoSheet(ci){
   _infoSheetCi=ci;_infoSheetTab='coach';
-  const day=routine.days.find(d=>d.id===curDayId);
+  const day=dayById(curDayId);
   const compounds=getCompounds(day);
   const ex=compounds[ci];
   if(!ex) return;
@@ -4730,7 +4767,7 @@ function setExInfoTab(tab){
 }
 function renderExInfoSheetContent(){
   if(_infoSheetCi===null) return;
-  const day=routine.days.find(d=>d.id===curDayId);
+  const day=dayById(curDayId);
   const compounds=getCompounds(day);
   const ex=compounds[_infoSheetCi];
   if(!ex){closeExInfoSheet();return;}
@@ -4770,7 +4807,7 @@ function renderExInfoSheetContent(){
 
 // Saltar al siguiente ejercicio (botón en estado D "Ejercicio completo")
 function gotoNextExercise(){
-  const day=routine.days.find(d=>d.id===curDayId);
+  const day=dayById(curDayId);
   const compounds=getCompounds(day);
   const units=[];const seenIdx=new Set();
   compounds.forEach((e,i)=>{
@@ -4853,7 +4890,7 @@ function applyTypedVal(si,field,ci){
 }
 function checkPR(si,ci){
   ci=(ci==null)?curExI:ci;
-  const day=routine.days.find(d=>d.id===curDayId);const compounds=getCompounds(day);
+  const day=dayById(curDayId);const compounds=getCompounds(day);
   const ex=compounds[ci];if(!ex) return;
   const mode=getTrackMode(ex);
   const set=curSess.exercises[ci].sets[si];
@@ -4868,7 +4905,7 @@ function setRpe(si,v,ci){
   // Haptic solo al MARCAR RPE por primera vez · no al cambiarlo (sino sería ruido)
   if(wasNullBefore) haptic();
   curSess.exercises[ci].sets[si].rpe=v;
-  const day=routine.days.find(d=>d.id===curDayId);
+  const day=dayById(curDayId);
   const compounds=getCompounds(day);
   const ex=compounds[ci];
   // PR check · solo en la primera vez que se marca RPE (no en cambios de RPE)
@@ -4908,7 +4945,7 @@ function finishWorkout(){
   haptic.confirm(); // celebración doble pulso al cerrar el workout
   _coreRoundExpanded={};
   cancelSetCountdown(true);
-  const day=routine.days.find(d=>d.id===curDayId);
+  const day=dayById(curDayId);
   // Capturar PRs previos ANTES de guardar la sesión actual (sino el "PR previo" ya incluye el actual)
   const prevPRs={};
   (curSess.exercises||[]).forEach(ex=>{
@@ -5182,7 +5219,7 @@ function resumeDraft(){
   curSess=d;curDayId=d.dayId;
   // Si la sesión tiene movilidad y aún quedan ejercicios sin marcar, arrancar en MOV.
   // Los ej. de circuito core tienen claves compuestas 'exId:rN' (no se chequean con bare m.id).
-  const day=routine.days.find(x=>x.id===d.dayId);
+  const day=dayById(d.dayId);
   const looseMovsPending=day?(day.blocks||[])
     .filter(isMobilityBlock)
     .flatMap(b=>b.exercises||[])
@@ -5259,7 +5296,7 @@ function finishFreeWorkout(){
   haptic.confirm();
   _coreRoundExpanded={};
   cancelSetCountdown(true);
-  const day=routine.days.find(d=>d.id===curDayId);
+  const day=dayById(curDayId);
   curSess.free=true;
   curSess.exercises=[];
   const sessSnapshot=JSON.parse(JSON.stringify(curSess));
@@ -5470,7 +5507,7 @@ function showExHistoryModal(eid){
 // ══ EDIT SESSION ══
 function editSession(sessId){
   const sess=sessions.find(s=>s.id===sessId);if(!sess) return;
-  const dayDef=routine.days.find(d=>d.id===sess.dayId);
+  const dayDef=dayById(sess.dayId);
   let html=`<div class="text-sm text-mt mb-20">${fd(sess.date)} — ${dayDef?.name||'Día ?'}</div>`;
   (sess.exercises||[]).forEach((ex,ei)=>{
     const def=allCompounds().find(e=>eidOf(e)===ex.eid);
@@ -5497,7 +5534,7 @@ function addSetToSess(sid,ei){const s=sessions.find(x=>x.id===sid);if(!s)return;
 function removeSetFromSess(sid,ei){const s=sessions.find(x=>x.id===sid);if(!s||s.exercises[ei].sets.length<=1)return;s.exercises[ei].sets.pop();save("gym-s",sessions);editSession(sid);}
 function addExToSess(sid){
   const s=sessions.find(x=>x.id===sid);if(!s)return;
-  const dayDef=routine.days.find(d=>d.id===s.dayId);const compounds=getCompounds(dayDef);
+  const dayDef=dayById(s.dayId);const compounds=getCompounds(dayDef);
   const existing=new Set(s.exercises.map(e=>e.eid));
   const missing=compounds.filter(e=>!existing.has(eidOf(e)));
   if(!missing.length){return;}
@@ -5509,7 +5546,7 @@ function addExToSess(sid){
 function doAddExToSess(sid,eid){const s=sessions.find(x=>x.id===sid);if(!s)return;const def=allCompounds().find(e=>eidOf(e)===eid);if(!def)return;s.exercises.push({eid,sets:Array.from({length:parseInt(def.sets)||1},()=>({w:0,r:repsAsNumber(def.reps)||10,rpe:null})),note:''});save("gym-s",sessions);editSession(sid);}
 function deleteSess(sid){
   const s=sessions.find(x=>x.id===sid);
-  const dayDef=s?routine.days.find(d=>d.id===s.dayId):null;
+  const dayDef=s?dayById(s.dayId):null;
   showConfirmSheet({
     title:'¿Eliminar sesión?',
     desc:s?`Se borra la sesión del ${fd(s.date)}${s.time?' · '+s.time:''}${dayDef?' — '+dayDef.name:''}. No se puede deshacer.`:'Se borra la sesión seleccionada.',
@@ -6669,7 +6706,7 @@ async function pushSession(sess){
     routineId:(active&&active.sourceRoutineId)||null,
     exercises:sess.exercises||[],accessories:sess.accessories||{},
     mobility:sess.mobility||{},metabolic:sess.metabolic||{},
-    free:!!sess.free
+    free:!!sess.free,extra:!!sess.extra
   };
   try{
     const {error}=await sb.rpc('push_session',{p_athlete_id:link.athleteId,p_device_secret:link.deviceSecret,p_session:payload});
@@ -6876,7 +6913,7 @@ function saveEditItemsTemp(ex){
 function renderDelHist(){
   selectedDel=new Set();const sorted=[...sessions].sort((a,b)=>{const ka=a.date+(a.time||'');const kb=b.date+(b.time||'');return kb.localeCompare(ka);});
   if(!sorted.length){$("del-list").innerHTML='<div class="text-sm text-mt">No hay sesiones.</div>';$("del-btn").style.display="none";return;}
-  $("del-list").innerHTML=sorted.map(s=>{const dayDef=routine.days.find(d=>d.id===s.dayId);const timeStr=s.time?` · ${s.time}`:'';return`<div class="card" onclick="toggleDel('${s.id}')" style="display:flex;align-items:flex-start;gap:14px;cursor:pointer"><div class="del-check" id="chk-${s.id}"></div><div style="flex:1"><div class="fw-700" style="font-size:14px">${fd(s.date)}${timeStr} — ${dayDef?.name||'?'}${s.free?' · libre':''}</div></div></div>`;}).join('');
+  $("del-list").innerHTML=sorted.map(s=>{const dayDef=dayById(s.dayId);const timeStr=s.time?` · ${s.time}`:'';return`<div class="card" onclick="toggleDel('${s.id}')" style="display:flex;align-items:flex-start;gap:14px;cursor:pointer"><div class="del-check" id="chk-${s.id}"></div><div style="flex:1"><div class="fw-700" style="font-size:14px">${fd(s.date)}${timeStr} — ${dayDef?.name||'?'}${s.free?' · libre':''}</div></div></div>`;}).join('');
   updateDelBtn();
 }
 function toggleDel(id){if(selectedDel.has(id)){selectedDel.delete(id);$("chk-"+id).classList.remove('checked');$("chk-"+id).innerHTML='';}else{selectedDel.add(id);$("chk-"+id).classList.add('checked');$("chk-"+id).innerHTML='✕';}updateDelBtn();}
