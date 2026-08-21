@@ -2707,7 +2707,7 @@ function renderHome(){
         <div class="last-date">${dateShort}${last.time?' · '+last.time:''}</div>
       </div>
       <div class="last-title">${dayDef?.name||'—'}</div>
-      <div class="last-meta">${exDone} ejercicio${exDone===1?'':'s'} · ${setsReg} sets registrados${dayDef?.sub?` · ${dayDef.sub}`:''}</div>
+      <div class="last-meta">${last.free?'Entrenamiento libre · sin registro':`${exDone} ejercicio${exDone===1?'':'s'} · ${setsReg} sets registrados`}${dayDef?.sub?` · ${dayDef.sub}`:''}</div>
       ${prs.length?`
         <div class="last-pr">
           <div class="last-pr-left">
@@ -3072,7 +3072,7 @@ function progressShowDayDetail(date){
   const day=routine.days.find(d=>d.id===sess.dayId);
   const exCount=(sess.exercises||[]).filter(ex=>(ex.sets||[]).some(st=>st.rpe!=null)).length;
   const setCount=(sess.exercises||[]).reduce((s,ex)=>s+(ex.sets||[]).filter(st=>st.rpe!=null).length,0);
-  toast(`${relativeDate(date)} · ${day?.name||'?'} · ${exCount} ej · ${setCount} sets`,'success');
+  toast(sess.free?`${relativeDate(date)} · ${day?.name||'?'} · libre`:`${relativeDate(date)} · ${day?.name||'?'} · ${exCount} ej · ${setCount} sets`,'success');
 }
 function renderProgress(){
   const root=$("progress-content");
@@ -5220,10 +5220,23 @@ function confirmFinishWorkout(){
   closeExitModal();
   if(!curSess){return;}
   // Contar sets incompletos (sin RPE registrado). Si hay, warning antes de finalizar.
-  let incomplete=0;
+  let incomplete=0,registered=0;
   (curSess.exercises||[]).forEach(ex=>{
-    (ex.sets||[]).forEach(st=>{if(st.rpe==null) incomplete++;});
+    (ex.sets||[]).forEach(st=>{if(st.rpe==null) incomplete++; else registered++;});
   });
+  // Workout totalmente vacío (0 sets registrados, sin bloque metabólico corrido) →
+  // ofrecer "marcar hecho sin registrar": cuenta para racha/calendario sin inventar pesos.
+  const metabolicDone=Object.keys(curSess.metabolic||{}).length>0;
+  if(registered===0&&!metabolicDone){
+    showConfirmSheet({
+      title:'Sin sets registrados',
+      desc:'¿Marcar el día como hecho igual? Cuenta para la racha y el calendario, sin guardar pesos ni sets.',
+      confirmLabel:'Marcar día hecho',
+      danger:false,
+      onConfirm:()=>finishFreeWorkout()
+    });
+    return;
+  }
   if(incomplete>0){
     showConfirmSheet({
       title:`Quedan ${incomplete} set${incomplete===1?'':'s'} sin completar`,
@@ -5236,6 +5249,26 @@ function confirmFinishWorkout(){
     // Todo OK → directo a finalizar (que muestra el resumen post-workout)
     finishWorkout();
   }
+}
+
+// Sesión libre: día hecho fuera del gym (plaza, etc.) — se guarda con free:true y sin
+// ejercicios, así ningún peso prefilleado contamina historial, PRs ni recomendaciones.
+function finishFreeWorkout(){
+  if(!curSess) return;
+  mbStopTick();clearMbState();
+  haptic.confirm();
+  _coreRoundExpanded={};
+  cancelSetCountdown(true);
+  const day=routine.days.find(d=>d.id===curDayId);
+  curSess.free=true;
+  curSess.exercises=[];
+  const sessSnapshot=JSON.parse(JSON.stringify(curSess));
+  sessions.push(curSess);save("gym-s",sessions);
+  if(loadLink()){pushSession(sessSnapshot).then(ok=>{if(!ok)markUnsynced(sessSnapshot.id);});}
+  clearDraft();stopTimer();closeExitModal();
+  curSess=null;
+  showPage('home');
+  toast(`${day?day.name:'Día'} marcado como hecho · libre`,'success');
 }
 
 // ══ TIMER (persistent) ══
@@ -6635,7 +6668,8 @@ async function pushSession(sess){
     dayId:sess.dayId==null?null:String(sess.dayId),
     routineId:(active&&active.sourceRoutineId)||null,
     exercises:sess.exercises||[],accessories:sess.accessories||{},
-    mobility:sess.mobility||{},metabolic:sess.metabolic||{}
+    mobility:sess.mobility||{},metabolic:sess.metabolic||{},
+    free:!!sess.free
   };
   try{
     const {error}=await sb.rpc('push_session',{p_athlete_id:link.athleteId,p_device_secret:link.deviceSecret,p_session:payload});
@@ -6842,7 +6876,7 @@ function saveEditItemsTemp(ex){
 function renderDelHist(){
   selectedDel=new Set();const sorted=[...sessions].sort((a,b)=>{const ka=a.date+(a.time||'');const kb=b.date+(b.time||'');return kb.localeCompare(ka);});
   if(!sorted.length){$("del-list").innerHTML='<div class="text-sm text-mt">No hay sesiones.</div>';$("del-btn").style.display="none";return;}
-  $("del-list").innerHTML=sorted.map(s=>{const dayDef=routine.days.find(d=>d.id===s.dayId);const timeStr=s.time?` · ${s.time}`:'';return`<div class="card" onclick="toggleDel('${s.id}')" style="display:flex;align-items:flex-start;gap:14px;cursor:pointer"><div class="del-check" id="chk-${s.id}"></div><div style="flex:1"><div class="fw-700" style="font-size:14px">${fd(s.date)}${timeStr} — ${dayDef?.name||'?'}</div></div></div>`;}).join('');
+  $("del-list").innerHTML=sorted.map(s=>{const dayDef=routine.days.find(d=>d.id===s.dayId);const timeStr=s.time?` · ${s.time}`:'';return`<div class="card" onclick="toggleDel('${s.id}')" style="display:flex;align-items:flex-start;gap:14px;cursor:pointer"><div class="del-check" id="chk-${s.id}"></div><div style="flex:1"><div class="fw-700" style="font-size:14px">${fd(s.date)}${timeStr} — ${dayDef?.name||'?'}${s.free?' · libre':''}</div></div></div>`;}).join('');
   updateDelBtn();
 }
 function toggleDel(id){if(selectedDel.has(id)){selectedDel.delete(id);$("chk-"+id).classList.remove('checked');$("chk-"+id).innerHTML='';}else{selectedDel.add(id);$("chk-"+id).classList.add('checked');$("chk-"+id).innerHTML='✕';}updateDelBtn();}
