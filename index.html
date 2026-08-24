@@ -633,6 +633,10 @@ label.haptic-switch.rpe-btn-min{
 .grp-active-ex{margin-top:14px;padding-top:14px;border-top:1px dashed var(--bd);}
 .grp-active-ex:first-of-type{margin-top:6px;padding-top:0;border-top:none;}
 .grp-active-ex-h{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.ex-anim{position:relative;overflow:hidden;background:var(--tx);border-radius:10px;flex-shrink:0;}
+.ex-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:4%;box-sizing:border-box;}
+.ex-anim img.f1{opacity:0;animation:exflip 1.6s linear infinite;}
+@keyframes exflip{0%,49%{opacity:0}50%,100%{opacity:1}}
 .grp-active-ex-num{font-family:var(--fm);font-size:10px;font-weight:600;color:var(--mt2);letter-spacing:0.5px;}
 .grp-active-ex-name{flex:1;font-size:16px;font-weight:600;color:var(--tx);letter-spacing:-0.3px;line-height:1.15;}
 .grp-active-ex-info{width:28px;height:28px;border:1px solid var(--bd);border-radius:7px;background:transparent;color:var(--mt);cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -3824,6 +3828,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   const headerMetaLine=headerMetaParts.join('  ·  ');
   let html=`<div class="row mb-12" style="align-items:stretch;gap:12px">
     ${exBlockColor?`<div style="width:3px;background:${exBlockColor};border-radius:2px;flex-shrink:0;align-self:stretch"></div>`:''}
+    ${exImgThumbHTML(eid,52,true)}
     <div style="flex:1;min-width:0">
       <div style="font-size:22px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;line-height:1.1">${esc(getExName(ex))}</div>
       ${headerMetaLine?`<div style="font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:8px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase">${headerMetaLine}</div>`:''}
@@ -4204,6 +4209,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
         html+=`<div class="grp-active-ex">
           <div class="grp-active-ex-h">
             <span class="grp-active-ex-num">${String(gi+1).padStart(2,'0')}</span>
+            ${exImgThumbHTML(eidOf(ex),30,true)}
             <span class="grp-active-ex-name">${esc(getExName(ex))}</span>
             <button class="grp-active-ex-info" onclick="openSwapPicker(${ci})" aria-label="Cambiar ejercicio"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4"/><path d="M7 4L3 8"/><path d="M7 4l4 4"/><path d="M17 8v12"/><path d="M17 20l4-4"/><path d="M17 20l-4-4"/></svg></button>
             <button class="grp-active-ex-info" onclick="showExHistoryModal('${eidOf(ex)}')" aria-label="Ver historial"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg></button>
@@ -5664,7 +5670,7 @@ function openExercisePicker(dayId,blockId){
     const count=sessionCountFor(ex.id);
     const used=usedIds.has(ex.id);
     return `<div class="card pick-item" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" data-zones="${zonesOfEx(ex).join(',')}" onclick="addExFromLib(${dayId},'${ex.id}')" style="cursor:pointer;${used?'opacity:0.5':''}">
-      <div class="row" style="align-items:flex-start"><div style="flex:1">
+      <div class="row" style="align-items:flex-start;gap:10px">${exImgThumbHTML(ex.id,40)}<div style="flex:1;min-width:0">
         <div style="font-size:15px;font-weight:700">${ex.name}${used?' <span class="text-xs text-mt">· ya en este día</span>':''}</div>
         <div class="text-xs text-mt mt-4">${muscles}</div>
         ${count>0?`<div class="text-xs text-ac mt-4">📊 ${count} ${count===1?'sesión':'sesiones'}</div>`:''}
@@ -5697,6 +5703,24 @@ function addExFromLib(dayId,exerciseId){
   closeModal();
   renderEditR();
 }
+// ══ IMÁGENES DE EJERCICIOS · flipbook Everkinetic (2 poses, CC-BY-SA) ══
+// Archivos en imgs/<eid>-0.png (relajación) y <eid>-1.png (tensión).
+const EX_IMGS=new Set(['sentadilla-barra','peso-muerto','press-banca-plano','press-inclinado-mancuernas','press-militar','remo-barra','remo-mancuerna','dominadas','fondos','hip-thrust','step-up','peso-muerto-mancuernas','elevaciones-laterales','pajaros','curl-barra','curl-martillo','extension-triceps','rompecraneo','aperturas-banco-plano','plancha-lateral','bulgaras','gemelos-de-pie','peso-muerto-rumano','press-banca-mancuernas','press-inclinado-barra','press-mancuernas-sentado','flexiones','encogimientos','curl-mancuernas','press-frances','patada-tricep','elevaciones-frontales','abdominales','leg-raises']);
+function exImgThumbHTML(eid,size,clickable){
+  if(!EX_IMGS.has(eid)) return '';
+  const oc=clickable?` onclick="event.stopPropagation();showExImgModal('${eid}')" style="cursor:pointer;width:${size}px;height:${size}px"`:` style="width:${size}px;height:${size}px"`;
+  return `<div class="ex-anim"${oc}><img src="imgs/${eid}-0.png" loading="lazy" onerror="this.parentNode.style.display='none'"><img class="f1" src="imgs/${eid}-1.png" loading="lazy"></div>`;
+}
+function showExImgModal(eid){
+  const def=getExercise(eid)||allCompounds().find(e=>eidOf(e)===eid);
+  const name=def?(def.name||getExName(def)):'';
+  let html=`<div style="font-size:18px;font-weight:800;margin-bottom:14px">${esc(name)}</div>`;
+  html+=`<div class="ex-anim" style="width:100%;aspect-ratio:1;border-radius:16px"><img src="imgs/${eid}-0.png"><img class="f1" src="imgs/${eid}-1.png"></div>`;
+  html+=`<div style="font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--mt);margin-top:10px;text-align:center">Ilustraciones · Everkinetic · CC-BY-SA</div>`;
+  html+=`<button class="btn-out mt-16" onclick="closeModal()">Cerrar</button>`;
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
+}
+
 // ══ PICKER · filtro por zona muscular (chips estilo Coach) ══
 let _pickZone=null;
 function zonesOfEx(ex){
@@ -5744,7 +5768,7 @@ function openSwapPicker(ci){
   sorted.forEach(ex=>{
     const muscles=Object.keys(ex.muscleActivation||{}).slice(0,2).map(m=>MUSCLE_LABELS[m]||m).join(' · ');
     html+=`<div class="card pick-item" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" data-zones="${zonesOfEx(ex).join(',')}" onclick="confirmSwapExercise(${ci},'${ex.id}')" style="cursor:pointer;margin-bottom:6px;padding:11px 14px">
-      <div class="fw-700 text-sm">${ex.name}</div><div class="text-xs text-mt">${muscles}</div>
+      <div style="display:flex;align-items:center;gap:10px">${exImgThumbHTML(ex.id,36)}<div style="flex:1;min-width:0"><div class="fw-700 text-sm">${ex.name}</div><div class="text-xs text-mt">${muscles}</div></div></div>
     </div>`;
   });
   html+=`</div><button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>`;
@@ -6489,7 +6513,7 @@ function openExPickerForBlock(bi,fillSlotIdx){
       const muscles=ex.category==='movilidad'?'movilidad':Object.keys(ex.muscleActivation||{}).slice(0,2).map(m=>MUSCLE_LABELS[m]||m).join(' · ');
       const onclickFn=isFilling?`fillGroupSlotBE(${bi},${fillSlotIdx},'${ex.id}')`:`addExerciseToBlockBE(${bi},'${ex.id}')`;
       html+=`<div class="card pick-item-be" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" data-zones="${zonesOfEx(ex).join(',')}" onclick="${onclickFn}" style="cursor:pointer;margin-bottom:6px;padding:11px 14px">
-        <div class="fw-700 text-sm">${ex.name}</div><div class="text-xs text-mt">${muscles}</div>
+        <div style="display:flex;align-items:center;gap:10px">${exImgThumbHTML(ex.id,36)}<div style="flex:1;min-width:0"><div class="fw-700 text-sm">${ex.name}</div><div class="text-xs text-mt">${muscles}</div></div></div>
       </div>`;
     });
   } else {
