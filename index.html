@@ -1048,13 +1048,12 @@ label.haptic-switch.rpe-btn-min{
   <div class="header" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
     <button class="icon-btn" onclick="showPage(window._delHistFrom||'editR')" style="width:38px;height:38px;border-radius:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
     <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;text-align:center;flex:1;color:var(--tx)">Borrar Sesiones</div>
-    <div style="width:38px"></div>
+    <button id="del-all-btn" onclick="selectAllSessions()" style="background:none;border:none;cursor:pointer;padding:8px 0;min-width:38px;text-align:right;font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--ac)">Todas</button>
   </div>
   <div class="sec">
     <div style="font-size:13px;color:var(--mt);margin-bottom:14px;line-height:1.5">Tocá las sesiones que querés eliminar.</div>
-    <div id="del-list"></div>
-    <button id="del-btn" class="btn-danger mt-20" onclick="deleteSelected()" style="display:none">Eliminar seleccionadas</button>
-    <button class="btn-out mt-12" onclick="selectAllSessions()" style="font-family:var(--fm);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase">Seleccionar todas</button>
+    <div id="del-list" style="padding-bottom:90px"></div>
+    <button id="del-btn" class="btn-danger" onclick="deleteSelected()" style="display:none;position:fixed;left:22px;right:22px;bottom:calc(16px + env(safe-area-inset-bottom));max-width:436px;margin:0 auto;z-index:80;box-shadow:0 -8px 24px -8px rgba(0,0,0,0.5)">Eliminar seleccionadas</button>
   </div>
 </div>
 
@@ -7003,7 +7002,7 @@ function renderDelHist(){
 }
 function toggleDel(id){if(selectedDel.has(id)){selectedDel.delete(id);$("chk-"+id).classList.remove('checked');$("chk-"+id).innerHTML='';}else{selectedDel.add(id);$("chk-"+id).classList.add('checked');$("chk-"+id).innerHTML='✕';}updateDelBtn();}
 function selectAllSessions(){if(selectedDel.size===sessions.length){selectedDel=new Set();document.querySelectorAll('.del-check').forEach(c=>{c.classList.remove('checked');c.innerHTML='';});}else{sessions.forEach(s=>selectedDel.add(s.id));document.querySelectorAll('.del-check').forEach(c=>{c.classList.add('checked');c.innerHTML='✕';});}updateDelBtn();}
-function updateDelBtn(){const b=$("del-btn");if(selectedDel.size>0){b.style.display="block";b.textContent=`Eliminar ${selectedDel.size} sesión${selectedDel.size>1?'es':''}`;}else{b.style.display="none";}}
+function updateDelBtn(){const b=$("del-btn");if(selectedDel.size>0){b.style.display="block";b.textContent=`Eliminar ${selectedDel.size} sesión${selectedDel.size>1?'es':''}`;}else{b.style.display="none";}const ab=$("del-all-btn");if(ab)ab.textContent=(sessions.length&&selectedDel.size===sessions.length)?'Ninguna':'Todas';}
 function deleteSelected(){
   const n=selectedDel.size;
   if(!n) return;
