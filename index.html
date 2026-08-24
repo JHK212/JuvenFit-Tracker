@@ -5735,12 +5735,27 @@ function openSwapPicker(ci){
   html+=`<div id="picker-list" style="max-height:44dvh;overflow-y:auto;-webkit-overflow-scrolling:touch">`;
   sorted.forEach(ex=>{
     const muscles=Object.keys(ex.muscleActivation||{}).slice(0,2).map(m=>MUSCLE_LABELS[m]||m).join(' · ');
-    html+=`<div class="card pick-item" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" data-zones="${zonesOfEx(ex).join(',')}" onclick="swapExercise(${ci},'${ex.id}')" style="cursor:pointer;margin-bottom:6px;padding:11px 14px">
+    html+=`<div class="card pick-item" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" data-zones="${zonesOfEx(ex).join(',')}" onclick="confirmSwapExercise(${ci},'${ex.id}')" style="cursor:pointer;margin-bottom:6px;padding:11px 14px">
       <div class="fw-700 text-sm">${ex.name}</div><div class="text-xs text-mt">${muscles}</div>
     </div>`;
   });
   html+=`</div><button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>`;
   $("modal-content").innerHTML=html;$("modal").classList.add('show');
+}
+function confirmSwapExercise(ci,newExId){
+  const day=dayById(curDayId);
+  const cur=getCompounds(day)[ci];const lib=getExercise(newExId);
+  if(!cur||!lib){closeModal();return;}
+  closeModal();
+  showConfirmSheet({
+    title:`¿Cambiar a ${esc(lib.name)}?`,
+    desc:isExtraDay(curDayId)
+      ?`${esc(getExName(cur))} → ${esc(lib.name)}, solo por esta sesión (los presets de día extra no se editan).`
+      :`${esc(getExName(cur))} → ${esc(lib.name)}. El cambio es permanente: queda en tu rutina para las próximas sesiones.`,
+    confirmLabel:'Cambiar ejercicio',
+    danger:false,
+    onConfirm:()=>swapExercise(ci,newExId)
+  });
 }
 function swapExercise(ci,newExId){
   const day=dayById(curDayId);
