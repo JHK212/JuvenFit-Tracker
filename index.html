@@ -1234,6 +1234,12 @@ function getSupabase(){
   try{_sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);return _sb;}
   catch(e){return null;}
 }
+// El SDK carga con <script defer> y el script principal es inline: durante init()
+// window.supabase todavía no existe. DOMContentLoaded dispara después de los defer.
+function whenSdkReady(fn){
+  if(window.supabase){fn();return;}
+  document.addEventListener('DOMContentLoaded',fn,{once:true});
+}
 async function syncLibrary(){
   if(!navigator.onLine) return {ok:false,reason:'offline'};
   const sb=getSupabase();
@@ -2195,15 +2201,17 @@ function init(){
   const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();
   resumeTimer();
   renderHome();
-  // Sync silencioso de la biblioteca oficial desde Supabase (offline-first: no bloquea)
-  syncLibrary().then(r=>{
-    if(r.ok) renderHome();  // re-render para tomar nuevas activaciones si cambiaron
-  });
   // Si la URL trae ?import=TOKEN (escaneado con cámara nativa), abrir flow de importación
   checkUrlImport();
-  // Bridge: reintentar sesiones no sincronizadas y chequear si el coach actualizó la rutina
-  flushUnsynced();
-  maybeSyncRoutine();
+  whenSdkReady(()=>{
+    // Sync silencioso de la biblioteca oficial desde Supabase (offline-first: no bloquea)
+    syncLibrary().then(r=>{
+      if(r.ok) renderHome();  // re-render para tomar nuevas activaciones si cambiaron
+    });
+    // Bridge: reintentar sesiones no sincronizadas y chequear si el coach actualizó la rutina
+    flushUnsynced();
+    maybeSyncRoutine();
+  });
 }
 
 function showPage(id){
@@ -6736,6 +6744,8 @@ function applyImportedRoutine(mode){
   } else if(remote._token){
     console.warn('[pairing] sin athlete_id en la rutina (¿SW viejo cacheado, o la rutina no tiene atleta asignado?)');
   }
+  // El cambio del coach tiene prioridad: descartar el entrenamiento en curso si lo hay
+  if(curSess||load("gym-draft",null)){curSess=null;clearDraft();}
   routine=getActiveRoutine();
   _pendingImport=null;
   closeModal();
@@ -6844,10 +6854,10 @@ async function flushUnsynced(){
   }
 }
 // Auto-update con aviso: al abrir, traer la rutina activa del coach. Si cambió,
-// ofrecer aplicar. No interrumpe un workout en curso (gym-draft presente).
+// ofrecer aplicar. El cambio del coach tiene prioridad sobre un workout en curso:
+// el banner avisa y aplicar descarta el draft.
 async function maybeSyncRoutine(){
   const link=loadLink();if(!link)return;
-  if(load("gym-draft",null))return;
   const sb=getSupabase();if(!sb||!navigator.onLine)return;
   try{
     const {data,error}=await sb.rpc('get_active_routine',{p_athlete_id:link.athleteId,p_device_secret:link.deviceSecret});
@@ -6863,6 +6873,7 @@ function showRoutineUpdateBanner(remote){
   const isNew=!(routineStore.list||[]).some(r=>r.sourceRoutineId===remote.id);
   let html=`<div class="fw-800 mb-4" style="font-size:18px">${isNew?'Nueva rutina':'Rutina actualizada'}</div>`;
   html+=`<div class="text-sm text-mt mb-16">Tu coach ${isNew?'te asignó una rutina nueva':'actualizó tu rutina'}: <strong>${esc(remote.name||'')}</strong>. ¿La aplicás ahora?</div>`;
+  if(load("gym-draft",null)) html+=`<div class="text-sm mb-16" style="color:var(--yw)">Tenés un entrenamiento en curso: al aplicar se descarta.</div>`;
   html+=`<button class="btn mb-8" onclick="applyImportedRoutine('${isNew?'add':'update'}')">Aplicar</button>`;
   html+=`<button class="btn-out" onclick="closeModal()">Ahora no</button>`;
   $("modal-content").innerHTML=html;$("modal").classList.add('show');
