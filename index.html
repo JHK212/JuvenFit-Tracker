@@ -3822,6 +3822,9 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
       ${headerMetaLine?`<div style="font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:8px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase">${headerMetaLine}</div>`:''}
       ${ex.objective?`<div style="font-size:12.5px;color:var(--tx);margin-top:6px;font-weight:500;line-height:1.4">${esc(ex.objective)}</div>`:''}
     </div>
+    <button class="icon-btn" onclick="openSwapPicker(${ci})" title="Cambiar ejercicio" aria-label="Cambiar ejercicio" style="width:36px;height:36px;font-size:14px;flex-shrink:0;align-self:flex-start;margin-top:-2px;border-radius:8px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4"/><path d="M7 4L3 8"/><path d="M7 4l4 4"/><path d="M17 8v12"/><path d="M17 20l4-4"/><path d="M17 20l-4-4"/></svg>
+    </button>
     <button class="icon-btn" onclick="showHist('${eid}')" title="Ver historial / progresión" aria-label="Ver historial completo" style="width:36px;height:36px;font-size:14px;flex-shrink:0;align-self:flex-start;margin-top:-2px;border-radius:8px">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
     </button>
@@ -4195,6 +4198,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
           <div class="grp-active-ex-h">
             <span class="grp-active-ex-num">${String(gi+1).padStart(2,'0')}</span>
             <span class="grp-active-ex-name">${esc(getExName(ex))}</span>
+            <button class="grp-active-ex-info" onclick="openSwapPicker(${ci})" aria-label="Cambiar ejercicio"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4"/><path d="M7 4L3 8"/><path d="M7 4l4 4"/><path d="M17 8v12"/><path d="M17 20l4-4"/><path d="M17 20l-4-4"/></svg></button>
             <button class="grp-active-ex-info" onclick="showExHistoryModal('${eidOf(ex)}')" aria-label="Ver historial"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg></button>
           </div>
           ${metaLine?`<div class="grp-active-ex-meta">${metaLine}</div>`:''}
@@ -5628,6 +5632,7 @@ function addEx(dayId,type){
 
 // ══ EXERCISE PICKER (desde biblioteca) ══
 function openExercisePicker(dayId,blockId){
+  _pickZone=null;
   const day=routine.days.find(x=>x.id===dayId);
   const usedIds=new Set(getDayExercises(day||{}).filter(e=>e.exerciseId).map(e=>e.exerciseId));
   window._pickerBlockId=blockId||null;
@@ -5651,7 +5656,7 @@ function openExercisePicker(dayId,blockId){
     const muscles=Object.entries(ex.muscleActivation||{}).map(([m])=>MUSCLE_LABELS[m]||m).join(' · ');
     const count=sessionCountFor(ex.id);
     const used=usedIds.has(ex.id);
-    return `<div class="card pick-item" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" onclick="addExFromLib(${dayId},'${ex.id}')" style="cursor:pointer;${used?'opacity:0.5':''}">
+    return `<div class="card pick-item" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" data-zones="${zonesOfEx(ex).join(',')}" onclick="addExFromLib(${dayId},'${ex.id}')" style="cursor:pointer;${used?'opacity:0.5':''}">
       <div class="row" style="align-items:flex-start"><div style="flex:1">
         <div style="font-size:15px;font-weight:700">${ex.name}${used?' <span class="text-xs text-mt">· ya en este día</span>':''}</div>
         <div class="text-xs text-mt mt-4">${muscles}</div>
@@ -5661,6 +5666,7 @@ function openExercisePicker(dayId,blockId){
   }).join('');
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:12px">Agregar ejercicio</div>`;
   html+=`<input id="picker-search" class="input mb-12" placeholder="🔍 Buscar..." oninput="filterPicker(this.value)" style="width:100%;box-sizing:border-box">`;
+  html+=pickerZoneChipsHTML();
   html+=`<div id="picker-list" style="max-height:55dvh;overflow-y:auto;-webkit-overflow-scrolling:touch">${items}</div>`;
   $("modal-content").innerHTML=html;
   $("modal").classList.add('show');
@@ -5684,13 +5690,90 @@ function addExFromLib(dayId,exerciseId){
   closeModal();
   renderEditR();
 }
+// ══ PICKER · filtro por zona muscular (chips estilo Coach) ══
+let _pickZone=null;
+function zonesOfEx(ex){
+  const ms=Object.keys(ex.muscleActivation||{});
+  return Object.entries(BODY_ZONES).filter(([,z])=>z.muscles.some(m=>ms.includes(m))).map(([n])=>n);
+}
+function pickerZoneChipsHTML(){
+  return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${Object.keys(BODY_ZONES).map(n=>
+    `<button class="pick-zone-chip" data-zone="${n}" onclick="togglePickZone('${n}')" style="background:var(--cd);border:1px solid var(--bd);border-radius:999px;padding:6px 11px;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--mt);cursor:pointer">${n}</button>`).join('')}</div>`;
+}
+function togglePickZone(zone){
+  _pickZone=_pickZone===zone?null:zone;
+  document.querySelectorAll('.pick-zone-chip').forEach(c=>{
+    const on=c.dataset.zone===_pickZone;
+    const color=BODY_ZONES[c.dataset.zone].color;
+    c.style.borderColor=on?color:'var(--bd)';
+    c.style.color=on?color:'var(--mt)';
+  });
+  const inp=document.getElementById('picker-search')||document.querySelector('#modal-content .search-input');
+  const q=inp?inp.value:'';
+  if(document.getElementById('picker-list')) filterPicker(q); else filterPickerListBE(q);
+}
+function pickZoneOk(el){return !_pickZone||(el.getAttribute('data-zones')||'').includes(_pickZone);}
+
+// ══ SWAP DE EJERCICIO EN PLENO WORKOUT ══
+// Cambio permanente: muta el ejercicio del día en la rutina local y resetea la
+// entrada de la sesión en curso. Sets ya registrados quedan atribuidos al
+// ejercicio anterior (entrada extra al final de curSess.exercises — renderWork
+// solo indexa las primeras N en paralelo a compounds, el historial las lee todas).
+function openSwapPicker(ci){
+  const day=dayById(curDayId);
+  const cur=getCompounds(day)[ci];if(!cur)return;
+  _pickZone=null;
+  const curEid=eidOf(cur);
+  const sorted=getExerciseLib().filter(e=>e.category!=='movilidad'&&e.id!==curEid).sort((a,b)=>{
+    const ca=sessionCountFor(a.id),cb=sessionCountFor(b.id);
+    if(ca!==cb) return cb-ca;
+    return a.name.localeCompare(b.name,'es');
+  });
+  let html=`<div style="font-size:18px;font-weight:800;margin-bottom:4px">Cambiar ejercicio</div>`;
+  html+=`<div class="text-sm text-mt mb-12">${esc(getExName(cur))} → elegí el reemplazo. Queda en tu rutina.</div>`;
+  html+=`<input id="picker-search" class="input mb-12" placeholder="🔍 Buscar..." oninput="filterPicker(this.value)" style="width:100%;box-sizing:border-box">`;
+  html+=pickerZoneChipsHTML();
+  html+=`<div id="picker-list" style="max-height:44dvh;overflow-y:auto;-webkit-overflow-scrolling:touch">`;
+  sorted.forEach(ex=>{
+    const muscles=Object.keys(ex.muscleActivation||{}).slice(0,2).map(m=>MUSCLE_LABELS[m]||m).join(' · ');
+    html+=`<div class="card pick-item" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" data-zones="${zonesOfEx(ex).join(',')}" onclick="swapExercise(${ci},'${ex.id}')" style="cursor:pointer;margin-bottom:6px;padding:11px 14px">
+      <div class="fw-700 text-sm">${ex.name}</div><div class="text-xs text-mt">${muscles}</div>
+    </div>`;
+  });
+  html+=`</div><button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>`;
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
+}
+function swapExercise(ci,newExId){
+  const day=dayById(curDayId);
+  const ex=getCompounds(day)[ci];const lib=getExercise(newExId);
+  if(!ex||!lib||!curSess){closeModal();return;}
+  const entry=curSess.exercises[ci];
+  const done=(entry.sets||[]).filter(s=>s.rpe!=null);
+  if(done.length) curSess.exercises.push({eid:eidOf(ex),sets:done,note:entry.note||''});
+  // groupId/format/formatConfig intactos — en biserie/AMRAP solo cambia el ejercicio.
+  ex.exerciseId=newExId;delete ex.customName;delete ex.name;delete ex.track_mode;
+  // EXTRA_DAYS es const en código: el swap en un día extra vive solo en memoria.
+  if(!isExtraDay(curDayId)) saveRoutine();
+  const mode=getTrackMode(ex);
+  const targetReps=repsAsNumber(ex.reps)||10;
+  const lastVal=lastValueOf(newExId,mode);
+  entry.eid=newExId;entry.note='';
+  entry.sets=Array.from({length:parseInt(ex.sets)||1},()=>({
+    w:mode==='weight'?(lastW(newExId)||0):0,
+    r:mode==='weight'?targetReps:(lastVal||targetReps),
+    rpe:null,felt:null
+  }));
+  saveDraft();closeModal();renderWork();
+  toast(`Cambiado a ${lib.name}`,'success');
+}
+
 function filterPicker(q){
   const norm=normalizeText(q);
   const list=$("picker-list");
   if(!list) return;
   list.querySelectorAll('.pick-item').forEach(el=>{
     const data=el.getAttribute('data-name')||'';
-    el.style.display=data.includes(norm)?'':'none';
+    el.style.display=(data.includes(norm)&&pickZoneOk(el))?'':'none';
   });
 }
 function addAccEx(dayId){const d=routine.days.find(x=>x.id===dayId);getOrCreatePrincipalBlock(d).exercises.push({id:uid(),name:"Nueva biserie",type:"biserie",sets:3,rest:60,notes:"",items:[{name:"Ejercicio A",reps:"12"},{name:"Ejercicio B",reps:"12"}]});saveRoutine();renderEditR();}
@@ -6355,6 +6438,7 @@ function renameBlockLabel(bi){
 }
 
 function openExPickerForBlock(bi,fillSlotIdx){
+  _pickZone=null;
   // Si fillSlotIdx está definido, llena ese slot (top-down). Sino, pushea nuevo (bottom-up).
   const isFilling=fillSlotIdx!=null;
   const blockType=editingDayState&&editingDayState.blocks[bi]?editingDayState.blocks[bi].type:null;
@@ -6376,12 +6460,13 @@ function openExPickerForBlock(bi,fillSlotIdx){
   let html=`<div class="fw-800 mb-12" style="font-size:18px">${headerLabel}</div>`;
   html+=`<input class="search-input" placeholder="🔍 Buscar..." oninput="filterPickerListBE(this.value)" autofocus style="width:100%;background:var(--cd);border:1px solid var(--bd);border-radius:12px;padding:12px 16px;font-size:16px;outline:none;margin-bottom:12px;box-sizing:border-box">`;
   html+=`<div class="picker-item" style="border-style:dashed;border-color:var(--ac);color:var(--ac);background:var(--cd);border-width:1px;border-style:dashed;border-radius:12px;padding:14px;margin-bottom:8px;cursor:pointer" onclick="${customAction}"><div class="fw-700 text-sm">+ Ejercicio personalizado</div><div class="text-xs text-mt">No entra a la biblioteca · útil para biseries / triseries</div></div>`;
+  html+=pickerZoneChipsHTML();
   html+=`<div style="max-height:48dvh;overflow-y:auto;margin-top:8px">`;
   if(sorted.length){
     sorted.forEach(ex=>{
       const muscles=ex.category==='movilidad'?'movilidad':Object.keys(ex.muscleActivation||{}).slice(0,2).map(m=>MUSCLE_LABELS[m]||m).join(' · ');
       const onclickFn=isFilling?`fillGroupSlotBE(${bi},${fillSlotIdx},'${ex.id}')`:`addExerciseToBlockBE(${bi},'${ex.id}')`;
-      html+=`<div class="card pick-item-be" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" onclick="${onclickFn}" style="cursor:pointer;margin-bottom:6px;padding:11px 14px">
+      html+=`<div class="card pick-item-be" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" data-zones="${zonesOfEx(ex).join(',')}" onclick="${onclickFn}" style="cursor:pointer;margin-bottom:6px;padding:11px 14px">
         <div class="fw-700 text-sm">${ex.name}</div><div class="text-xs text-mt">${muscles}</div>
       </div>`;
     });
@@ -6396,7 +6481,7 @@ function filterPickerListBE(q){
   const norm=normalizeText(q);
   document.querySelectorAll('.pick-item-be').forEach(el=>{
     const n=el.dataset.name||'';
-    el.style.display=n.includes(norm)?'':'none';
+    el.style.display=(n.includes(norm)&&pickZoneOk(el))?'':'none';
   });
 }
 
