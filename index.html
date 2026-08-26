@@ -153,6 +153,9 @@ textarea.xfl-inp{resize:none;min-height:48px;font-size:14px;}
 .editor-header-be{position:sticky;top:0;background:var(--bg);padding:16px 0 12px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--bd);margin-bottom:20px;}
 .timer-bar{position:fixed;bottom:0;left:0;right:0;background:var(--cd);border-top:1px solid var(--bd);box-shadow:0 -12px 28px -10px rgba(0,0,0,0.55),var(--lift-in);padding:14px 18px;padding-bottom:calc(14px + env(safe-area-inset-bottom));z-index:90;display:none;align-items:center;gap:12px;max-width:480px;margin:0 auto;transition:background 250ms ease;}
 .timer-bar.show{display:flex;}
+/* Con el timer visible, la página gana aire abajo: los botones de la serie
+   (semáforo RPE / sentí músculo) siempre pueden scrollearse por encima de la barra. */
+body:has(.timer-bar.show) .page.active{padding-bottom:220px;}
 .timer-label-new{font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--mt);margin-bottom:6px;}
 .timer-num{font-family:var(--fm);font-size:32px;font-weight:700;color:var(--ac);min-width:78px;text-align:right;cursor:pointer;letter-spacing:-1px;font-variant-numeric:tabular-nums;}
 .timer-track{height:4px;background:var(--bd);border-radius:4px;overflow:hidden;flex:1;}
