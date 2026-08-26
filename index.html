@@ -636,7 +636,9 @@ label.haptic-switch.rpe-btn-min{
 .ex-anim{position:relative;overflow:hidden;background:var(--tx);border-radius:10px;flex-shrink:0;}
 .ex-anim img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:4%;box-sizing:border-box;}
 .ex-anim img.f1{opacity:0;animation:exflip 1.6s linear infinite;}
+.ex-anim img:not(.f1){animation:exflip0 1.6s linear infinite;}
 @keyframes exflip{0%,49%{opacity:0}50%,100%{opacity:1}}
+@keyframes exflip0{0%,49%{opacity:1}50%,100%{opacity:0}}
 .grp-active-ex-num{font-family:var(--fm);font-size:10px;font-weight:600;color:var(--mt2);letter-spacing:0.5px;}
 .grp-active-ex-name{flex:1;font-size:16px;font-weight:600;color:var(--tx);letter-spacing:-0.3px;line-height:1.15;}
 .grp-active-ex-info{width:28px;height:28px;border:1px solid var(--bd);border-radius:7px;background:transparent;color:var(--mt);cursor:pointer;display:flex;align-items:center;justify-content:center;}
@@ -1003,7 +1005,8 @@ label.haptic-switch.rpe-btn-min{
     </div>
   </div>
   <div class="sec-h"><span class="sec-h-idx">05</span><span class="sec-h-title">Zona peligro</span><span class="sec-h-rule"></span></div>
-  <div class="sec" style="padding-top:0;padding-bottom:32px"><button class="btn-danger" onclick="resetRoutine()">Borrar toda la rutina</button></div>
+  <div class="sec" style="padding-top:0;padding-bottom:14px"><button class="btn-danger" onclick="resetRoutine()">Borrar toda la rutina</button></div>
+  <div style="padding:0 20px 32px;font-family:var(--fm);font-size:8.5px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--mt2);text-align:center">Ilustraciones de ejercicios · Everkinetic · CC-BY-SA</div>
 </div>
 
 <!-- ══ EDIT DAY (BLOQUES) ══ -->
@@ -5723,7 +5726,6 @@ function showExImgModal(eid){
   const name=def?(def.name||getExName(def)):'';
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:14px">${esc(name)}</div>`;
   html+=`<div class="ex-anim" style="width:100%;aspect-ratio:1;border-radius:16px"><img src="imgs/${eid}-0.png"><img class="f1" src="imgs/${eid}-1.png"></div>`;
-  html+=`<div style="font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--mt);margin-top:10px;text-align:center">Ilustraciones · Everkinetic · CC-BY-SA</div>`;
   html+=`<button class="btn-out mt-16" onclick="closeModal()">Cerrar</button>`;
   $("modal-content").innerHTML=html;$("modal").classList.add('show');
 }
