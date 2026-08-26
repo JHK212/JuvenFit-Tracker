@@ -959,7 +959,12 @@ label.haptic-switch.rpe-btn-min{
     <div style="font-size:17px;font-weight:600;letter-spacing:-0.3px;text-align:center;flex:1;color:var(--tx)">Configuración</div>
     <div style="width:38px"></div>
   </div>
-  <div class="sec-h" style="padding-top:8px"><span class="sec-h-idx">01</span><span class="sec-h-title">Días por semana</span><span class="sec-h-rule"></span></div>
+  <div class="sec-h" style="padding-top:8px"><span class="sec-h-idx">00</span><span class="sec-h-title">Cuenta</span><span class="sec-h-rule"></span></div>
+  <div class="sec" style="padding-top:0;padding-bottom:14px">
+    <div id="acct-status" style="font-size:12.5px;color:var(--mt);margin-bottom:12px;line-height:1.5"></div>
+    <button class="btn-out" id="acct-btn" onclick="openAccountModal()">Cuenta</button>
+  </div>
+  <div class="sec-h"><span class="sec-h-idx">01</span><span class="sec-h-title">Días por semana</span><span class="sec-h-rule"></span></div>
   <div class="sec" style="padding-top:0;padding-bottom:14px">
     <div class="card" style="cursor:default;border-radius:var(--r-card)">
       <div style="font-size:13px;color:var(--mt);margin-bottom:14px;line-height:1.5">Con este valor se cuenta tu racha · sumás una semana cuando entrenás al menos esta cantidad de días.</div>
@@ -2215,6 +2220,7 @@ function init(){
     // Bridge: reintentar sesiones no sincronizadas y chequear si el coach actualizó la rutina
     flushUnsynced();
     maybeSyncRoutine();
+    maybeClaimAccount();
   });
 }
 
@@ -5579,6 +5585,7 @@ function deleteSess(sid){
 
 // ══ SETTINGS ══
 function renderEditR(){
+  renderAccountCard();
   const dpw=config.daysPerWeek||3;
   $("dpw-selector").innerHTML=[1,2,3,4,5,6].map(n=>`<button class="dpw-btn${n===dpw?' active':''}" onclick="setDPW(${n})">${n}</button>`).join('');
   // Sección "Mis rutinas": solo visible si hay >1 (no hay nada que cambiar si solo tenés una)
@@ -6880,6 +6887,176 @@ async function flushUnsynced(){
 // Auto-update con aviso: al abrir, traer la rutina activa del coach. Si cambió,
 // ofrecer aplicar. El cambio del coach tiene prioridad sobre un workout en curso:
 // el banner avisa y aplicar descarta el draft.
+// ══ CUENTA (Supabase Auth · email OTP) ══
+// El alumno se loguea UNA vez: su cuenta reclama el athlete que este device ya
+// tiene vinculado (claim) y sube todo el historial local (upsert idempotente).
+// En un telefono nuevo: login -> register_device_for_account -> restaurar
+// rutina + historial desde el server. localStorage pasa a ser cache.
+let _acctEmail=null;
+async function getAuthUser(){
+  const sb=getSupabase();if(!sb)return null;
+  try{const {data}=await sb.auth.getSession();return data&&data.session?data.session.user:null;}
+  catch(e){return null;}
+}
+async function renderAccountCard(){
+  const el=$("acct-status");if(!el)return;
+  const user=await getAuthUser();
+  const btn=$("acct-btn");
+  if(user){
+    const linked=!!loadLink();
+    el.innerHTML=`Sesión iniciada como <strong>${esc(user.email||'')}</strong>${linked?' · progreso respaldado en la nube':' · sin alumno vinculado'}`;
+    if(btn) btn.textContent='Mi cuenta';
+  } else {
+    el.textContent='Creá tu cuenta para respaldar rutina e historial en la nube. Si cambiás de teléfono, recuperás todo con tu email.';
+    if(btn) btn.textContent='Crear cuenta / Iniciar sesión';
+  }
+}
+async function openAccountModal(){
+  const user=await getAuthUser();
+  let html;
+  if(user){
+    html=`<div style="font-size:18px;font-weight:800;margin-bottom:8px">Mi cuenta</div>`;
+    html+=`<div class="text-sm text-mt mb-16">${esc(user.email||'')}</div>`;
+    if(!loadLink()){
+      html+=`<button class="btn mb-8" onclick="restoreFromAccount()">Restaurar mis datos</button>`;
+    } else if(!load("gym-hist-uploaded",false)){
+      html+=`<button class="btn mb-8" onclick="closeModal();bulkUploadLocalSessions()">Subir historial a la nube</button>`;
+    }
+    html+=`<button class="btn-out mb-8" onclick="accountLogout()">Cerrar sesión</button>`;
+    html+=`<button class="btn-out" onclick="closeModal()">Volver</button>`;
+  } else {
+    html=`<div style="font-size:18px;font-weight:800;margin-bottom:8px">Tu cuenta</div>`;
+    html+=`<div class="text-sm text-mt mb-16">Te mandamos un código de 6 dígitos al mail. Sin contraseñas.</div>`;
+    html+=`<input id="acct-email" type="email" class="input mb-12" placeholder="tu@email.com" autocomplete="email" style="width:100%;box-sizing:border-box">`;
+    html+=`<button class="btn mb-8" onclick="sendLoginCode(this)">Enviarme el código</button>`;
+    html+=`<button class="btn-out" onclick="closeModal()">Cancelar</button>`;
+  }
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
+}
+async function sendLoginCode(btn){
+  const email=($("acct-email")?.value||'').trim().toLowerCase();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){toast('Email inválido','warning');return;}
+  const sb=getSupabase();if(!sb||!navigator.onLine){toast('Sin conexión','error');return;}
+  if(btn){btn.disabled=true;btn.textContent='Enviando…';}
+  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+  if(error){toast('No se pudo enviar: '+(error.message||''),'error');if(btn){btn.disabled=false;btn.textContent='Enviarme el código';}return;}
+  _acctEmail=email;
+  let html=`<div style="font-size:18px;font-weight:800;margin-bottom:8px">Revisá tu mail</div>`;
+  html+=`<div class="text-sm text-mt mb-16">Mandamos un código de 6 dígitos a <strong>${esc(email)}</strong>. Puede tardar un minuto (mirá spam).</div>`;
+  html+=`<input id="acct-code" type="text" inputmode="numeric" maxlength="6" class="input mb-12" placeholder="000000" autocomplete="one-time-code" style="width:100%;box-sizing:border-box;text-align:center;font-family:var(--fm);font-size:24px;letter-spacing:8px">`;
+  html+=`<button class="btn mb-8" onclick="verifyLoginCode(this)">Entrar</button>`;
+  html+=`<button class="btn-out" onclick="openAccountModal()">← Cambiar email</button>`;
+  $("modal-content").innerHTML=html;
+  setTimeout(()=>{$("acct-code")?.focus();},50);
+}
+async function verifyLoginCode(btn){
+  const code=($("acct-code")?.value||'').trim();
+  if(code.length<6){toast('Ingresá el código de 6 dígitos','warning');return;}
+  const sb=getSupabase();if(!sb){toast('Sin conexión','error');return;}
+  if(btn){btn.disabled=true;btn.textContent='Verificando…';}
+  const {error}=await sb.auth.verifyOtp({email:_acctEmail,token:code,type:'email'});
+  if(error){toast('Código incorrecto o vencido','error');if(btn){btn.disabled=false;btn.textContent='Entrar';}return;}
+  closeModal();
+  toast('Sesión iniciada','success');
+  afterLogin();
+}
+async function accountLogout(){
+  const sb=getSupabase();
+  try{await sb.auth.signOut();}catch(e){}
+  save("gym-acct-claimed",false);
+  closeModal();
+  toast('Sesión cerrada','success');
+  rerenderRoutineList();renderAccountCard();
+}
+async function afterLogin(){
+  const link=loadLink();
+  if(link){
+    const sb=getSupabase();if(!sb)return;
+    try{
+      const {error}=await sb.rpc('claim_athlete_account',{p_athlete_id:link.athleteId,p_device_secret:link.deviceSecret});
+      if(error){
+        const msg=error.message||'';
+        toast(msg.includes('already_claimed')?'Ese alumno ya está atado a otra cuenta':'No se pudo atar la cuenta: '+msg,'error');
+        return;
+      }
+      save("gym-acct-claimed",true);
+      if(!load("gym-hist-uploaded",false)) bulkUploadLocalSessions();
+    }catch(e){}
+  } else {
+    restoreFromAccount();
+  }
+  renderAccountCard();
+}
+// En init: si hay sesión de auth y device vinculado pero el claim nunca corrió
+// (login hecho antes de vincular, o claim falló offline), reintentar en silencio.
+async function maybeClaimAccount(){
+  if(load("gym-acct-claimed",false))return;
+  if(!loadLink()||!navigator.onLine)return;
+  const user=await getAuthUser();if(!user)return;
+  afterLogin();
+}
+async function bulkUploadLocalSessions(){
+  if(!loadLink()||!navigator.onLine)return;
+  let ok=0,fail=0;
+  for(const s of sessions){
+    const r=await pushSession(s);
+    if(r)ok++;else fail++;
+  }
+  if(!fail&&sessions.length) save("gym-hist-uploaded",true);
+  if(sessions.length) toast(fail?`Historial: ${ok} subidas, ${fail} fallaron (reintenta luego)`:`Historial respaldado: ${ok} sesiones`,fail?'warning':'success');
+}
+// dayId viaja como texto por el server; los días locales usan id numérico
+// (los extra usan string 'x-...'). Volver al tipo correcto para los lookups.
+function parseDayIdFromServer(v){
+  if(v==null||v==='')return null;
+  const n=Number(v);
+  return Number.isFinite(n)&&String(n)===String(v)?n:v;
+}
+async function restoreFromAccount(){
+  const sb=getSupabase();if(!sb||!navigator.onLine){toast('Sin conexión','error');return;}
+  closeModal();
+  toast('Restaurando…');
+  const secret=genDeviceSecret();
+  const {data,error}=await sb.rpc('register_device_for_account',{p_device_secret:secret,p_label:'restore'});
+  if(error){
+    const msg=error.message||'';
+    toast(msg.includes('no_athlete_for_account')?'Tu cuenta no tiene alumno asociado. Escaneá el QR de tu coach una vez.':'No se pudo restaurar: '+msg,'error');
+    return;
+  }
+  const athleteId=data&&data.athlete_id;
+  if(!athleteId){toast('Respuesta inesperada del server','error');return;}
+  save("gym-link",{athleteId,deviceSecret:secret});
+  save("gym-acct-claimed",true);
+  save("gym-hist-uploaded",true); // el server ya es la fuente: no hay nada local que subir
+  let added=0;
+  try{
+    const {data:sess,error:e2}=await sb.rpc('get_my_sessions');
+    if(!e2&&Array.isArray(sess)){
+      const have=new Set(sessions.map(s=>s.id));
+      sess.forEach(r=>{
+        if(!r||!r.id||have.has(r.id))return;
+        sessions.push({id:r.id,date:r.date,time:r.time||null,dayId:parseDayIdFromServer(r.dayId),
+          exercises:r.exercises||[],accessories:r.accessories||{},mobility:r.mobility||{},
+          metabolic:r.metabolic||{},free:!!r.free,extra:!!r.extra});
+        added++;
+      });
+      sessions.sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
+      save("gym-s",sessions);
+    }
+  }catch(e){}
+  try{
+    const {data:rout}=await sb.rpc('get_active_routine',{p_athlete_id:athleteId,p_device_secret:secret});
+    if(rout){
+      rout._token=null;
+      _pendingImport=rout;
+      applyImportedRoutine('add');
+    }
+  }catch(e){}
+  renderAccountCard();
+  if($("home")&&$("home").classList.contains('active'))renderHome();
+  toast(`Datos restaurados${added?` · ${added} sesiones`:''}`,'success');
+}
+
 async function maybeSyncRoutine(){
   const link=loadLink();if(!link)return;
   const sb=getSupabase();if(!sb||!navigator.onLine)return;
