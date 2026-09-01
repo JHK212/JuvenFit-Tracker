@@ -6931,7 +6931,7 @@ async function openAccountModal(){
     html+=`<button class="btn-out" onclick="closeModal()">Volver</button>`;
   } else {
     html=`<div style="font-size:18px;font-weight:800;margin-bottom:8px">Tu cuenta</div>`;
-    html+=`<div class="text-sm text-mt mb-16">Te mandamos un código de 6 dígitos al mail. Sin contraseñas.</div>`;
+    html+=`<div class="text-sm text-mt mb-16">Te mandamos un código al mail. Sin contraseñas.</div>`;
     html+=`<input id="acct-email" type="email" class="input mb-12" placeholder="tu@email.com" autocomplete="email" style="width:100%;box-sizing:border-box">`;
     html+=`<button class="btn mb-8" onclick="sendLoginCode(this)">Enviarme el código</button>`;
     html+=`<button class="btn-out" onclick="closeModal()">Cancelar</button>`;
@@ -6947,8 +6947,8 @@ async function sendLoginCode(btn){
   if(error){toast('No se pudo enviar: '+(error.message||''),'error');if(btn){btn.disabled=false;btn.textContent='Enviarme el código';}return;}
   _acctEmail=email;
   let html=`<div style="font-size:18px;font-weight:800;margin-bottom:8px">Revisá tu mail</div>`;
-  html+=`<div class="text-sm text-mt mb-16">Mandamos un código de 6 dígitos a <strong>${esc(email)}</strong>. Puede tardar un minuto (mirá spam).</div>`;
-  html+=`<input id="acct-code" type="text" inputmode="numeric" maxlength="6" class="input mb-12" placeholder="000000" autocomplete="one-time-code" style="width:100%;box-sizing:border-box;text-align:center;font-family:var(--fm);font-size:24px;letter-spacing:8px">`;
+  html+=`<div class="text-sm text-mt mb-16">Mandamos un código a <strong>${esc(email)}</strong>. Puede tardar un minuto (mirá spam).</div>`;
+  html+=`<input id="acct-code" type="text" inputmode="numeric" maxlength="10" class="input mb-12" placeholder="········" autocomplete="one-time-code" style="width:100%;box-sizing:border-box;text-align:center;font-family:var(--fm);font-size:24px;letter-spacing:4px">`;
   html+=`<button class="btn mb-8" onclick="verifyLoginCode(this)">Entrar</button>`;
   html+=`<button class="btn-out" onclick="openAccountModal()">← Cambiar email</button>`;
   $("modal-content").innerHTML=html;
@@ -6956,7 +6956,7 @@ async function sendLoginCode(btn){
 }
 async function verifyLoginCode(btn){
   const code=($("acct-code")?.value||'').trim();
-  if(code.length<6){toast('Ingresá el código de 6 dígitos','warning');return;}
+  if(code.length<6){toast('Ingresá el código completo del mail','warning');return;}
   const sb=getSupabase();if(!sb){toast('Sin conexión','error');return;}
   if(btn){btn.disabled=true;btn.textContent='Verificando…';}
   const {error}=await sb.auth.verifyOtp({email:_acctEmail,token:code,type:'email'});
