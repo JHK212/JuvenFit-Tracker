@@ -705,7 +705,7 @@ label.haptic-switch.rpe-btn-min{
   <div class="header reveal r1" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
     <div class="brand">
       <div class="brand-name"><span class="brand-dot"></span>Tracker</div>
-      <div class="brand-meta" id="home-vol"></div>
+      <div class="brand-meta">JuvenFit</div>
     </div>
     <div class="flex gap-8">
       <button id="install-btn" class="icon-btn" onclick="triggerInstallPrompt()" title="Instalar app" aria-label="Instalar app" style="width:38px;height:38px;border-radius:10px;display:none;color:var(--ac);border-color:var(--ac)">
@@ -803,7 +803,7 @@ label.haptic-switch.rpe-btn-min{
         <div class="stat-row">
           <div id="home-streak" class="stat-num yw">0</div>
           <div class="stat-info">
-            <div class="stat-lbl">Racha · días</div>
+            <div class="stat-lbl">Racha · semanas</div>
             <div class="stat-det" id="home-streak-detail"></div>
             <div id="home-streak-bars" style="margin-top:10px"></div>
           </div>
@@ -2627,7 +2627,6 @@ function renderHome(){
   $("home-welcome").style.display="none";$("home-main").style.display="block";
 
   // Header: vol + greeting + fecha mono
-  if($("home-vol")) $("home-vol").textContent=`vol. ${sessions.length}`;
   $("home-greeting").innerHTML=`<b>${homeGreet()}</b>.`;
   const _dn=nowBsAs();
   const _diaShort=['DOM','LUN','MAR','MIE','JUE','VIE','SAB'][_dn.getUTCDay()];
@@ -3355,7 +3354,7 @@ function renderProgress(){
   <div class="sec" style="padding-top:0;padding-bottom:14px">
     <div class="card" style="cursor:default;padding:14px 12px">
       <!-- Row de labels de meses, alineado con grid (padding-left para skip la columna de labels Y) -->
-      <div style="display:flex;gap:2px;margin-bottom:6px;padding-left:18px">
+      <div style="display:flex;gap:2px;margin-bottom:6px">
         ${heat.months.map(m=>{
           const isOpen=_progressMonthExpanded===m.idx;
           // Meses con sesiones · letra blanca off-white para que "salten" sobre los sin training
@@ -3365,8 +3364,7 @@ function renderProgress(){
       </div>
       <!-- Grid del año: col 1 = labels eje Y (L M M J V S D), cols 2+ = días.
            Cada día con grid-row/column específico. Aspect-ratio:1 en cada cell mantiene el cuadrado. -->
-      <div style="display:grid;grid-template-columns:16px repeat(${heat.totalWeeks},1fr);grid-template-rows:repeat(7,1fr);gap:2px">
-        ${['L','M','M','J','V','S','D'].map((l,i)=>`<div style="grid-row:${i+1};grid-column:1;font-size:8.5px;font-weight:700;color:var(--mt2);letter-spacing:0.3px;display:flex;align-items:center;justify-content:flex-end;padding-right:3px">${l}</div>`).join('')}
+      <div style="display:grid;grid-template-columns:repeat(${heat.totalWeeks},minmax(0,1fr));grid-template-rows:repeat(7,minmax(0,1fr));gap:2px;aspect-ratio:${heat.totalWeeks}/7.6">
         ${heat.days.map(d=>{
           const isMonthOpen=_progressMonthExpanded===d.month;
           const bg=d.trained?'var(--gn)':(d.isFuture?'transparent':'var(--bd)');
@@ -3374,7 +3372,7 @@ function renderProgress(){
           // Cuando hay un mes expandido, el resto se atenúa para resaltar el seleccionado
           const monthOpacity=(_progressMonthExpanded!==null && !isMonthOpen)?0.30:1;
           const border=d.isToday?'box-shadow:inset 0 0 0 1.5px var(--yw);':'';
-          return `<div title="${d.date}" style="grid-row:${d.dowIdx+1};grid-column:${d.weekIdx+2};aspect-ratio:1;background:${bg};border-radius:2px;opacity:${opacity*monthOpacity};${border}"></div>`;
+          return `<div title="${d.date}" style="grid-row:${d.dowIdx+1};grid-column:${d.weekIdx+1};background:${bg};border-radius:1.5px;opacity:${opacity*monthOpacity};${border}"></div>`;
         }).join('')}
       </div>
       <!-- Leyenda -->
@@ -7314,8 +7312,9 @@ function doImport(mode){
       theme_color:"#0A0A0B",
       categories:["fitness","health","lifestyle","productivity"],
       icons:[
-        {src:"./shield.png",sizes:"192x192",type:"image/png",purpose:"any"},
-        {src:"./shield.png",sizes:"512x512",type:"image/png",purpose:"any"}
+        {src:"./icon-192.png",sizes:"192x192",type:"image/png",purpose:"any"},
+        {src:"./icon-512.png",sizes:"512x512",type:"image/png",purpose:"any"},
+        {src:"./icon-maskable-512.png",sizes:"512x512",type:"image/png",purpose:"maskable"}
       ]
     };
     const b=new Blob([JSON.stringify(m)],{type:'application/json'});
