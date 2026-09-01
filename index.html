@@ -3350,16 +3350,20 @@ function renderProgress(){
 
   // ── 05 · Heatmap anual ──
   const totalSessYear=heat.days.filter(d=>d.trained).length;
+  // Semana de arranque de cada mes → el label ocupa sus mismas columnas del grid
+  const mStarts=heat.months.map(m=>m.days.length?Math.min(...m.days.map(d=>d.weekIdx)):0);
   html+=`<div class="sec-h"><span class="sec-h-idx">05</span><span class="sec-h-title">Año ${heat.year}</span><span class="sec-h-rule"></span><span style="font-family:var(--fm);font-size:10px;color:var(--mt2);font-weight:500;letter-spacing:0.5px">${totalSessYear} ses</span></div>
   <div class="sec" style="padding-top:0;padding-bottom:14px">
     <div class="card" style="cursor:default;padding:14px 12px">
       <!-- Row de labels de meses, alineado con grid (padding-left para skip la columna de labels Y) -->
-      <div style="display:flex;gap:2px;margin-bottom:6px">
-        ${heat.months.map(m=>{
+      <div style="display:grid;grid-template-columns:repeat(${heat.totalWeeks},minmax(0,1fr));gap:2px;margin-bottom:6px">
+        ${heat.months.map((m,mi)=>{
           const isOpen=_progressMonthExpanded===m.idx;
-          // Meses con sesiones · letra blanca off-white para que "salten" sobre los sin training
+          // Mismo grid de semanas que las celdas → label alineado exacto con su mes
           const txColor=isOpen?'var(--ac)':(m.sessionCount>0?'var(--tx)':'var(--mt2)');
-          return `<div class="b2-press" onclick="toggleProgressMonth(${m.idx})" style="flex:${m.days.length};cursor:pointer;text-align:center;font-size:9.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:${txColor};padding:3px 0;border-radius:4px;min-width:0;${isOpen?'background:rgba(96,165,250,0.10)':''}">${m.name}</div>`;
+          const ws=mStarts[mi];
+          const we=mi+1<heat.months.length?mStarts[mi+1]:heat.totalWeeks;
+          return `<div class="b2-press" onclick="toggleProgressMonth(${m.idx})" style="grid-column:${ws+1}/${we+1};cursor:pointer;text-align:left;font-size:8.5px;font-weight:700;letter-spacing:0.3px;text-transform:uppercase;color:${txColor};padding:3px 1px;border-radius:4px;min-width:0;overflow:hidden;${isOpen?'background:rgba(96,165,250,0.10)':''}">${m.name}</div>`;
         }).join('')}
       </div>
       <!-- Grid del año: col 1 = labels eje Y (L M M J V S D), cols 2+ = días.
