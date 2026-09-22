@@ -2278,7 +2278,72 @@ const EXTRA_DAYS=[
   ]}
 ];
 function isExtraDay(dayId){return EXTRA_DAYS.some(d=>d.id===dayId);}
-function dayById(dayId){return routine.days.find(d=>d.id===dayId)||EXTRA_DAYS.find(d=>d.id===dayId);}
+
+// ══ MODO PLAZA ══
+// Versión sin equipo de un día de rutina: cada ejercicio se sustituye por su
+// equivalente bodyweight (tabla fija). La sesión conserva el dayId real →
+// cuenta para racha/rotación como el día que reemplaza. Determinístico: el
+// draft se reconstruye idéntico tras un reload (ids 'pz-<origId>').
+const PLAZA_SUBS={
+  'sentadilla-barra':'bulgaras',
+  'peso-muerto':'hip-thrust','peso-muerto-mancuernas':'hip-thrust','peso-muerto-rumano':'hip-thrust',
+  'press-banca-plano':'flexiones','press-banca-mancuernas':'flexiones','press-inclinado-mancuernas':'flexiones',
+  'press-inclinado-barra':'flexiones','aperturas-banco-plano':'flexiones','press-militar':'flexiones','press-mancuernas-sentado':'flexiones',
+  'remo-barra':'remo-australiano','remo-mancuerna':'remo-australiano','pajaros':'remo-australiano',
+  'curl-barra':'dominadas','curl-mancuernas':'dominadas','curl-martillo':'dominadas',
+  'extension-triceps':'fondos','rompecraneo':'fondos','press-frances':'fondos','patada-tricep':'fondos'
+};
+const PLAZA_KEEP=new Set(['dominadas','flexiones','fondos','remo-australiano','bulgaras','step-up','hip-thrust','plancha','plancha-lateral','abdominales','leg-raises','gemelos-de-pie']);
+let _plazaCache=null;
+function plazaDayOf(day){
+  if(_plazaCache&&_plazaCache.id===day.id) return _plazaCache.day;
+  const seen=new Set();
+  const mapEx=e=>{
+    const eid=eidOf(e);
+    let out=null;
+    if(PLAZA_KEEP.has(eid)) out={...e};
+    else if(PLAZA_SUBS[eid]){out={...e,exerciseId:PLAZA_SUBS[eid],id:'pz-'+e.id};delete out.customName;delete out.name;delete out.track_mode;}
+    if(!out) return null;
+    const oid=eidOf(out);
+    if(seen.has(oid)) return null;  // dos ejercicios que mapean al mismo sustituto → uno solo
+    seen.add(oid);
+    return out;
+  };
+  const plazaSub=(day.sub?day.sub+' · ':'')+'Plaza';
+  let clone;
+  if(day.blocks&&day.blocks.length){
+    clone={...day,sub:plazaSub,blocks:day.blocks.map(b=>isMobilityBlock(b)?b:({...b,exercises:(b.exercises||[]).map(mapEx).filter(Boolean)}))};
+  } else {
+    clone={...day,sub:plazaSub,exercises:(day.exercises||[]).map(mapEx).filter(Boolean)};
+  }
+  // grupos normales que quedaron singleton tras la sustitución → desagrupar
+  const gc={};
+  getNonMobilityExs(clone).forEach(e=>{if(e.groupId)gc[e.groupId]=(gc[e.groupId]||0)+1;});
+  getNonMobilityExs(clone).forEach(e=>{
+    if(e.groupId&&gc[e.groupId]===1&&!isMetabolicFormat(e.format)){delete e.groupId;delete e.format;delete e.formatConfig;}
+  });
+  _plazaCache={id:day.id,day:clone};
+  return clone;
+}
+function showDayStartSheet(dayId){
+  const day=routine.days.find(d=>d.id===dayId);if(!day)return;
+  let html=`<div style="font-size:18px;font-weight:800;margin-bottom:4px">${esc(day.name)}</div>`;
+  html+=`<div class="text-sm text-mt mb-16">${day.sub?esc(day.sub):'¿Cómo lo hacés hoy?'}</div>`;
+  html+=`<button class="btn mb-8" onclick="closeModal();startWorkout(${JSON.stringify(dayId)})">Empezar entrenamiento</button>`;
+  html+=`<button class="btn-out mb-8" onclick="closeModal();startWorkout(${JSON.stringify(dayId)},null,true)">Versión plaza · sin equipo</button>`;
+  html+=`<button class="btn-out" onclick="closeModal()">Cancelar</button>`;
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
+}
+function dayTap(btn){
+  if(btn._holdFired){btn._holdFired=false;return;}
+  const dayId=parseInt(btn.dataset.day);
+  if(!isNaN(dayId)) showDayStartSheet(dayId);
+}
+function dayById(dayId){
+  const d=routine.days.find(x=>x.id===dayId)||EXTRA_DAYS.find(x=>x.id===dayId);
+  if(d&&curSess&&curSess.plaza&&curSess.dayId===dayId) return plazaDayOf(d);
+  return d;
+}
 function showExtraDayPicker(){
   let html='<div style="font-size:18px;font-weight:800;margin-bottom:8px">Día extra</div><div class="text-sm text-mt mb-18">Entreno adicional — no mueve tu rotación de días.</div>';
   html+=EXTRA_DAYS.map(d=>`<div class="card" onclick="closeModal();startWorkout('${d.id}')" style="cursor:pointer"><div class="row"><div><div style="font-size:16px;font-weight:700">${d.name}</div><div class="text-sm text-mt">${d.exercises.length} ejercicios</div></div><div style="font-size:20px;color:var(--ac)">→</div></div></div>`).join('');
@@ -2608,6 +2673,7 @@ function startHoldCTA(btn,ev){
     btn._holding=false;
     btn.classList.remove('holding');
     if(navigator.vibrate) navigator.vibrate([35,40,70]);
+    btn._holdFired=true;
     const dayId=parseInt(btn.dataset.day);
     if(!isNaN(dayId)) startWorkout(dayId);
   },1000);
@@ -2676,6 +2742,7 @@ function renderHome(){
       <span><b>${meta.sets}</b>sets</span>
     </div>
     <button class="hero-cta" data-day="${sg}"
+      onclick="dayTap(this)"
       onpointerdown="startHoldCTA(this,event)"
       onpointerup="cancelHoldCTA(this)"
       onpointerleave="cancelHoldCTA(this)"
@@ -2721,6 +2788,7 @@ function renderHome(){
       const num=String(idx+1).padStart(2,'0');
       return `
         <div class="day-card" data-day="${d.id}"
+          onclick="dayTap(this)"
           onpointerdown="startHoldCTA(this,event)"
           onpointerup="cancelHoldCTA(this)"
           onpointerleave="cancelHoldCTA(this)"
@@ -2765,7 +2833,7 @@ function renderHome(){
         <div class="last-date">${dateShort}${last.time?' · '+last.time:''}</div>
       </div>
       <div class="last-title">${dayDef?.name||'—'}</div>
-      <div class="last-meta">${last.free?'Entrenamiento libre · sin registro':`${exDone} ejercicio${exDone===1?'':'s'} · ${setsReg} sets registrados`}${dayDef?.sub?` · ${dayDef.sub}`:''}</div>
+      <div class="last-meta">${last.free?'Entrenamiento libre · sin registro':`${exDone} ejercicio${exDone===1?'':'s'} · ${setsReg} sets registrados`}${last.plaza?' · plaza':''}${dayDef?.sub?` · ${dayDef.sub}`:''}</div>
       ${prs.length?`
         <div class="last-pr">
           <div class="last-pr-left">
@@ -3130,7 +3198,7 @@ function progressShowDayDetail(date){
   const day=dayById(sess.dayId);
   const exCount=(sess.exercises||[]).filter(ex=>(ex.sets||[]).some(st=>st.rpe!=null)).length;
   const setCount=(sess.exercises||[]).reduce((s,ex)=>s+(ex.sets||[]).filter(st=>st.rpe!=null).length,0);
-  toast(sess.free?`${relativeDate(date)} · ${day?.name||'?'} · libre`:`${relativeDate(date)} · ${day?.name||'?'} · ${exCount} ej · ${setCount} sets`,'success');
+  toast((sess.free?`${relativeDate(date)} · ${day?.name||'?'} · libre`:`${relativeDate(date)} · ${day?.name||'?'} · ${exCount} ej · ${setCount} sets`)+(sess.plaza?' · plaza':''),'success');
 }
 function renderProgress(){
   const root=$("progress-content");
@@ -3507,13 +3575,16 @@ function renderRoutine(){
 }
 
 // ══ WORKOUT ══
-function startWorkout(dayId,customDate){
+function startWorkout(dayId,customDate,plaza){
   // Unlock AudioContext en el gesto de tap/hold del usuario — habilita beeps del timer end.
   try{ if(typeof _mbEnsureAudio==='function') _mbEnsureAudio(); }catch(e){}
   // Reset state UI por-día — evita bleed entre días/sesiones
   _coreRoundExpanded={};
   cancelSetCountdown(true);
-  const day=dayById(dayId);curDayId=dayId;
+  _plazaCache=null;
+  const realDay=routine.days.find(x=>x.id===dayId)||EXTRA_DAYS.find(x=>x.id===dayId);
+  const day=(plaza&&realDay)?plazaDayOf(realDay):realDay;
+  curDayId=dayId;
   const compounds=getCompounds(day);const accessories=getAccessories(day);
   // Si hay movilidad, arrancar en el tab MOV (curExI=-1); si no, primer compound
   curExI=getMobilityExs(day).length?-1:0;
@@ -3539,6 +3610,11 @@ function startWorkout(dayId,customDate){
     metabolic:{}  // por groupId: {completedAt, totalSecs, format, cfg}
   };
   if(isExtraDay(dayId)) curSess.extra=true;
+  if(plaza){
+    curSess.plaza=true;
+    const omitted=getNonMobilityExs(realDay).length-getNonMobilityExs(day).length;
+    if(omitted>0) setTimeout(()=>toast(`${omitted} ejercicio${omitted===1?'':'s'} sin versión plaza — omitido${omitted===1?'':'s'}`,'warning'),400);
+  }
   // Cualquier timer metabólico colgado de una sesión anterior se descarta al abrir una nueva
   clearMbState();
   saveDraft();showPage('work');renderWork();
@@ -4987,7 +5063,7 @@ function finishWorkout(){
   });
   // Sesión anterior del mismo día (la más reciente, antes de la actual) — para deltas
   const prevSession=[...sessions]
-    .filter(s=>s.dayId===curSess.dayId)
+    .filter(s=>s.dayId===curSess.dayId&&!!s.plaza===!!curSess.plaza)
     .sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||'')))[0];
   // Snapshot inmutable de la sesión actual (vamos a pushear y luego limpiar curSess)
   const sessSnapshot=JSON.parse(JSON.stringify(curSess));
@@ -5765,6 +5841,7 @@ function pickZoneOk(el){return !_pickZone||(el.getAttribute('data-zones')||'').i
 // ejercicio anterior (entrada extra al final de curSess.exercises — renderWork
 // solo indexa las primeras N en paralelo a compounds, el historial las lee todas).
 function openSwapPicker(ci){
+  if(curSess&&curSess.plaza){toast('Cambiar ejercicio no está disponible en versión plaza','warning');return;}
   const day=dayById(curDayId);
   const cur=getCompounds(day)[ci];if(!cur)return;
   _pickZone=null;
@@ -6853,7 +6930,7 @@ async function pushSession(sess){
     routineId:(active&&active.sourceRoutineId)||null,
     exercises:sess.exercises||[],accessories:sess.accessories||{},
     mobility:sess.mobility||{},metabolic:sess.metabolic||{},
-    free:!!sess.free,extra:!!sess.extra
+    free:!!sess.free,extra:!!sess.extra,plaza:!!sess.plaza
   };
   try{
     const {error}=await sb.rpc('push_session',{p_athlete_id:link.athleteId,p_device_secret:link.deviceSecret,p_session:payload});
@@ -7044,7 +7121,7 @@ async function restoreFromAccount(){
         if(!r||!r.id||have.has(r.id))return;
         sessions.push({id:r.id,date:r.date,time:r.time||null,dayId:parseDayIdFromServer(r.dayId),
           exercises:r.exercises||[],accessories:r.accessories||{},mobility:r.mobility||{},
-          metabolic:r.metabolic||{},free:!!r.free,extra:!!r.extra});
+          metabolic:r.metabolic||{},free:!!r.free,extra:!!r.extra,plaza:!!r.plaza});
         added++;
       });
       sessions.sort((a,b)=>(a.date+(a.time||'')).localeCompare(b.date+(b.time||'')));
@@ -7231,7 +7308,7 @@ function saveEditItemsTemp(ex){
 function renderDelHist(){
   selectedDel=new Set();const sorted=[...sessions].sort((a,b)=>{const ka=a.date+(a.time||'');const kb=b.date+(b.time||'');return kb.localeCompare(ka);});
   if(!sorted.length){$("del-list").innerHTML='<div class="text-sm text-mt">No hay sesiones.</div>';$("del-btn").style.display="none";return;}
-  $("del-list").innerHTML=sorted.map(s=>{const dayDef=dayById(s.dayId);const timeStr=s.time?` · ${s.time}`:'';return`<div class="card" onclick="toggleDel('${s.id}')" style="display:flex;align-items:flex-start;gap:14px;cursor:pointer"><div class="del-check" id="chk-${s.id}"></div><div style="flex:1"><div class="fw-700" style="font-size:14px">${fd(s.date)}${timeStr} — ${dayDef?.name||'?'}${s.free?' · libre':''}</div></div></div>`;}).join('');
+  $("del-list").innerHTML=sorted.map(s=>{const dayDef=dayById(s.dayId);const timeStr=s.time?` · ${s.time}`:'';return`<div class="card" onclick="toggleDel('${s.id}')" style="display:flex;align-items:flex-start;gap:14px;cursor:pointer"><div class="del-check" id="chk-${s.id}"></div><div style="flex:1"><div class="fw-700" style="font-size:14px">${fd(s.date)}${timeStr} — ${dayDef?.name||'?'}${s.free?' · libre':''}${s.plaza?' · plaza':''}</div></div></div>`;}).join('');
   updateDelBtn();
 }
 function toggleDel(id){if(selectedDel.has(id)){selectedDel.delete(id);$("chk-"+id).classList.remove('checked');$("chk-"+id).innerHTML='';}else{selectedDel.add(id);$("chk-"+id).classList.add('checked');$("chk-"+id).innerHTML='✕';}updateDelBtn();}
