@@ -3921,7 +3921,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     ${exImgThumbHTML(eid,52,true)}
     <div style="flex:1;min-width:0">
       <div style="font-size:22px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;line-height:1.1">${esc(getExName(ex))}</div>
-      ${headerMetaLine?`<div style="font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:8px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase">${headerMetaLine}</div>`:''}
+      ${headerMetaLine?`<div onclick="openTimeEdit(${ci})" style="font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:8px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer">${headerMetaLine}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;vertical-align:-1px;color:var(--ac)"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>`:''}
       ${ex.objective?`<div style="font-size:12.5px;color:var(--tx);margin-top:6px;font-weight:500;line-height:1.4">${esc(ex.objective)}</div>`:''}
     </div>
     <button class="icon-btn" onclick="openSwapPicker(${ci})" title="Cambiar ejercicio" aria-label="Cambiar ejercicio" style="width:36px;height:36px;font-size:14px;flex-shrink:0;align-self:flex-start;margin-top:-2px;border-radius:8px">
@@ -4304,7 +4304,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
             <button class="grp-active-ex-info" onclick="openSwapPicker(${ci})" aria-label="Cambiar ejercicio"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4"/><path d="M7 4L3 8"/><path d="M7 4l4 4"/><path d="M17 8v12"/><path d="M17 20l4-4"/><path d="M17 20l-4-4"/></svg></button>
             <button class="grp-active-ex-info" onclick="showExHistoryModal('${eidOf(ex)}')" aria-label="Ver historial"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg></button>
           </div>
-          ${metaLine?`<div class="grp-active-ex-meta">${metaLine}</div>`:''}
+          ${metaLine?`<div class="grp-active-ex-meta" onclick="openTimeEdit(${ci})" style="cursor:pointer">${metaLine}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;vertical-align:-1px;color:var(--ac)"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>`:''}
           ${renderSetCardHTML(s,si,sets,ex,mode,{ci,allowAddRemove:false,groupedBento:true})}
         </div>`;
       });
@@ -5879,6 +5879,44 @@ function confirmSwapExercise(ci,newExId){
     danger:false,
     onConfirm:()=>swapExercise(ci,newExId)
   });
+}
+// Edita descanso/duración desde el workout y lo persiste en la rutina. En plaza o
+// grupos el ex de la vista puede ser un clon: se escribe en ambos por id.
+function openTimeEdit(ci){
+  const ex=getCompounds(dayById(curDayId))[ci];if(!ex||!curSess) return;
+  const mode=getTrackMode(ex);
+  let html=`<div style="font-size:18px;font-weight:800;margin-bottom:4px">Tiempos</div>`;
+  html+=`<div class="text-sm text-mt mb-12">${esc(getExName(ex))} · queda guardado en tu rutina.</div>`;
+  if(mode==='time'){
+    html+=`<div class="text-xs text-mt mono mb-4">DURACIÓN (SEGUNDOS)</div>`;
+    html+=`<input id="te-dur" type="number" inputmode="numeric" min="1" class="input-mono" value="${repsAsNumber(ex.reps)||30}" style="font-size:28px;margin-bottom:16px">`;
+  }
+  html+=`<div class="text-xs text-mt mono mb-4">DESCANSO (SEGUNDOS)${ex.groupId?' · TODO EL GRUPO':''}</div>`;
+  html+=`<input id="te-rest" type="number" inputmode="numeric" min="0" class="input-mono" value="${restAsSeconds(ex.rest)}" style="font-size:28px;margin-bottom:16px">`;
+  html+=`<button class="btn mb-12" onclick="applyTimeEdit(${ci})">Guardar</button>`;
+  html+=`<button class="btn-out" onclick="closeModal()">Cancelar</button>`;
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
+}
+function applyTimeEdit(ci){
+  const compounds=getCompounds(dayById(curDayId));
+  const ex=compounds[ci];if(!ex||!curSess){closeModal();return;}
+  const rest=parseInt($("te-rest").value);
+  if(isNaN(rest)||rest<0){toast('Descanso inválido','warning');return;}
+  const durEl=$("te-dur");
+  const dur=durEl?parseInt(durEl.value):null;
+  if(durEl&&(isNaN(dur)||dur<1)){toast('Duración inválida','warning');return;}
+  const realDay=routine.days.find(d=>d.id===curDayId)||EXTRA_DAYS.find(d=>d.id===curDayId);
+  const realExs=realDay?getDayExercises(realDay):[];
+  const both=e=>[e,realExs.find(x=>x.id===e.id)].filter(Boolean);
+  const members=ex.groupId?compounds.filter(e=>e.groupId===ex.groupId):[ex];
+  members.forEach(m=>both(m).forEach(t=>{t.rest=rest;}));
+  if(dur){
+    both(ex).forEach(t=>{t.reps=`${dur} segs`;});
+    (curSess.exercises[ci]?.sets||[]).forEach(st=>{if(st.rpe==null) st.r=dur;});
+  }
+  if(!isExtraDay(curDayId)) saveRoutine();
+  saveDraft();closeModal();renderWork();
+  toast('Tiempos guardados en la rutina','success');
 }
 function swapExercise(ci,newExId){
   const day=dayById(curDayId);
