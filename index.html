@@ -47,6 +47,7 @@ button{touch-action:manipulation;user-select:none;-webkit-user-select:none;color
   --yw-deep:#A85838;
   --yw-dark:#160B04;        /* texto sobre bloque naranja */
   --dn:#E36A6A;             /* danger */
+  --rir-4:#86C86A;--rir-3:#C2A44E;--rir-1:#DE6F55; /* celdas RIR intermedias (5+ gn · 2 yw · 0 dn) */
   /* radios estandarizados */
   --r-chip:6px;
   --r-btn-sm:10px;
@@ -124,7 +125,8 @@ input:focus,textarea:focus{border-color:rgba(96,165,250,0.4)!important;box-shado
 .ex-tabs{display:flex;gap:6px;padding:14px 22px 0;overflow-x:auto;}
 .wk-vp{overflow:hidden;touch-action:pan-y;}
 /* Barra de ejercicios fija bajo el header sticky del workout (--wk-head-h lo mide fitWorkHead) */
-#work-tabs{position:sticky;top:var(--wk-head-h,0px);z-index:9;background:var(--bg);padding-bottom:10px;}
+#work-tabs{position:sticky;top:var(--wk-head-h,0px);z-index:9;background:var(--bg);display:flex;gap:6px;overflow-x:auto;padding:2px 18px 10px;scrollbar-width:none;}
+#work-tabs::-webkit-scrollbar{display:none;}
 /* Sin rebote elástico vertical en el workout: un swipe horizontal que arranca durante el rebote
    se mezcla con el scroll vertical que iOS ya tomó (preventDefault ignorado) y se ve un tirón. */
 html.in-work,html.in-work body{overscroll-behavior-y:none;}
@@ -318,13 +320,6 @@ body.modal-open .page{overflow:hidden;}
 
 
 /* ─── Tip del set anterior (colapsable arriba del set siguiente) ─── */
-.prev-tip{background:rgba(96,165,250,0.04);border:1px dashed rgba(96,165,250,0.30);border-radius:12px;padding:10px 14px;margin-bottom:14px;cursor:pointer;transition:background 110ms ease;}
-.prev-tip:hover{background:rgba(96,165,250,0.08);}
-.prev-tip-header{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--ac);}
-.prev-tip-body{font-size:13px;color:var(--tx);line-height:1.45;margin-top:8px;display:none;}
-.prev-tip.open .prev-tip-body{display:block;}
-.prev-tip-chev{margin-left:auto;font-size:10px;transition:transform 110ms ease;}
-.prev-tip.open .prev-tip-chev{transform:rotate(180deg);}
 
 /* Quitar el marker default de <details> en notas (Safari incluido) */
 details summary{list-style:none;}
@@ -686,13 +681,6 @@ label.haptic-switch.rpe-btn-min{
 .grp-rec-text{font-size:12.5px;color:var(--tx);line-height:1.45;font-weight:500;}
 
 /* Workout single · info colapsable (tip del coach + última sesión) */
-.wkt-info-row{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
-.wkt-info{background:transparent;border:1px solid var(--bd);border-radius:10px;}
-.wkt-info summary{padding:10px 14px;font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;}
-.wkt-info summary::after{content:"+";font-family:var(--fs);font-size:14px;font-weight:500;color:var(--mt);}
-.wkt-info[open] summary::after{content:"−";}
-.wkt-info[open] summary{color:var(--tx);border-bottom:1px solid var(--bd);}
-.wkt-info-body{padding:12px 14px;font-size:13px;color:var(--tx);line-height:1.5;font-weight:500;white-space:pre-wrap;}
 
 /* ─── Workout header editorial ─── */
 .work-header-new{
@@ -719,6 +707,111 @@ label.haptic-switch.rpe-btn-min{
 .work-sub-new{font-family:var(--fs);font-size:12px;color:var(--mt);margin-top:4px;font-weight:500;letter-spacing:0.1px;position:relative;}
 .work-ref{font-family:var(--fm);font-size:9.5px;color:var(--mt2);font-weight:500;letter-spacing:1.5px;text-transform:uppercase;margin-top:8px;display:flex;gap:12px;align-items:center;}
 .work-ref-sep{flex:1;height:1px;background:var(--bd);}
+/* ══ Entreno guiado (rediseño) · handoff Claude Design v3 ══ */
+#work{position:relative;}
+#work-content{position:relative;z-index:1;}
+.wk-head{display:flex;align-items:center;gap:12px;padding:14px 18px 10px;padding-top:calc(14px + env(safe-area-inset-top));background:var(--bg);}
+.wk-hbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--bd);background:var(--sf);color:var(--mt);display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer;}
+.wk-htitle{flex:1;display:flex;align-items:baseline;gap:10px;min-width:0;}
+.wk-hday{font-family:var(--fd);font-size:16px;font-weight:800;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wk-helapsed{font-family:var(--fm);font-size:12px;color:var(--mt);font-variant-numeric:tabular-nums;flex:none;}
+.wk-hq{width:32px;height:32px;border-radius:50%;border:1px solid var(--bd-hi);background:none;font-family:var(--fm);font-size:12px;font-weight:700;color:var(--mt);flex:none;cursor:pointer;padding:0;}
+.wk-hfin{height:32px;padding:0 12px;border-radius:9px;border:1px solid var(--bd-hi);background:none;font-family:var(--fm);font-size:10.5px;font-weight:700;letter-spacing:1px;color:var(--mt);flex:none;cursor:pointer;}
+/* Resplandor que late detrás del panel activo · solo con serie en curso (body.wk-live, sin descanso) */
+.wk-glow{position:absolute;left:0;right:0;top:70px;height:460px;background:radial-gradient(ellipse 90% 55% at 50% 45%,rgba(215,121,62,.34),transparent 70%);pointer-events:none;opacity:0;transition:opacity .6s ease;z-index:0;}
+body.wk-live .wk-glow{animation:wkBreathe 4s ease-in-out infinite;}
+@keyframes wkBreathe{0%,100%{opacity:.3;transform:scale(1);}50%{opacity:.65;transform:scale(1.1);}}
+/* Tira de ejercicios */
+.wk-tb{flex:none;width:58px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 0 6px;border-radius:13px;background:var(--sf);border:1.5px solid var(--bd);cursor:pointer;transition:background .2s,border-color .2s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;color:inherit;}
+.wk-tb.on{background:var(--cd-hi);border-color:var(--yw);}
+.wk-tb-tile{width:36px;height:36px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+.wk-tb-tile img{width:32px;height:32px;object-fit:contain;filter:invert(1);mix-blend-mode:screen;opacity:.7;pointer-events:none;}
+.wk-tb.on .wk-tb-tile img{opacity:.95;}
+.wk-tb.done .wk-tb-tile img{opacity:.45;}
+.wk-tb-tag{font-family:var(--fm);font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--mt2);}
+.wk-tb-bi{position:absolute;right:1px;bottom:1px;font-family:var(--fm);font-size:7.5px;font-weight:800;color:var(--yw-dark);background:var(--yw);padding:1px 3px;border-radius:3px;}
+.wk-tb-lbl{font-family:var(--fm);font-size:9.5px;font-weight:700;color:var(--mt2);}
+.wk-tb.on .wk-tb-lbl{color:var(--tx);}
+.wk-tb.done .wk-tb-lbl{color:var(--gn);}
+/* Panel de ejercicio */
+.wk-pic{position:relative;height:112px;border-radius:18px;background:var(--sf);border:1px solid var(--bd);overflow:hidden;cursor:pointer;}
+.wk-pic img{position:absolute;inset:0;margin:auto;height:98px;max-width:88%;object-fit:contain;filter:invert(1);mix-blend-mode:screen;pointer-events:none;}
+.wk-pic .f0{opacity:.85;}.wk-pic .f1{opacity:0;}
+body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-pic .f0{animation:wkF0 3s ease-in-out infinite;}
+body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-pic .f1{animation:wkF1 3s ease-in-out infinite;}
+@keyframes wkF0{0%,38%{opacity:1;}50%,88%{opacity:0;}100%{opacity:1;}}
+@keyframes wkF1{0%,38%{opacity:0;}50%,88%{opacity:1;}100%{opacity:0;}}
+.wk-name{font-family:var(--fd);font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1;font-variation-settings:'wdth' 84;margin-top:12px;}
+.wk-data{display:flex;align-items:baseline;flex-wrap:wrap;margin-top:10px;cursor:pointer;}
+.wk-data>span{display:flex;align-items:baseline;gap:5px;padding:0 12px;border-right:1px solid var(--bd-hi);white-space:nowrap;}
+.wk-data>span:first-child{padding-left:0;}
+.wk-data>span:last-child{border-right:none;}
+.wk-data b{font-family:var(--fd);font-size:22px;font-weight:800;letter-spacing:-.6px;font-variation-settings:'wdth' 84;}
+.wk-data i{font-style:normal;font-family:var(--fm);font-size:10px;color:var(--mt);letter-spacing:.5px;}
+.wk-sub{font-family:var(--fm);font-size:10.5px;color:var(--ac);margin-top:4px;}
+.wk-cue{font-size:12.5px;color:var(--mt);margin-top:6px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer;}
+.wk-cue.open{display:block;}
+/* Tarjeta de la serie */
+.wk-card{position:relative;margin-top:12px;background:var(--cd);border:1px solid var(--bd);border-radius:22px;box-shadow:0 8px 24px -12px rgba(0,0,0,.6);}
+.wk-card.edit{border-color:rgba(91,157,248,.55);}
+.wk-card-breathe{position:absolute;inset:-1px;border-radius:22px;border:1.5px solid var(--yw);pointer-events:none;opacity:0;}
+body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-card-breathe{animation:wkBorder 2.4s ease-in-out infinite;}
+@keyframes wkBorder{0%,100%{opacity:.25;}50%{opacity:.9;}}
+.wk-card-h{display:flex;align-items:center;gap:8px;padding:14px 16px 2px;}
+.wk-card-h .dot{width:7px;height:7px;border-radius:50%;background:var(--yw);flex:none;}
+.wk-card-h .lbl{flex:1;font-family:var(--fm);font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:var(--yw);}
+.wk-card.edit .wk-card-h .dot{background:var(--ac);}
+.wk-card.edit .wk-card-h .lbl{color:var(--ac);}
+.wk-exit{font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1px;color:var(--ac);padding:4px 9px;border:1px solid rgba(91,157,248,.45);border-radius:7px;background:none;cursor:pointer;white-space:nowrap;flex:none;}
+.wk-row{display:flex;align-items:center;gap:8px;padding:8px 12px;}
+.wk-pm{width:48px;height:48px;border-radius:13px;background:var(--cd-hi);border:1px solid var(--bd-hi);color:var(--tx);font-size:22px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--fs);transition:transform .1s;padding:0;}
+.wk-pm:active,.wk-pm.is-pressing{transform:scale(.92);}
+.wk-val{flex:1;text-align:center;cursor:pointer;min-width:0;}
+.wk-num{font-family:var(--fd);font-size:54px;font-weight:800;letter-spacing:-2.4px;line-height:.9;font-variation-settings:'wdth' 80;font-variant-numeric:tabular-nums;display:inline-block;}
+.wk-num.pop{animation:wkPop 280ms ease;}
+@keyframes wkPop{0%{transform:scale(.84);opacity:.4;}60%{transform:scale(1.05);}100%{transform:none;opacity:1;}}
+.wk-unit{display:flex;justify-content:center;gap:6px;align-items:center;margin-top:4px;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.5px;color:var(--mt2);}
+.wk-div{height:1px;background:var(--bd);margin:0 12px;}
+.wk-rir{padding:12px 14px 14px;}
+.wk-rir-q{text-align:center;font-size:12.5px;font-weight:700;margin-bottom:9px;}
+.wk-cells{display:flex;gap:6px;}
+.wk-cell{flex:1;height:50px;border-radius:12px;border:none;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:20px;font-weight:800;letter-spacing:-1px;color:var(--bg);cursor:pointer;transition:transform .18s ease,opacity .18s ease;padding:0;}
+.wk-cells.has .wk-cell{opacity:.25;}
+.wk-cells.has .wk-cell.sel{opacity:1;transform:scale(1.08) translateY(-3px);box-shadow:0 0 0 3px var(--tx);}
+.wk-ends{display:flex;justify-content:space-between;margin-top:6px;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.2px;color:var(--mt);}
+.wk-cap{text-align:center;margin-top:9px;font-size:12.5px;min-height:18px;color:var(--mt);font-weight:500;}
+.wk-cap.set{color:var(--tx);font-weight:700;}
+.wk-hold{height:2px;background:var(--bd);border-radius:1px;margin-top:8px;overflow:hidden;}
+.wk-hold i{display:block;height:100%;background:var(--ac);transform-origin:left;transform:scaleX(0);animation:wkHold 2s linear forwards;}
+@keyframes wkHold{to{transform:scaleX(1);}}
+.wk-hold-t{text-align:center;margin-top:6px;font-size:11.5px;color:var(--mt);}
+/* Series hechas (chips) */
+.wk-chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 2px 0;}
+.wk-chip{display:flex;align-items:center;gap:6px;padding:5px 9px;border-radius:8px;background:var(--sf);border:1px solid var(--bd);font-family:var(--fm);font-size:11px;color:var(--mt);cursor:pointer;transition:background .2s,border-color .2s;}
+.wk-chip .d{width:6px;height:6px;border-radius:50%;flex:none;}
+.wk-chip svg{stroke:var(--mt2);}
+.wk-chip.on{background:rgba(91,157,248,.14);border-color:var(--ac);color:var(--tx);}
+.wk-chip.on svg{stroke:var(--ac);}
+/* Ejercicio completo */
+.wk-done-h{display:flex;align-items:center;gap:10px;margin:16px 4px 10px;}
+.wk-done-h .ck{width:22px;height:22px;border-radius:50%;background:var(--gn);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex:none;}
+.wk-done-h .t{font-family:var(--fm);font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:var(--gn);}
+.wk-list{background:var(--cd);border:1px solid var(--bd);border-radius:20px;overflow:hidden;}
+.wk-li{width:100%;display:flex;align-items:center;gap:14px;padding:12px 16px;border:none;border-bottom:1px solid var(--bd);background:none;color:var(--tx);text-align:left;cursor:pointer;}
+.wk-li .n{font-family:var(--fm);font-size:10.5px;font-weight:700;color:var(--mt2);width:24px;flex:none;}
+.wk-li .v{flex:1;font-family:var(--fd);font-size:21px;font-weight:800;letter-spacing:-.5px;}
+.wk-li .r{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:10.5px;color:var(--mt);}
+.wk-li .r i{width:8px;height:8px;border-radius:50%;}
+.wk-extra{display:block;width:100%;padding:12px 16px;border:none;background:none;font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:1px;color:var(--mt);text-align:left;cursor:pointer;}
+.wk-cta{display:flex;align-items:center;justify-content:center;width:100%;margin-top:14px;height:60px;border-radius:18px;border:none;background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);color:var(--yw-dark);font-family:var(--fs);font-size:15px;font-weight:800;cursor:pointer;}
+/* Descanso flotante (reemplaza la barra pegada abajo) */
+.timer-bar{left:50%;right:auto;transform:translateX(-50%);width:calc(min(100vw,480px) - 24px);bottom:calc(14px + env(safe-area-inset-bottom));border-radius:20px;background:var(--sf);border:1px solid var(--bd-hi);box-shadow:0 -10px 30px -10px rgba(0,0,0,.8);padding:14px 14px 14px 18px;gap:14px;align-items:center;}
+.timer-bar.show{animation:wkSheetUp .3s cubic-bezier(.2,.8,.2,1) both;}
+@keyframes wkSheetUp{from{transform:translate(-50%,120%);}to{transform:translate(-50%,0);}}
+.timer-bar .timer-num{font-size:30px;min-width:74px;}
+.timer-bar .timer-fill{width:100%;transform-origin:left;transform:scaleX(0);transition:transform .2s linear;}
+.timer-bar.ended .timer-fill{transform:scaleX(1);}
+.wk-tbtn{height:36px;min-width:36px;padding:0 10px;border-radius:9px;border:1px solid var(--bd-hi);background:none;color:var(--tx);font-family:var(--fm);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
 </style>
 </head>
 <body>
@@ -880,28 +973,19 @@ label.haptic-switch.rpe-btn-min{
 
 <!-- ══ WORKOUT ══ -->
 <div id="work" class="page">
-  <!-- Header de workout · editorial sport · ghost number lateral + REF mono -->
-  <div class="work-header-new">
-    <div class="work-top-row">
-      <button class="work-back" onclick="confirmExit()" aria-label="Salir">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-      </button>
-      <div class="work-tag"><span class="b2-pulse-dot"></span>EN ENTRENAMIENTO</div>
-      <button class="work-finish" onclick="confirmFinishWorkout()" aria-label="Finalizar entrenamiento">Finalizar</button>
-    </div>
-    <div class="work-name-stage">
-      <div class="work-ghost-mini" id="work-ghost">—</div>
-      <div id="work-day" class="work-name-new"></div>
-      <div id="work-sub" class="work-sub-new"></div>
-    </div>
-    <div class="work-ref"><span id="work-ref-label">—</span><span class="work-ref-sep"></span><span id="work-ref-day">D—/—</span></div>
+  <div class="work-header-new wk-head">
+    <button class="wk-hbtn" onclick="confirmExit()" aria-label="Salir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="wk-htitle"><span id="work-day" class="wk-hday"></span><span id="wk-elapsed" class="wk-helapsed"></span></div>
+    <button class="wk-hq" onclick="openRirHelp()" aria-label="Qué es RIR">?</button>
+    <button class="wk-hfin" onclick="confirmFinishWorkout()">TERMINAR</button>
   </div>
+  <div class="wk-glow"></div>
   <div id="work-content"></div>
   <div id="timer" class="timer-bar">
-    <div style="flex:1"><div id="timer-label" class="timer-label-new">DESCANSO</div><div class="timer-track"><div id="timer-fill" class="timer-fill" style="width:0%"></div></div></div>
+    <div style="flex:1"><div id="timer-label" class="timer-label-new">DESCANSO</div><div class="timer-track"><div id="timer-fill" class="timer-fill"></div></div></div>
     <div id="timer-num" class="timer-num" onclick="tapTimerNum()">0:00</div>
-    <button class="icon-btn" onclick="if(timerTotal)startTimer(timerTotal)" style="width:36px;height:36px;font-size:14px;border-radius:8px">↻</button>
-    <button class="icon-btn" onclick="stopTimer()" style="width:36px;height:36px;font-size:13px;border-radius:8px">✕</button>
+    <button class="wk-tbtn" onclick="addRest(15)">+15</button>
+    <button class="wk-tbtn" onclick="stopTimer()" aria-label="Cerrar descanso"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
   <div id="exit-modal" class="modal-overlay" onclick="closeExitModal()">
     <div class="modal" onclick="event.stopPropagation()">
@@ -1687,14 +1771,13 @@ const SYNC_WRITES=location.hostname==='jhk212.github.io';
 let curWorkSetEdit=null,_lastCurExI=null;
 // Fase 4 · auto-paso post-RIR + bottom sheet info ejercicio
 let _workCountdown=null;        // {ci, si, rec, t} · ventana de 2s post-RIR para corregir
-let _lastSetTip=null;            // {ci, si, rec} para el "Tip del set anterior" colapsable
 // Carrusel del workout: todos los stops (MOV · units · ACC) lado a lado en una fila movida con
 // transform (swipe propio, no scroll nativo: el scroll-snap de iOS tiene inercia no controlable,
 // se come el primer tap post-swipe y a veces no encuadra).
 // _wkSig = firma de los stops dibujados; si no cambia, renderWork redibuja solo tabs + panel activo.
 // _wkDirty: paneles a redibujar cuando no haya gesto ni animación en curso.
 let _wkSig=null,_wkStops=[],_wkRO=null,_wkLiveK=null,_wkK=0,_wkDrag=null,_wkSwallow=false,_wkAnimT=null;
-let _wkDirty=new Set(),_wkFlushT=null,_wkPending=null,_wkAnimDone=null;
+let _wkDirty=new Set(),_wkFlushT=null,_wkPending=null,_wkAnimDone=null,_wkElapsedT=null;
 const WK_ANIM_MS=320;
 const WK_EASE='cubic-bezier(.22,.61,.36,1)';
 let _infoSheetTab='coach';       // tab activa del bottom sheet
@@ -3700,7 +3783,7 @@ function startWorkout(dayId,customDate,plaza){
   // time=null solo si la sesión es retroactiva (fecha pasada). Si es hoy, registrar la hora.
   const sessDate=customDate||td();
   const sessTime=sessDate===td()?nowTime():null;
-  curSess={id:uid(),date:sessDate,time:sessTime,dayId,
+  curSess={id:uid(),date:sessDate,time:sessTime,dayId,startedAt:Date.now(),
     exercises:compounds.map(e=>{
       const mode=getTrackMode(e);
       const eid=eidOf(e);
@@ -3735,82 +3818,7 @@ function startWorkout(dayId,customDate,plaza){
 function renderSetCardHTML(s,si,sets,ex,mode,opts){
   const ci=opts.ci;
   const allowAddRemove=opts.allowAddRemove!==false;
-  const focused=!!opts.focused;
   const isLast=si===sets.length-1;
-
-  // ════════════════════════════════════════════════════════════════
-  // FOCUSED MODE · diseño minimalista SIN CAJA (Fase 4.2)
-  // Sin border, sin background, sin glow externo. Sólo dot pulsante,
-  // números gigantes centrados, dividers internos, RPE segmented sin emojis.
-  // ════════════════════════════════════════════════════════════════
-  if(focused){
-    const isEditMode = curWorkSetEdit !== null;
-    let html='';
-    // Header solo si NO se está wrapeando desde afuera (grp-round-active ya tiene su propio header)
-    if(!opts.skipHeader){
-      const dotColor = isEditMode ? 'var(--ac)' : 'var(--yw)';
-      const labelText = isEditMode ? `Editando serie ${si+1}` : `Serie ${si+1} en curso`;
-      html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:22px;padding:0 4px">
-        <span class="b2-pulse-dot" style="background:${dotColor}"></span>
-        <span style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:${dotColor};flex:1">${labelText}</span>
-        ${isEditMode?`<button onclick="curWorkSetEdit=null;renderWork()" style="background:var(--cd);border:1px solid var(--ac);color:var(--ac);font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;padding:6px 12px;border-radius:8px;display:inline-flex;align-items:center;gap:5px">Salir <span style="font-size:11px;line-height:1">✕</span></button>`:''}
-      </div>`;
-    }
-
-    // Campos numéricos centrados, sin caja. Los steppers +/− ahora son <label> con
-    // checkbox switch invisible adentro · disparan haptic nativo iOS al tap real del usuario.
-    if(mode==='weight'){
-      html+=`<div style="display:flex;justify-content:center;gap:36px;margin:8px 0 24px;flex-wrap:wrap">
-        <div style="text-align:center">
-          <div style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Peso</div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjW(${si},-2.5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
-            <div id="val-w-${ci}-${si}" class="mono fw-700" style="font-size:34px;min-width:70px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1" onclick="typeVal(${si},'w',null,${ci})">${s.w}</div>
-            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjW(${si},2.5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">+</label>
-          </div>
-          <div style="font-family:var(--fm);font-size:10px;color:var(--mt2);margin-top:8px;font-weight:500;letter-spacing:1px">KG</div>
-        </div>
-        <div style="text-align:center">
-          <div style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Reps</div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},-1,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
-            <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:34px;min-width:50px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
-            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},1,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">+</label>
-          </div>
-        </div>
-      </div>`;
-    } else if(mode==='reps'){
-      html+=`<div style="display:flex;justify-content:center;margin:8px 0 24px">
-        <div style="text-align:center">
-          <div style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Repeticiones</div>
-          <div style="display:flex;align-items:center;gap:16px">
-            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},-1,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
-            <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:52px;min-width:100px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1.8px;line-height:1" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
-            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},1,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">+</label>
-          </div>
-        </div>
-      </div>`;
-    } else if(mode==='time'){
-      html+=`<div style="display:flex;justify-content:center;margin:8px 0 24px">
-        <div style="text-align:center">
-          <div style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:10px">Tiempo</div>
-          <div style="display:flex;align-items:center;gap:16px">
-            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},-5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">−</label>
-            <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:52px;min-width:120px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1.8px;line-height:1" onclick="typeVal(${si},'r','Tiempo (segs)',${ci})">${s.r}</div>
-            <label tabindex="-1" class="w-btn haptic-switch" onclick="event.stopPropagation();adjR(${si},5,${ci})"><input type="checkbox" switch tabindex="-1" aria-hidden="true">+</label>
-          </div>
-          <div style="font-family:var(--fm);font-size:10px;color:var(--mt2);margin-top:8px;font-weight:500;letter-spacing:1px">SEGS</div>
-        </div>
-      </div>`;
-    }
-
-    // Divider horizontal sutil + RPE segmented control SIN emojis
-    html+=`<div style="height:1px;background:var(--bd);margin:0 4px 18px"></div>`;
-    html+=`<div style="padding:0 4px">${rirBarHTML(s,si,ci,mode)}</div>`;
-    // (Sin rec inline en focused — la rec va a la countdown card del estado C)
-
-    return html;
-  }
 
   // ════════════════════════════════════════════════════════════════
   // GROUPED BENTO (biserie/triserie) · visual Bento Tri pero apilando
@@ -3944,185 +3952,134 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   const sessNote=curSess.exercises[ci]?.note||'';
   const mode=getTrackMode(ex);
   const eid=eidOf(ex);
-  const pr=prOf(eid,mode);
-  // Identificar set "current": curWorkSetEdit si fue forzado, sino primer set sin RIR.
-  let currentSi=-1;
-  if(curWorkSetEdit!==null&&curWorkSetEdit>=0&&curWorkSetEdit<sets.length){
-    currentSi=curWorkSetEdit;
-  } else {
-    currentSi=sets.findIndex(s=>s.rpe===null);
-  }
-  const isCountdownActive = _workCountdown && _workCountdown.ci===ci;
-  if(isCountdownActive) currentSi=_workCountdown.si;
-
-  // HEADER del ejercicio · 3 líneas:
-  //   1. Nombre del ejercicio (17px)
-  //   2. Target de la rutina (sets×reps o segs) — pedido del usuario
-  //   3. PR actual (sin "N sesiones" — el usuario lo sacó)
-  // + botón 📈 a la derecha que va directo al historial.
-  const prevSessRec=lastSessionRec(eid,mode);
-  const setsRepsTarget=formatSetsReps(ex);
-  // Descanso entre series (de la rutina) — formato compacto: "90s" o "2m 30s" o "3 min"
+  const editing=curWorkSetEdit!==null&&curWorkSetEdit>=0&&curWorkSetEdit<sets.length;
+  let currentSi=editing?curWorkSetEdit:sets.findIndex(x=>x.rpe===null);
+  const holding=_workCountdown&&_workCountdown.ci===ci;
+  if(holding) currentSi=_workCountdown.si;
+  // "Vivo" = serie esperando input: anima dibujo/borde (el CSS además lo corta durante el descanso).
+  const live=currentSi>=0&&!editing&&!holding;
   const restSec=restAsSeconds(ex.rest);
-  const restLbl=restSec
-    ?(restSec<60?`${restSec}s`:(restSec%60===0?`${restSec/60} min`:`${Math.floor(restSec/60)}m ${restSec%60}s`))
-    :'';
-  // Línea meta: target + descanso ("3 × 8-10 · 90s desc")
-  const metaParts=[];
-  if(setsRepsTarget) metaParts.push(setsRepsTarget);
-  if(restLbl) metaParts.push(`${restLbl} desc`);
-  const metaLine=metaParts.join(' · ');
-  // Línea PR + objetivo ("🏆 80 kg · 🎯 RIR 1")
-  const prObjParts=[];
-  if(pr>0) prObjParts.push(`🏆 ${formatPR(pr,mode)}`);
-  if(ex.objective) prObjParts.push(`🎯 ${ex.objective}`);
-  const prObjLine=prObjParts.join(' · ');
-  // Color del bloque (paleta categórica): barra vertical 3px a la izquierda del header como
-  // detalle de identidad sin contaminar el set card minimalista.
-  const exBlock=blockOfExercise(day,ex.id);
-  const exBlockColor=(exBlock&&exBlock.type)?(BLOCK_TYPES[exBlock.type]||BLOCK_TYPES.custom).color:null;
-  // Header editorial Sport v3: barra color + nombre Bricolage + meta mono + PR/objective sin emojis
-  const prTxt=pr>0?formatPR(pr,mode):null;
-  const headerMetaParts=[];
-  if(setsRepsTarget) headerMetaParts.push(setsRepsTarget);
-  if(restLbl) headerMetaParts.push(`${restLbl} desc`);
-  if(prTxt) headerMetaParts.push(`PR ${prTxt}`);
-  const headerMetaLine=headerMetaParts.join('  ·  ');
-  let html=`<div class="row mb-12" style="align-items:stretch;gap:12px">
-    ${exBlockColor?`<div style="width:3px;background:${exBlockColor};border-radius:2px;flex-shrink:0;align-self:stretch"></div>`:''}
-    ${exImgThumbHTML(eid,52,true)}
-    <div style="flex:1;min-width:0">
-      <div style="font-size:22px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;line-height:1.1">${esc(getExName(ex))}</div>
-      ${headerMetaLine?`<div onclick="openTimeEdit(${ci})" style="font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:8px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;cursor:pointer">${headerMetaLine}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;vertical-align:-1px;color:var(--ac)"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>`:''}
-      ${ex.objective?`<div style="font-size:12.5px;color:var(--tx);margin-top:6px;font-weight:500;line-height:1.4">${esc(ex.objective)}</div>`:''}
-    </div>
-    <button class="icon-btn" onclick="openSwapPicker(${ci})" title="Cambiar ejercicio" aria-label="Cambiar ejercicio" style="width:36px;height:36px;font-size:14px;flex-shrink:0;align-self:flex-start;margin-top:-2px;border-radius:8px">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4"/><path d="M7 4L3 8"/><path d="M7 4l4 4"/><path d="M17 8v12"/><path d="M17 20l4-4"/><path d="M17 20l-4-4"/></svg>
-    </button>
-    <button class="icon-btn" onclick="showHist('${eid}')" title="Ver historial / progresión" aria-label="Ver historial completo" style="width:36px;height:36px;font-size:14px;flex-shrink:0;align-self:flex-start;margin-top:-2px;border-radius:8px">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
-    </button>
-  </div>`;
-  // Tip del coach + Última sesión · COLAPSABLES (closed por default, menos data visible)
-  if(ex.notes || prevSessRec){
-    html+=`<div class="wkt-info-row">`;
-    if(ex.notes){
-      html+=`<details class="wkt-info"><summary>Tip del coach</summary><div class="wkt-info-body">${esc(ex.notes)}</div></details>`;
-    }
-    if(prevSessRec){
-      html+=`<details class="wkt-info"><summary>Última sesión</summary><div class="wkt-info-body">${prevSessRec}</div></details>`;
-    }
-    html+=`</div>`;
+  const restLbl=restSec<60?`${restSec}s`:(restSec%60?`${Math.floor(restSec/60)}:${String(restSec%60).padStart(2,'0')}`:`${restSec/60} min`);
+  const repsTxt=String(ex.reps||'').replace(/\s*segs?\b/i,'s').replace(/-/g,'–');
+  let html=`<div class="wk-ex${live?' live':''}">`;
+  if(EX_IMGS.has(eid)){
+    html+=`<div class="wk-pic" onclick="openExInfoSheet(${ci})" aria-label="Info del ejercicio"><img class="f0" src="imgs/${eid}-0.png" alt="" onerror="this.parentNode.style.display='none'"><img class="f1" src="imgs/${eid}-1.png" alt="" onerror="this.remove()"></div>`;
   }
-
-  // TIP DEL SET ANTERIOR · colapsable arriba del set actual (cuando se viene del countdown)
-  if(_lastSetTip && _lastSetTip.ci===ci && _lastSetTip.si===currentSi-1 && currentSi>=0 && !isCountdownActive){
-    const tipHtml=(_lastSetTip.rec||'').replace(/\n/g,'<br>');
-    html+=`<div class="prev-tip" onclick="this.classList.toggle('open')">
-      <div class="prev-tip-header">
-        <span>💡 Tip del set anterior</span>
-        <span class="prev-tip-chev">▼</span>
-      </div>
-      <div class="prev-tip-body">${tipHtml||'<em style="color:var(--mt)">(sin recomendación)</em>'}</div>
+  html+=`<div style="padding:0 4px">
+    <div class="wk-name">${esc(getExName(ex))}</div>
+    <div class="wk-data" onclick="openTimeEdit(${ci})">
+      <span><b>${ex.sets||sets.length} × ${esc(repsTxt)}</b><i>${mode==='time'?'SEGS':'REPS'}</i></span>
+      ${restSec?`<span><b style="color:var(--ac)">${restLbl}</b><i>DESC</i></span>`:''}
+      <span><b style="color:var(--yw-bright)">1–3</b><i>RIR</i></span>
     </div>`;
+  if(curSess.plaza&&String(ex.id).startsWith('pz-')){
+    const realDay=routine.days.find(d=>d.id===curDayId);
+    const orig=realDay&&getDayExercises(realDay).find(x=>x.id===String(ex.id).slice(3));
+    if(orig) html+=`<div class="wk-sub">↔ en lugar de ${esc(getExName(orig))}</div>`;
   }
+  const lib=ex.exerciseId?getExercise(ex.exerciseId):null;
+  const cue=ex.notes||(lib&&lib.cues)||'';
+  if(cue) html+=`<div class="wk-cue" onclick="this.classList.toggle('open')">${esc(cue)}</div>`;
+  html+=`</div>`;
 
-  {
-    // FOCUSED-BY-SET · cada set como una vuelta (done collapsed · active expanded · pending placeholder)
-    sets.forEach((s,si)=>{
-      const isLast=si===sets.length-1;
-      const setComplete = s.rpe!==null;
-      let vState;
-      if(si===currentSi) vState='active';
-      else if(setComplete) vState='done';
-      else vState='pending';
-
-      if(vState==='done'){
-        const valLabel=(mode==='weight'?`${s.w} <span class="grp-sum-unit">kg ×</span> ${s.r}`:mode==='reps'?`${s.r} <span class="grp-sum-unit">reps</span>`:`${s.r}<span class="grp-sum-unit">s</span>`)+(s.rir!=null?`<span class="grp-sum-unit"> · ${rirShort(s.rir,mode)}</span>`:'');
-        const rpeCls=s.rpe==='liviano'?'gn':s.rpe==='justo'?'yw':s.rpe==='limite'?'dn':'';
-        html+=`<div class="grp-round grp-round-done" onclick="setForcedSetEdit(${si})" title="Tocá para editar">
-          <div class="grp-round-h">
-            <span class="grp-round-tag">SET ${si+1}/${sets.length}</span>
-            <span class="grp-round-mark grp-round-mark-done">Cerrado · editar <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-left:3px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
-          </div>
-          <div class="grp-round-body">
-            <div class="grp-sum-row" style="padding-left:4px">
-              <span class="grp-sum-val">${valLabel}</span>
-              ${rpeCls?`<span class="grp-sum-rpe grp-sum-rpe-${rpeCls}"></span>`:''}
-            </div>
-          </div>
-        </div>`;
-      } else if(vState==='active'){
-        const isEditMode = curWorkSetEdit!==null;
-        // Border color dinamico segun RPE marcado · feedback consistente con set card biserie
-        const rpeBorder=s.rpe
-          ? ({liviano:'var(--gn)',justo:'var(--yw)',limite:'var(--dn)'}[s.rpe])
-          : 'var(--bd)';
-        html+=`<div class="grp-round grp-round-active" style="border-color:${rpeBorder};transition:border-color 220ms ease">
-          <div class="grp-round-h">
-            <span class="grp-round-tag">SET ${si+1}/${sets.length}</span>
-            ${isEditMode?`<button class="grp-edit-exit" onclick="exitGroupedEdit()">Salir <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg></button>`:`<span class="grp-round-mark grp-round-mark-active">En curso</span>`}
-          </div>
-          <div style="margin-top:14px">
-            ${renderSetCardHTML(s,si,sets,ex,mode,{ci,allowAddRemove:false,focused:true,skipHeader:true})}
-          </div>
-          <div class="grp-round-controls">
-            ${sets.length>1?`<button class="grp-round-ctrl" onclick="removeWorkSet(${ci})">− Serie</button>`:''}
-            <button class="grp-round-ctrl" onclick="addWorkSet(${ci})">+ Serie</button>
-            ${restSec?`<button class="grp-rest-btn" onclick="startTimer(${restSec})">Descansar</button>`:''}
-          </div>
-        </div>`;
-      } else {
-        html+=`<div class="grp-round grp-round-pending">
-          <div class="grp-round-h">
-            <span class="grp-round-tag">SET ${si+1}/${sets.length}</span>
-            <span class="grp-round-mark grp-round-mark-pending">Pendiente</span>
-          </div>
-        </div>`;
-      }
+  if(currentSi>=0){
+    const st=sets[currentSi];
+    html+=`<div class="wk-card${editing?' edit':''}"><div class="wk-card-breathe"></div>
+      <div class="wk-card-h"><span class="dot"></span><span class="lbl">${editing?`EDITANDO SERIE ${currentSi+1}`:`SERIE ${currentSi+1} DE ${sets.length}`}</span>${editing?`<button class="wk-exit" onclick="exitSetEdit()">SALIR ✕</button>`:''}</div>`;
+    const numRow=(field,label,dn,up,typeLbl)=>`<div class="wk-row">
+        <button class="wk-pm" onclick="event.stopPropagation();${dn}" aria-label="Menos">−</button>
+        <div class="wk-val" onclick="typeVal(${currentSi},'${field}',${typeLbl},${ci})"><span id="val-${field}-${ci}-${currentSi}" class="wk-num">${field==='w'?st.w:st.r}</span><div class="wk-unit">${label}</div></div>
+        <button class="wk-pm" onclick="event.stopPropagation();${up}" aria-label="Más">+</button>
+      </div>`;
+    if(mode==='weight'){
+      html+=numRow('w','KG',`adjW(${currentSi},-2.5,${ci})`,`adjW(${currentSi},2.5,${ci})`,'null')+`<div class="wk-div"></div>`;
+    }
+    html+=mode==='time'
+      ?numRow('r','SEGS',`adjR(${currentSi},-5,${ci})`,`adjR(${currentSi},5,${ci})`,"'Tiempo (segs)'")
+      :numRow('r','REPS',`adjR(${currentSi},-1,${ci})`,`adjR(${currentSi},1,${ci})`,"'Repeticiones'");
+    html+=`<div class="wk-div"></div><div class="wk-rir">${rirCellsHTML(st,currentSi,ci,mode)}</div></div>`;
+    const chips=sets.map((x,i)=>({x,i})).filter(({x,i})=>x.rpe!=null&&(i!==currentSi||editing));
+    if(chips.length){
+      html+=`<div class="wk-chips">${chips.map(({x,i})=>`<button class="wk-chip${editing&&i===currentSi?' on':''}" onclick="wkChipTap(${ci},${i})"><span class="d" style="background:${rirColorVar(rirOfSet(x))}"></span>${setShort(x,mode)}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`).join('')}</div>`;
+    }
+  } else {
+    html+=`<div class="wk-done-h"><span class="ck">✓</span><span class="t">COMPLETO · TOCÁ PARA EDITAR</span></div><div class="wk-list">`;
+    sets.forEach((x,i)=>{
+      const v=mode==='weight'?`${x.w} kg × ${x.r}`:mode==='time'?`${x.r} s`:`${x.r} reps`;
+      const r=rirOfSet(x);
+      html+=`<button class="wk-li" onclick="setForcedSetEdit(${i})"><span class="n">S${i+1}</span><span class="v">${v}</span><span class="r"><i style="background:${rirColorVar(r)}"></i>${r==null?'':(x.rir==null?'≈':'')+rirShort(r,mode)}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mt2)" stroke-width="2.2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`;
     });
-
-    // Estado D · todos sets completos · rec + siguiente
-    if(currentSi===-1){
-      const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps,null,mode);
-      if(gr){
-        html+=`<div class="grp-rec" style="margin-top:14px"><div class="grp-rec-label">Próxima sesión</div><div class="grp-rec-text">${gr}</div></div>`;
-      }
-      // Siguiente ejercicio / Finalizar
-      const units=[];const seenIdx=new Set();
-      compounds.forEach((e,i)=>{
-        if(seenIdx.has(i)) return;
-        const grp=groupOfCompoundIdx(compounds,i);
-        if(grp){grp.indexes.forEach(idx=>seenIdx.add(idx));units.push({firstIdx:grp.indexes[0]});}
-        else{seenIdx.add(i);units.push({firstIdx:i});}
-      });
-      let myUnit=-1;
-      for(let i=0;i<units.length;i++){if(units[i].firstIdx<=ci){myUnit=i;}else break;}
-      const isLastEx=myUnit===units.length-1;
-      if(isLastEx){
-        html+=`<button class="btn mt-16" onclick="confirmExit()" style="padding:16px 0;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--gn);color:var(--action-tx)">Finalizar entrenamiento</button>`;
-      } else {
-        html+=`<button class="btn mt-16" onclick="gotoNextExercise()" style="padding:16px 0;display:flex;align-items:center;justify-content:center;gap:8px">Siguiente ejercicio <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></button>`;
-      }
-    }
+    html+=`<button class="wk-extra" onclick="addWorkSet(${ci})">+ SERIE EXTRA</button></div>`;
+    const k=_wkStops.findIndex(x=>x.curExIVal===ci),nx=_wkStops[k+1];
+    html+=nx
+      ?`<button class="wk-cta" onclick="goWorkStop(${k+1})">SIGUIENTE · ${esc(wkStopName(nx,compounds).toUpperCase())} →</button>`
+      :`<button class="wk-cta" onclick="confirmFinishWorkout()">TERMINAR ENTRENO</button>`;
   }
 
-  // Notas · colapsadas con "+ Agregar nota" si no hay, textarea normal si hay
-  {
-    if(sessNote){
-      html+=`<textarea class="note-input mt-16" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${sessNote}</textarea>`;
-    } else {
-      html+=`<details class="mt-16"><summary style="font-size:12px;color:var(--mt);cursor:pointer;padding:8px 4px;display:flex;align-items:center;gap:6px;font-weight:500">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Agregar nota
-      </summary>
-      <textarea class="note-input mt-4" placeholder="Tu nota..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()"></textarea>
-      </details>`;
-    }
+  if(sessNote){
+    html+=`<textarea class="note-input mt-16" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${esc(sessNote)}</textarea>`;
+  } else {
+    html+=`<details class="mt-16"><summary style="font-size:12px;color:var(--mt);cursor:pointer;padding:8px 4px;display:flex;align-items:center;gap:6px;font-weight:500">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Agregar nota
+    </summary>
+    <textarea class="note-input mt-4" placeholder="Tu nota..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()"></textarea>
+    </details>`;
   }
-
+  html+=`</div>`;
   return html;
 }
+// Celdas RIR del rediseño (tarjeta de serie). Mismo flujo que rirBarHTML: tap = setRir → descanso + 2s.
+const RIR_VARS=['--dn','--rir-1','--yw','--rir-3','--rir-4','--gn'];
+function rirColorVar(v){return v==null?'var(--mt2)':`var(${RIR_VARS[Math.max(0,Math.min(RIR_MAX,v))]})`;}
+// RIR de un set; sesiones del semáforo (sin rir) se aproximan: liviano=4, justo=2, límite=0.
+function rirOfSet(x){
+  if(x.rir!=null) return x.rir;
+  return x.rpe==='liviano'?4:x.rpe==='justo'?2:x.rpe==='limite'?0:null;
+}
+function setShort(x,mode){return mode==='weight'?`${x.w}×${x.r}`:mode==='time'?`${x.r}s`:`${x.r} reps`;}
+function rirCellsHTML(s,si,ci,mode){
+  const has=s.rir!=null;
+  const hold=_workCountdown&&_workCountdown.ci===ci&&_workCountdown.si===si;
+  let cells='';
+  for(let v=RIR_MAX;v>=0;v--){
+    const lbl=mode==='time'?`${v*5}${v===RIR_MAX?'+':''}`:`${v}${v===RIR_MAX?'+':''}`;
+    cells+=`<button class="wk-cell${s.rir===v?' sel':''}" style="background:${rirColorVar(v)}" onclick="setRir(${si},${v},${ci})" aria-label="${rirCaption(v,mode)}">${lbl}</button>`;
+  }
+  return `<div class="wk-rir-q">${mode==='time'?'¿Cuánto más aguantabas?':'¿Cuántas más te salían?'}</div>
+    <div class="wk-cells${has?' has':''}">${cells}</div>
+    <div class="wk-ends"><span>SOBRABA</span><span>FALLO</span></div>
+    <div class="wk-cap${has?' set':''}">${has?rirCaption(s.rir,mode):'Marcalo al terminar la serie · arranca el descanso'}</div>
+    ${hold?`<div class="wk-hold"><i></i></div><div class="wk-hold-t">Tocá otro número si te equivocaste</div>`:''}`;
+}
+function exitSetEdit(){curWorkSetEdit=null;renderWork();}
+function wkChipTap(ci,si){
+  if(curWorkSetEdit===si){exitSetEdit();return;}
+  setForcedSetEdit(si);
+}
+function exInitials(ex){
+  return getExName(ex).split(/\s+/).filter(w=>w.length>2||/^\d/.test(w)).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'EJ';
+}
+function accDone(a){return !!(curSess&&curSess.accessories&&curSess.accessories[a.id]);}
+function wkStopName(st,compounds){
+  if(st.kind==='mov') return 'Movilidad';
+  if(st.kind==='acc') return 'Accesorios';
+  const u=st.unit;
+  if(u.isMetabolic) return u.format==='amrap'?'Intervalos':'EMOM';
+  if(u.type==='group') return u.size===2?'Biserie':u.size===3?'Triserie':'Circuito';
+  return getExName(compounds[u.firstIdx]);
+}
+// Tira: tap = ir al stop; toque largo SIN mover el dedo = cambiar ejercicio (si se mueve, gana el scroll).
+let _wkTbT=null,_wkTbFired=false,_wkTbXY=null;
+function wkTbDown(e,k){
+  _wkTbFired=false;clearTimeout(_wkTbT);_wkTbXY={x:e.clientX,y:e.clientY};
+  const st=_wkStops[k];
+  if(!st||st.kind!=='unit'||st.unit.type!=='single') return;
+  _wkTbT=setTimeout(()=>{_wkTbFired=true;openSwapPicker(st.curExIVal);},520);
+}
+function wkTbMove(e){if(_wkTbXY&&Math.hypot(e.clientX-_wkTbXY.x,e.clientY-_wkTbXY.y)>8) clearTimeout(_wkTbT);}
+function wkTbUp(){clearTimeout(_wkTbT);}
+function wkTbClick(k){if(_wkTbFired){_wkTbFired=false;return;}goWorkStop(k);}
 
 // Vista unificada de un grupo (biserie/triserie): vueltas con sub-cards anidadas
 // ══ AMRAP / EMOM workout view ══
@@ -4418,33 +4375,8 @@ function renderWork(opts){
     });
     buildCoreCircuitsForBlock(b).forEach(c=>_coreCircuits.push(c));
   });
-  $("work-day").textContent=day.name;
-  $("work-sub").textContent=day.sub||'';
-  // Ghost number + REF · D x/y (consistente con hero del home)
-  const _wIdx=routine.days.findIndex(d=>d.id===curDayId);
-  const _wNum=_wIdx<0?'EX':String(_wIdx+1).padStart(2,'0');
-  const _wRef=slugRef(day.name);
-  if($("work-ghost")) $("work-ghost").textContent=_wNum;
-  if($("work-ref-label")) $("work-ref-label").textContent=`REF · ${_wRef}-${_wNum}`;
-  if($("work-ref-day")) $("work-ref-day").textContent=_wIdx<0?'EXTRA':`D${_wIdx+1}/${routine.days.length}`;
-
-  // Tabs: [MOV] + compounds + [ACC]
-  let tabsHtml='';
-  if(mobility.length){
-    const looseDone=_looseMov.every(m=>curSess.mobility&&curSess.mobility[m.id]);
-    const circuitsDone=_coreCircuits.every(isCoreCircuitDone);
-    const movDone=looseDone&&circuitsDone;
-    const movActive=curSess.mobility&&Object.values(curSess.mobility).some(Boolean);
-    // Tab MOV: dot turquesa en corner top-left (color de Movilidad · paleta categórica).
-    // Reemplaza el drop shadow anterior que generaba un "corte horizontal" entre la fila
-    // de tabs y la zona del ejercicio debajo. El dot puntual no rompe la continuidad vertical.
-    const movColor=BLOCK_TYPES.movilidad.color;
-    const movDot=`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${movColor}"></span>`;
-    const movDoneTag=movDone?`<span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--gn);box-shadow:0 0 6px -1px rgba(61,214,140,0.6)"></span>`:'';
-    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="goWorkStop(0)" style="min-width:48px;padding:8px 10px">${movDot}${movDoneTag}MOV</button>`;
-  }
+  $("work-day").textContent=day.name+(curSess.plaza?' · Plaza':'');
   // Construir "units": cada unit es un single compound o un grupo (biserie/triserie).
-  // Tabs muestran UN solo botón por unit. Si curExI cae en un grupo, el tab activo es el del primero del grupo.
   const units=[];const seenIdx=new Set();
   compounds.forEach((e,i)=>{
     if(seenIdx.has(i)) return;
@@ -4464,40 +4396,38 @@ function renderWork(opts){
   if(accessories.length) stops.push({kind:'acc',curExIVal:compounds.length});
   const stopK=v=>stops.findIndex(st=>st.curExIVal===v);
   const activeK=Math.max(0,stopK(curExI));
-  // Índice "lógico" de la unit activa
-  const activeUnitIdx=units.findIndex(u=>u.indexes.includes(curExI));
-  // Helper para resolver el color del bloque de un ejercicio (paleta categórica).
-  // Devuelve string vacío si no hay bloque tipado — sin detalle de color.
-  const blockColorOfEx=(exObj)=>{
-    const b=blockOfExercise(day,exObj.id);
-    if(!b||!b.type) return '';
-    return (BLOCK_TYPES[b.type]||BLOCK_TYPES.custom).color;
-  };
-  // Tabs · Sport v3: solid colors, mono uppercase, dot + check editorial
-  const doneDot=`<span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--gn);box-shadow:0 0 6px -1px rgba(61,214,140,0.6)"></span>`;
-  tabsHtml+=units.map((u,ui)=>{
-    const active=ui===activeUnitIdx;
-    if(u.type==='group'){
-      if(u.isMetabolic){
-        const done=!!(curSess.metabolic&&curSess.metabolic[u.groupId]);
-        const label=u.format==='amrap'?'Intervalos':'EMOM';
-        const mbVar=u.format==='amrap'?'var(--yw)':'var(--ac)';
-        const blockDot=`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${mbVar}"></span>`;
-        return `<button class="ex-tab${active?' active':''}" onclick="goWorkStop(${stopK(u.firstIdx)})" style="${active?`border-color:${mbVar};color:${mbVar};`:''}min-width:64px;padding:8px 10px">${blockDot}${done?doneDot:''}${label}</button>`;
-      }
-      const done=u.indexes.every(i=>curSess.exercises[i]?.sets?.every(s=>s.rpe!==null));
-      const label=u.size===2?'BI':u.size===3?'TRI':'×'+u.size;
-      const grpColor=blockColorOfEx(compounds[u.firstIdx]);
-      const grpDot=grpColor?`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${grpColor}"></span>`:'';
-      return `<button class="ex-tab${active?' active':''}" onclick="goWorkStop(${stopK(u.firstIdx)})" style="min-width:48px;padding:8px 10px">${grpDot}${done?doneDot:''}${label}</button>`;
+  // Tira: un item por stop, mismo orden que el carrusel (índice de tab = índice de panel).
+  const tbTile=(eid,tag,tagColor)=>eid&&EX_IMGS.has(eid)
+    ?`<img src="imgs/${eid}-0.png" alt="" loading="lazy" onerror="this.remove()">`
+    :`<span class="wk-tb-tag"${tagColor?` style="color:${tagColor}"`:''}>${tag}</span>`;
+  const tabsHtml=stops.map((st,k)=>{
+    let tile='',label='',done=false,badge='';
+    if(st.kind==='mov'){
+      done=_looseMov.every(m=>curSess.mobility&&curSess.mobility[m.id])&&_coreCircuits.every(isCoreCircuitDone);
+      tile=tbTile(null,'MOV',BLOCK_TYPES.movilidad.color);label='MOV';
+    } else if(st.kind==='acc'){
+      done=accessories.every(a=>accDone(a));
+      tile=tbTile(null,'ACC');label='ACC';
+    } else if(st.unit.isMetabolic){
+      const tag=st.unit.format==='amrap'?'INT':'EMOM';
+      done=!!(curSess.metabolic&&curSess.metabolic[st.unit.groupId]);
+      tile=tbTile(null,tag,st.unit.format==='amrap'?'var(--yw)':'var(--ac)');label=tag;
+    } else if(st.unit.type==='group'){
+      const idx=st.unit.indexes,total=Math.max(...idx.map(i=>(curSess.exercises[i]?.sets||[]).length));
+      let rounds=0;
+      for(let r=0;r<total;r++){if(idx.every(i=>{const x=curSess.exercises[i]?.sets?.[r];return !x||x.rpe!=null;})) rounds++;else break;}
+      done=rounds>=total;
+      tile=tbTile(eidOf(compounds[st.unit.firstIdx]),exInitials(compounds[st.unit.firstIdx]));
+      badge=`<span class="wk-tb-bi">${st.unit.size===2?'BI':st.unit.size===3?'TRI':'×'+st.unit.size}</span>`;
+      label=`${rounds}/${total}`;
+    } else {
+      const sets=curSess.exercises[st.unit.firstIdx]?.sets||[],n=sets.filter(x=>x.rpe!=null).length;
+      done=sets.length>0&&n>=sets.length;
+      tile=tbTile(eidOf(compounds[st.unit.firstIdx]),exInitials(compounds[st.unit.firstIdx]));
+      label=`${n}/${sets.length}`;
     }
-    const i=u.firstIdx;
-    const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
-    const exColor=blockColorOfEx(compounds[i]);
-    const exDot=exColor?`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${exColor}"></span>`:'';
-    return`<button class="ex-tab${active?' active':''}" onclick="goWorkStop(${stopK(i)})">${exDot}${done?doneDot:''}${String(i+1).padStart(2,'0')}</button>`;
+    return `<button class="wk-tb${k===activeK?' on':''}${done?' done':''}" onclick="wkTbClick(${k})" onpointerdown="wkTbDown(event,${k})" onpointermove="wkTbMove(event)" onpointerup="wkTbUp()" onpointercancel="wkTbUp()" onpointerleave="wkTbUp()"><span class="wk-tb-tile">${tile}${badge}</span><span class="wk-tb-lbl">${done?'✓':label}</span></button>`;
   }).join('');
-  if(accessories.length) tabsHtml+=`<button class="ex-tab${curExI===compounds.length?' active':''}" onclick="goWorkStop(${stops.length-1})">ACC</button>`;
 
   const buildPanel=(st)=>{
   let html=`<div class="sec">`;
@@ -4670,7 +4600,7 @@ function renderWork(opts){
   _wkStops=stops;
   let track=$("work-track");
   if(!track||_wkSig!==sig){
-    $("work-content").innerHTML=`<div class="ex-tabs" id="work-tabs">${tabsHtml}</div><div style="padding:0 20px"><div id="work-pr" class="pr-banner" style="margin:14px 0 0"><div style="font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.5px;color:#062414;background:var(--gn);padding:4px 8px;border-radius:5px">PR</div><div><div style="font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gn)">Nuevo récord</div><div id="work-pr-name" class="text-xs text-mt"></div></div></div></div><div class="wk-vp" id="work-vp"><div class="wk-track" id="work-track">${stops.map((st,k)=>`<div class="wk-panel" data-k="${k}">${panelFor(st,k)}</div>`).join('')}</div></div>`;
+    $("work-content").innerHTML=`<div id="work-tabs">${tabsHtml}</div><div style="padding:0 20px"><div id="work-pr" class="pr-banner" style="margin:14px 0 0"><div style="font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.5px;color:#062414;background:var(--gn);padding:4px 8px;border-radius:5px">PR</div><div><div style="font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gn)">Nuevo récord</div><div id="work-pr-name" class="text-xs text-mt"></div></div></div></div><div class="wk-vp" id="work-vp"><div class="wk-track" id="work-track">${stops.map((st,k)=>`<div class="wk-panel" data-k="${k}">${panelFor(st,k)}</div>`).join('')}</div></div>`;
     _wkSig=sig;_wkDirty.clear();_wkDrag=null;
     track=$("work-track");
     bindWorkSwipe($("work-vp"));
@@ -4688,8 +4618,11 @@ function renderWork(opts){
   [...track.children].forEach((p,k)=>p.classList.toggle('on',k===activeK));
   _wkLiveK=activeK;
   fitWorkTrack();
-  const tabsEl=$("work-tabs"),at=tabsEl&&tabsEl.querySelector('.active');
+  const tabsEl=$("work-tabs"),at=tabsEl&&tabsEl.querySelector('.wk-tb.on');
   if(at) tabsEl.scrollLeft=at.offsetLeft-tabsEl.clientWidth/2+at.offsetWidth/2;
+  wkLiveUpdate();
+  if(!_wkElapsedT) _wkElapsedT=setInterval(tickWorkElapsed,1000);
+  tickWorkElapsed();
   if(curSess) saveDraft();
 }
 function workW(){const vp=$("work-vp");return (vp&&vp.clientWidth)||1;}
@@ -4746,6 +4679,17 @@ function growWorkVp(a,b,hs,off){
   const cur=hs?hs.vp:vp.offsetHeight;
   if(h&&h>cur){vp.style.height=h+'px';if(hs) hs.vp=h;}
 }
+// body.wk-live: panel activo con serie esperando input y sin descanso → late el resplandor.
+function wkLiveUpdate(){
+  const ex=document.querySelector('#work.active .wk-panel.on .wk-ex.live');
+  document.body.classList.toggle('wk-live',!!ex&&!document.body.classList.contains('wk-resting'));
+}
+function tickWorkElapsed(){
+  const el=$("wk-elapsed");if(!el) return;
+  if(!curSess||!curSess.startedAt||!$("work").classList.contains('active')){el.textContent='';return;}
+  const t=Math.floor((Date.now()-curSess.startedAt)/1000);
+  el.textContent=`${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;
+}
 // Adopta el stop k como activo SIN tocar el DOM de los paneles (solo estado, tab y clase).
 function adoptWorkStop(k){
   const st=_wkStops[k];if(!st) return false;
@@ -4760,7 +4704,7 @@ function adoptWorkStop(k){
     if(track) [...track.children].forEach((p,i)=>p.classList.toggle('on',i===k));
     if(curSess) saveDraft();
   }
-  _wkLiveK=k;markWorkTab(k);
+  _wkLiveK=k;markWorkTab(k);wkLiveUpdate();
   return changed;
 }
 function scheduleWorkFlush(){
@@ -4781,8 +4725,8 @@ function goWorkStop(k){
 }
 function markWorkTab(k){
   const tabsEl=$("work-tabs");if(!tabsEl) return;
-  const tabs=tabsEl.querySelectorAll('.ex-tab');
-  tabs.forEach((t,i)=>t.classList.toggle('active',i===k));
+  const tabs=tabsEl.querySelectorAll('.wk-tb');
+  tabs.forEach((t,i)=>t.classList.toggle('on',i===k));
   const at=tabs[k];
   if(at) tabsEl.scrollLeft=at.offsetLeft-tabsEl.clientWidth/2+at.offsetWidth/2;
 }
@@ -4906,7 +4850,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
+const _HAPTIC_WRAP_SEL='.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
@@ -5019,14 +4963,13 @@ function editGroupedRound(si){haptic();curWorkSetEdit=si;renderWork();window.scr
 function exitGroupedEdit(){curWorkSetEdit=null;renderWork();}
 
 // ══ Fase 4 · Auto-paso post-RIR + bottom sheet de info ══
-function startSetCountdown(ci,si,rec){
+function startSetCountdown(ci,si){
   cancelSetCountdown(true);
-  _workCountdown={ci,si,rec,t:setTimeout(()=>{
+  _workCountdown={ci,si,t:setTimeout(()=>{
     if(!_workCountdown||!curSess) return;
-    _lastSetTip={ci,si,rec:_workCountdown.rec};
     cancelSetCountdown(false);
     setTimeout(()=>{
-      const setCard=document.querySelector('.wk-panel.on .grp-round-active');
+      const setCard=document.querySelector('.wk-panel.on .wk-card');
       if(setCard) setCard.scrollIntoView({behavior:'smooth',block:'start'});
     },50);
   },2000)};
@@ -5039,7 +4982,7 @@ function cancelSetCountdown(silent){
 }
 
 // Bottom sheet · info del ejercicio (3 tabs: coach / historial / última sesión)
-// Único caller activo: tarjeta "Última sesión" en renderEx (workout) — ver onclick "openExInfoSheet(...)" más arriba.
+// Caller: tocar el dibujo del ejercicio en el panel del workout.
 function openExInfoSheet(ci){
   _infoSheetCi=ci;_infoSheetTab='coach';
   const day=dayById(curDayId);
@@ -5120,7 +5063,6 @@ function gotoNextExercise(){
   let curIdx=-1;
   for(let i=0;i<units.length;i++){if(units[i].firstIdx<=curExI){curIdx=i;}else break;}
   if(curIdx>=0 && curIdx<units.length-1){
-    _lastSetTip=null;
     goWorkStop(_wkStops.findIndex(st=>st.curExIVal===units[curIdx+1].firstIdx));
   } else {
     // Era el último — abrir modal de salida con "Guardar y salir" como CTA
@@ -5139,14 +5081,19 @@ function toggleMobility(exId,restSec){
   renderWork();
 }
 
+function paintSetVal(el,v,kg){
+  if(!el) return;
+  if(el.classList.contains('wk-num')){el.textContent=v;el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}
+  else el.innerHTML=kg?v+'<span class="text-sm text-mt">kg</span>':v;
+}
 function adjW(si,delta,ci){haptic();
   ci=(ci==null)?curExI:ci;
   const s=curSess.exercises[ci].sets[si];s.w=Math.max(0,s.w+delta);
-  const el=$("val-w-"+ci+"-"+si);if(el) el.innerHTML=s.w+'<span class="text-sm text-mt">kg</span>';
+  paintSetVal($("val-w-"+ci+"-"+si),s.w,true);
   // Auto-copy to subsequent series del mismo ejercicio
   for(let j=si+1;j<curSess.exercises[ci].sets.length;j++){
     curSess.exercises[ci].sets[j].w=s.w;
-    const el2=$("val-w-"+ci+"-"+j);if(el2) el2.innerHTML=s.w+'<span class="text-sm text-mt">kg</span>';
+    paintSetVal($("val-w-"+ci+"-"+j),s.w,true);
   }
   checkPR(si,ci);document.activeElement?.blur();saveDraft();
 }
@@ -5154,7 +5101,7 @@ function adjR(si,delta,ci){
   haptic();
   ci=(ci==null)?curExI:ci;
   const s=curSess.exercises[ci].sets[si];s.r=Math.max(1,s.r+delta);
-  const el=$("val-r-"+ci+"-"+si);if(el) el.textContent=s.r;
+  paintSetVal($("val-r-"+ci+"-"+si),s.r);
   // checkPR detecta récord según track_mode (en reps/time el PR es el valor de r)
   checkPR(si,ci);
   document.activeElement?.blur();saveDraft();
@@ -5175,15 +5122,15 @@ function applyTypedVal(si,field,ci){
   const val=parseFloat($("type-input").value);if(isNaN(val)||val<0) return;
   const s=curSess.exercises[ci].sets[si];
   if(field==='w'){
-    s.w=val;const el=$("val-w-"+ci+"-"+si);if(el) el.innerHTML=val+'<span class="text-sm text-mt">kg</span>';
+    s.w=val;paintSetVal($("val-w-"+ci+"-"+si),val,true);
     // Auto-copy a las series siguientes del mismo ejercicio (igual que adjW)
     for(let j=si+1;j<curSess.exercises[ci].sets.length;j++){
       curSess.exercises[ci].sets[j].w=val;
-      const el2=$("val-w-"+ci+"-"+j);if(el2) el2.innerHTML=val+'<span class="text-sm text-mt">kg</span>';
+      paintSetVal($("val-w-"+ci+"-"+j),val,true);
     }
     checkPR(si,ci);
   }
-  else{s.r=Math.max(1,Math.round(val));const el=$("val-r-"+ci+"-"+si);if(el) el.textContent=s.r;checkPR(si,ci);}
+  else{s.r=Math.max(1,Math.round(val));paintSetVal($("val-r-"+ci+"-"+si),s.r);checkPR(si,ci);}
   saveDraft();closeModal();
 }
 function checkPR(si,ci){
@@ -5231,11 +5178,8 @@ function setRpe(si,v,ci){
     // 2s con el RIR visible para corregir; tocar otro valor dentro de la ventana la reinicia.
     const holding=_workCountdown&&_workCountdown.ci===ci&&_workCountdown.si===si;
     if(!isEditMode&&(wasNullBefore||holding)){
-      const st=curSess.exercises[ci].sets[si];
-      const rd=setRecData(st.rpe,st.r,ex.reps,null,getTrackMode(ex));
-      const cap=st.rir!=null?rirCaption(st.rir,getTrackMode(ex)):'';
       saveDraft();
-      startSetCountdown(ci,si,[cap,rd&&rd.phrase].filter(Boolean).join('\n'));
+      startSetCountdown(ci,si);
       return;
     }
   } else {
@@ -5639,6 +5583,7 @@ function startTimer(secs){
   save("gym-timer",{start:timerStart,duration:secs});
   $("timer").classList.add('show');$("timer").classList.remove('ended');
   if($("timer-label")) $("timer-label").textContent='DESCANSO';
+  setResting(true);
   timerTick();
   timerRef=setInterval(timerTick,500);
 }
@@ -5647,15 +5592,14 @@ function timerTick(){
   const elapsed=Math.floor((Date.now()-saved.start)/1000);
   timerLeft=saved.duration-elapsed;timerTotal=saved.duration;
   if(timerLeft<=0){
-    // Visual final: 0:00 verde pulsante, label "LISTO", barra full verde.
-    // NO se cierra automaticamente · el usuario cierra con ✕ o reinicia con ↻.
+    // Visual final: 0:00 verde pulsante, barra full verde. No se cierra sola (✕ o +15).
     timerLeft=0;
     updateTimerDisplay();
     notifyTimerEnd();
     if(timerRef){clearInterval(timerRef);timerRef=null;}
     $("timer").classList.add('ended');
-    if($("timer-label")) $("timer-label").textContent='LISTO';
     save("gym-timer",null);
+    setResting(false);
     return;
   }
   updateTimerDisplay();
@@ -5672,11 +5616,17 @@ function notifyTimerEnd(){
 function resumeTimer(){
   const t=load("gym-timer",null);if(!t) return;
   const elapsed=Math.floor((Date.now()-t.start)/1000);const remaining=t.duration-elapsed;
-  if(remaining>0){timerTotal=t.duration;timerLeft=remaining;$("timer").classList.add('show');$("timer").classList.remove('ended');if($("timer-label")) $("timer-label").textContent='DESCANSO';updateTimerDisplay();timerRef=setInterval(timerTick,500);}
+  if(remaining>0){timerTotal=t.duration;timerLeft=remaining;$("timer").classList.add('show');$("timer").classList.remove('ended');if($("timer-label")) $("timer-label").textContent='DESCANSO';setResting(true);updateTimerDisplay();timerRef=setInterval(timerTick,500);}
   else{save("gym-timer",null);}
 }
-function updateTimerDisplay(){const m=Math.floor(Math.max(0,timerLeft)/60);const s=Math.max(0,timerLeft)%60;$("timer-num").textContent=m+":"+String(s).padStart(2,"0");$("timer-fill").style.width=((timerTotal-timerLeft)/timerTotal*100)+"%";}
-function stopTimer(){if(timerRef){clearInterval(timerRef);timerRef=null;}$("timer").classList.remove('show','ended');if($("timer-label")) $("timer-label").textContent='DESCANSO';save("gym-timer",null);}
+function updateTimerDisplay(){const m=Math.floor(Math.max(0,timerLeft)/60);const s=Math.max(0,timerLeft)%60;$("timer-num").textContent=m+":"+String(s).padStart(2,"0");$("timer-fill").style.transform=`scaleX(${timerTotal?Math.min(1,(timerTotal-timerLeft)/timerTotal):0})`;}
+function stopTimer(){if(timerRef){clearInterval(timerRef);timerRef=null;}$("timer").classList.remove('show','ended');if($("timer-label")) $("timer-label").textContent='DESCANSO';save("gym-timer",null);setResting(false);}
+function setResting(on){document.body.classList.toggle('wk-resting',!!on);wkLiveUpdate();}
+function addRest(sec){
+  const t=load("gym-timer",null);
+  if(!t){startTimer(sec);return;}
+  t.duration+=sec;save("gym-timer",t);timerTick();
+}
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden) return;
   const t=load("gym-timer",null);
