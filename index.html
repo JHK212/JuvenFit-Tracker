@@ -945,6 +945,18 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 .rs-row{display:flex;gap:8px;margin-top:8px;}
 .rs-b{flex:1;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid var(--bd-hi);background:none;color:var(--mt);font-family:var(--fs);font-size:12.5px;font-weight:700;cursor:pointer;}
 .rs-b.dn{border-color:rgba(227,106,106,.35);color:var(--dn);}
+/* ── Fase 5 · envío al coach (3g) ── */
+.sy{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--cd);border:1px solid var(--bd);}
+#sm-sync .sy{margin-top:12px;}
+.sy .ic{width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;background:var(--bd-hi);color:var(--tx);}
+.sy.ok .ic{background:var(--gn);color:var(--bg);}
+.sy.fail .ic{background:var(--yw);color:var(--yw-dark);}
+.sy.info .ic{background:var(--ac);color:var(--action-tx);}
+.sy.sending .ic{background:none;border:2px solid var(--bd-hi);border-top-color:var(--ac);animation:wkSpin 1s linear infinite;}
+@keyframes wkSpin{to{transform:rotate(360deg);}}
+.sy .t{font-size:13.5px;font-weight:700;}
+.sy .s{font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:2px;}
+.sy .a{font-family:var(--fm);font-size:10.5px;font-weight:800;letter-spacing:1px;color:var(--ac);background:none;border:1px solid rgba(91,157,248,.45);border-radius:8px;padding:6px 10px;cursor:pointer;flex:none;}
 #today{padding-bottom:0;}
 </style>
 </head>
@@ -1027,6 +1039,7 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
     </div>
   </div>
   <div id="home-main">
+    <div id="home-notices"></div>
     <div id="draft-banner" style="display:none;padding:14px 20px 0"></div>
 
     <!-- HERO: bloque naranja con número ghost detrás -->
@@ -2491,7 +2504,7 @@ function init(){
       if(r.ok) renderHome();  // re-render para tomar nuevas activaciones si cambiaron
     });
     // Bridge: reintentar sesiones no sincronizadas y chequear si el coach actualizó la rutina
-    flushUnsynced();
+    flushUnsynced().then(renderHomeNotices);
     maybeSyncRoutine();
     maybeClaimAccount();
   });
@@ -3001,6 +3014,7 @@ function renderHome(){
   const _diaShort=['DOM','LUN','MAR','MIE','JUE','VIE','SAB'][_dn.getUTCDay()];
   $("home-date").textContent=`${_diaShort} · ${_dn.getUTCDate()}.${String(_dn.getUTCMonth()+1).padStart(2,'0')}.${String(_dn.getUTCFullYear()).slice(-2)}`;
 
+  renderHomeNotices();
   // Entreno en curso (3e): reemplaza al bloque del día mientras haya un borrador
   const draft=load("gym-draft",null);
   const db=$("draft-banner"),heroWrap=document.querySelector('#home-main .hero-wrap');
@@ -5399,10 +5413,16 @@ function finishWorkout(){
   // Guardar
   sessions.push(curSess);save("gym-s",sessions);
   // Subir la sesión al coach (si el device está vinculado). Si falla, reintento al próximo open.
-  if(loadLink()){pushSession(sessSnapshot).then(ok=>{if(!ok)markUnsynced(sessSnapshot.id);});}
   clearDraft();stopTimer();closeExitModal();
   // Mostrar resumen post-workout (toma over: el CTA "Volver al inicio" hace el showPage('home'))
   showWorkoutSummary(sessSnapshot,day,prevPRs,prevSession);
+  if(loadLink()){
+    if(!SYNC_WRITES) paintSummarySync('beta');
+    else{
+      paintSummarySync('sending',sessSnapshot.id);
+      pushSession(sessSnapshot).then(ok=>{if(!ok)markUnsynced(sessSnapshot.id);paintSummarySync(ok?'ok':'fail',sessSnapshot.id);});
+    }
+  }
 }
 function showWorkoutSummary(sess,day,prevPRs,prevSession){
   // Stats top
@@ -5479,6 +5499,7 @@ function showWorkoutSummary(sess,day,prevPRs,prevSession){
       <div class="sm-st"><div class="l">VOLUMEN</div><div class="v" style="color:var(--yw)">${totalVolume>0?volLbl:'—'}</div></div>
     </div>
     <div class="sm-note">Solo cuentan las series con RIR. Las demás no se guardan.</div>
+    <div id="sm-sync"></div>
     ${deltasHtml?deltasHtml.replace('<div class="summary-deltas">','<div class="summary-deltas"><div class="summary-deltas-label">VS ÚLTIMA VEZ</div>').replace('vs última vez · ',''):''}
     ${prsList.length?`
       <div class="summary-section summary-section-pr">
@@ -7384,6 +7405,44 @@ function syncSessionDeletion(id){
   clearUnsynced(id);
   markSessionDeleted(id).then(ok=>{if(!ok)markDeletedUnsynced(id);});
 }
+// ══ Envío al coach · estados visibles (3g) ══
+function coachLabel(){const a=getActiveRoutine();return (a&&a.coachName&&a.coachName!=='Coach')?a.coachName:'Tu coach';}
+function syncRowHTML(cls,icon,title,sub,action){
+  return `<div class="sy ${cls}"><span class="ic">${icon}</span><div style="flex:1;min-width:0"><div class="t">${title}</div>${sub?`<div class="s">${sub}</div>`:''}</div>${action||''}</div>`;
+}
+function renderHomeNotices(){
+  const el=$("home-notices");if(!el) return;
+  let html='';
+  const pend=loadLink()&&SYNC_WRITES?load("gym-unsynced",[]).length:0;
+  if(pend) html+=syncRowHTML('fail','!',`${pend} entreno${pend===1?'':'s'} sin enviar al coach`,'Se envía solo cuando haya conexión.',`<button class="a" onclick="sendUnsyncedNow()">ENVIAR</button>`);
+  if(_pendingImport){
+    const isNew=!(routineStore.list||[]).some(r=>r.sourceRoutineId===_pendingImport.id);
+    html+=syncRowHTML('info','↻',`${esc(coachLabel())} ${isNew?'te asignó una rutina nueva':'actualizó tu rutina'}`,esc(_pendingImport.name||''),`<button class="a" onclick="showRoutineUpdateBanner(_pendingImport)">VER</button>`);
+  }
+  el.innerHTML=html?`<div style="padding:14px 16px 0;display:flex;flex-direction:column;gap:8px">${html}</div>`:'';
+}
+async function sendUnsyncedNow(){
+  if(!navigator.onLine){toast('Sin conexión · se envía solo cuando vuelva','warning');return;}
+  await flushUnsynced();
+  const left=load("gym-unsynced",[]).length;
+  toast(left?'No se pudo enviar · probá en un rato':'Enviado al coach',left?'warning':'success');
+  renderHomeNotices();
+}
+function paintSummarySync(state,sessId){
+  const el=$("sm-sync");if(!el) return;
+  const coach=esc(coachLabel());
+  if(state==='beta') el.innerHTML=syncRowHTML('info','β','Beta · no se envía al coach','Esta versión de prueba nunca sube entrenos.');
+  else if(state==='sending') el.innerHTML=syncRowHTML('sending','',coach==='Tu coach'?'Enviando al coach…':`Enviando a ${coach}…`,'');
+  else if(state==='ok') el.innerHTML=syncRowHTML('ok','✓','Tu coach ya lo tiene',`enviado ${nowTime()}`);
+  else el.innerHTML=syncRowHTML('fail','!','Guardado en el teléfono','Sin conexión. Se envía solo cuando vuelva.',`<button class="a" onclick="retrySummarySync('${sessId}')">REINTENTAR</button>`);
+}
+async function retrySummarySync(id){
+  const s=sessions.find(x=>x.id===id);if(!s) return;
+  paintSummarySync('sending',id);
+  const ok=await pushSession(s);
+  if(ok) clearUnsynced(id); else markUnsynced(id);
+  paintSummarySync(ok?'ok':'fail',id);
+}
 async function flushUnsynced(){
   if(!loadLink()||!navigator.onLine)return;
   for(const id of load("gym-unsynced",[]).slice()){
@@ -7578,7 +7637,7 @@ async function maybeSyncRoutine(){
     if(active&&active.remoteHash===routineHash(data))return;  // sin cambios
     data._token=null;
     _pendingImport=data;
-    showRoutineUpdateBanner(data);
+    renderHomeNotices();
   }catch(e){}
 }
 function showRoutineUpdateBanner(remote){
