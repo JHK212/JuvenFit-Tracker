@@ -957,6 +957,24 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 .sy .t{font-size:13.5px;font-weight:700;}
 .sy .s{font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:2px;}
 .sy .a{font-family:var(--fm);font-size:10.5px;font-weight:800;letter-spacing:1px;color:var(--ac);background:none;border:1px solid rgba(91,157,248,.45);border-radius:8px;padding:6px 10px;cursor:pointer;flex:none;}
+/* ── Fase 5 · cambiar ejercicio (3c) ── */
+.sw-k{font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--mt);}
+.sw-t{font-family:var(--fd);font-size:26px;font-weight:800;letter-spacing:-1px;margin-top:4px;}
+.sw-note{font-size:12.5px;color:var(--mt);margin:10px 0 12px;}
+.sw-seg{display:flex;padding:4px;border-radius:12px;background:var(--bg);border:1px solid var(--bd);margin:16px 0 14px;}
+.sw-seg>*{flex:1;height:34px;display:flex;align-items:center;justify-content:center;border-radius:9px;border:none;background:none;color:var(--mt);font-family:var(--fs);font-size:12.5px;font-weight:600;cursor:pointer;}
+.sw-seg>.on{background:var(--bd-hi);color:var(--tx);font-weight:700;}
+.sw-h{font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--mt2);margin-bottom:8px;}
+.sw-list{display:flex;flex-direction:column;gap:6px;}
+.sw-row{display:flex;align-items:center;gap:12px;padding:8px 10px 8px 8px;border-radius:14px;background:var(--cd);border:1.5px solid var(--bd);cursor:pointer;}
+.sw-row.on{background:var(--cd-hi);border-color:var(--yw);}
+.sw-row .wk-thumb{width:46px;height:46px;border-radius:10px;}
+.sw-row .wk-thumb img{width:40px;height:40px;opacity:.9;}
+.sw-row .nm{font-size:14.5px;font-weight:700;}
+.sw-row .mt{font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:2px;}
+.sw-search{display:flex;align-items:center;gap:10px;width:100%;height:46px;padding:0 14px;border-radius:12px;border:1px solid var(--bd-hi);background:none;margin-top:12px;color:var(--mt2);font-family:var(--fs);font-size:13.5px;cursor:pointer;}
+.sw-go{display:flex;align-items:center;justify-content:center;width:100%;height:56px;border-radius:16px;border:none;background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);color:var(--yw-dark);font-family:var(--fs);font-size:14.5px;font-weight:800;margin-top:14px;cursor:pointer;}
+.sw-go:disabled{opacity:.4;cursor:default;}
 #today{padding-bottom:0;}
 </style>
 </head>
@@ -2618,7 +2636,24 @@ function dayTap(btn){
 function dayById(dayId){
   const d=routine.days.find(x=>x.id===dayId)||EXTRA_DAYS.find(x=>x.id===dayId);
   if(d&&curSess&&curSess.plaza&&curSess.dayId===dayId) return plazaDayOf(d);
+  if(d&&curSess&&curSess.dayId===dayId&&curSess.swaps&&Object.keys(curSess.swaps).length) return swapDayOf(d,curSess.swaps);
   return d;
+}
+// Cambio "solo hoy" (3c): clon del día con exerciseId reemplazado; la rutina del coach no se toca.
+// Cacheado por contenido para que el objeto sea estable entre renders (openTimeEdit muta el ex).
+let _swapCache=null;
+function swapDayOf(day,swaps){
+  const key=day.id+'|'+JSON.stringify(swaps);
+  if(_swapCache&&_swapCache.key===key) return _swapCache.day;
+  const mapEx=e=>{
+    if(!swaps[e.id]) return e;
+    const o={...e,exerciseId:swaps[e.id]};delete o.customName;delete o.name;delete o.track_mode;return o;
+  };
+  const clone=day.blocks&&day.blocks.length
+    ?{...day,blocks:day.blocks.map(b=>({...b,exercises:(b.exercises||[]).map(mapEx)}))}
+    :{...day,exercises:(day.exercises||[]).map(mapEx)};
+  _swapCache={key,day:clone};
+  return clone;
 }
 function showExtraDayPicker(){
   let html='<div style="font-size:18px;font-weight:800;margin-bottom:8px">Día extra</div><div class="text-sm text-mt mb-18">Entreno adicional — no mueve tu rotación de días.</div>';
@@ -4315,6 +4350,10 @@ function wkTbDown(e,k){
   if(!st||st.kind!=='unit'||st.unit.type!=='single') return;
   _wkTbT=setTimeout(()=>{_wkTbFired=true;openSwapPicker(st.curExIVal);},520);
 }
+function wkLpDown(e,ci){
+  _wkTbFired=false;clearTimeout(_wkTbT);_wkTbXY={x:e.clientX,y:e.clientY};
+  _wkTbT=setTimeout(()=>{_wkTbFired=true;openSwapPicker(ci);},520);
+}
 function wkTbMove(e){if(_wkTbXY&&Math.hypot(e.clientX-_wkTbXY.x,e.clientY-_wkTbXY.y)>8) clearTimeout(_wkTbT);}
 function wkTbUp(){clearTimeout(_wkTbT);}
 function wkTbClick(k){if(_wkTbFired){_wkTbFired=false;return;}goWorkStop(k);}
@@ -4501,7 +4540,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
       html+=`<div class="wk-bi ${cls}"><div class="wk-breathe"></div>
         <div class="wk-bi-top">
           <span class="wk-bi-lbl">A${gi+1}</span>
-          <div class="wk-thumb">${thumb}</div>
+          <div class="wk-thumb" onpointerdown="wkLpDown(event,${ci})" onpointermove="wkTbMove(event)" onpointerup="wkTbUp()" onpointercancel="wkTbUp()" onpointerleave="wkTbUp()">${thumb}</div>
           <div style="flex:1;min-width:0"><div class="wk-bi-name">${esc(getExName(ex))}</div><div class="wk-bi-meta">${esc(repsTxt)}${mode==='time'?'':' reps'}</div></div>
           ${done?`<button class="wk-bi-done" onclick="editGroupedRound(${round})">${setShort(x,mode)}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--gn)" stroke-width="2.4" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`:''}
         </div>`;
@@ -5022,7 +5061,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
+const _HAPTIC_WRAP_SEL='.sw-row,.sw-go,.sw-seg>button,.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
@@ -6253,46 +6292,42 @@ function pickZoneOk(el){return !_pickZone||(el.getAttribute('data-zones')||'').i
 // entrada de la sesión en curso. Sets ya registrados quedan atribuidos al
 // ejercicio anterior (entrada extra al final de curSess.exercises — renderWork
 // solo indexa las primeras N en paralelo a compounds, el historial las lee todas).
+let _swapCi=null,_swapMode='today',_swapPick=null,_swapAll=false;
 function openSwapPicker(ci){
   if(curSess&&curSess.plaza){toast('Cambiar ejercicio no está disponible en versión plaza','warning');return;}
-  const day=dayById(curDayId);
-  const cur=getCompounds(day)[ci];if(!cur)return;
-  _pickZone=null;
-  const curEid=eidOf(cur);
-  const sorted=getExerciseLib().filter(e=>e.category!=='movilidad'&&e.id!==curEid).sort((a,b)=>{
-    const ca=sessionCountFor(a.id),cb=sessionCountFor(b.id);
-    if(ca!==cb) return cb-ca;
-    return a.name.localeCompare(b.name,'es');
-  });
-  let html=`<div style="font-size:18px;font-weight:800;margin-bottom:4px">Cambiar ejercicio</div>`;
-  html+=`<div class="text-sm text-mt mb-12">${esc(getExName(cur))} → elegí el reemplazo. Queda en tu rutina.</div>`;
-  html+=`<input id="picker-search" class="input mb-12" placeholder="🔍 Buscar..." oninput="filterPicker(this.value)" style="width:100%;box-sizing:border-box">`;
-  html+=pickerZoneChipsHTML();
-  html+=`<div id="picker-list" style="max-height:44dvh;overflow-y:auto;-webkit-overflow-scrolling:touch">`;
-  sorted.forEach(ex=>{
+  _swapCi=ci;_swapMode='today';_swapPick=null;_swapAll=false;_pickZone=null;
+  renderSwapSheet();$("modal").classList.add('show');
+}
+function renderSwapSheet(){
+  const ci=_swapCi,cur=getCompounds(dayById(curDayId))[ci];if(!cur){closeModal();return;}
+  const curEid=eidOf(cur),curLib=getExercise(curEid);
+  let similar=((curLib&&curLib.similar)||[]).map(getExercise).filter(e=>e&&e.id!==curEid);
+  if(!similar.length&&curLib) similar=getExerciseLib().filter(e=>e.id!==curEid&&e.movement&&e.movement===curLib.movement).slice(0,4);
+  const row=(ex,extra)=>{
     const muscles=Object.keys(ex.muscleActivation||{}).slice(0,2).map(m=>MUSCLE_LABELS[m]||m).join(' · ');
-    html+=`<div class="card pick-item" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" data-zones="${zonesOfEx(ex).join(',')}" onclick="confirmSwapExercise(${ci},'${ex.id}')" style="cursor:pointer;margin-bottom:6px;padding:11px 14px">
-      <div style="display:flex;align-items:center;gap:10px">${exImgThumbHTML(ex.id,36)}<div style="flex:1;min-width:0"><div class="fw-700 text-sm">${ex.name}</div><div class="text-xs text-mt">${muscles}</div></div></div>
-    </div>`;
-  });
-  html+=`</div><button class="btn-out mt-12" onclick="closeModal()">Cancelar</button>`;
-  $("modal-content").innerHTML=html;$("modal").classList.add('show');
+    const img=EX_IMGS.has(ex.id)?`<img src="imgs/${ex.id}-0.png" alt="" onerror="this.remove()">`:`<span class="ini">${exInitials(ex)}</span>`;
+    return `<div class="sw-row${_swapPick===ex.id?' on':''}${extra||''}" data-id="${ex.id}" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" data-zones="${zonesOfEx(ex).join(',')}" onclick="pickSwap('${ex.id}')"><div class="wk-thumb">${img}</div><div style="flex:1;min-width:0"><div class="nm">${esc(ex.name)}</div><div class="mt">${esc(muscles)}</div></div></div>`;
+  };
+  const extra=isExtraDay(curDayId);
+  let html=`<div class="sw"><div class="sw-k">CAMBIAR</div><div class="sw-t">${esc(getExName(cur))}</div>`;
+  html+=extra?`<div class="sw-note">Día extra: el cambio vale solo para esta sesión.</div>`
+    :`<div class="sw-seg"><button class="${_swapMode==='today'?'on':''}" onclick="setSwapMode('today')">Solo hoy</button><button class="${_swapMode==='routine'?'on':''}" onclick="setSwapMode('routine')">En mi rutina</button></div>`;
+  if(similar.length) html+=`<div class="sw-h">PARECIDOS</div><div class="sw-list">${similar.map(e=>row(e)).join('')}</div>`;
+  if(!_swapAll) html+=`<button class="sw-search" onclick="_swapAll=true;renderSwapSheet();setTimeout(()=>{const i=$('picker-search');if(i)i.focus();},50)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar en la biblioteca</button>`;
+  else{
+    const all=getExerciseLib().filter(e=>e.category!=='movilidad'&&e.id!==curEid).sort((x,y)=>{const cx=sessionCountFor(x.id),cy=sessionCountFor(y.id);return cx!==cy?cy-cx:x.name.localeCompare(y.name,'es');});
+    html+=`<input id="picker-search" class="input" placeholder="Buscar..." oninput="filterPicker(this.value)" style="width:100%;box-sizing:border-box;margin:12px 0 10px">${pickerZoneChipsHTML()}<div id="picker-list" class="sw-list" style="max-height:36dvh;overflow-y:auto;-webkit-overflow-scrolling:touch">${all.map(e=>row(e,' pick-item')).join('')}</div>`;
+  }
+  html+=`<button class="sw-go" ${_swapPick?'':'disabled'} onclick="doSwap()">CAMBIAR</button><button class="btn-out mt-8" onclick="closeModal()">Cancelar</button></div>`;
+  $("modal-content").innerHTML=html;
 }
-function confirmSwapExercise(ci,newExId){
-  const day=dayById(curDayId);
-  const cur=getCompounds(day)[ci];const lib=getExercise(newExId);
-  if(!cur||!lib){closeModal();return;}
-  closeModal();
-  showConfirmSheet({
-    title:`¿Cambiar a ${esc(lib.name)}?`,
-    desc:isExtraDay(curDayId)
-      ?`${esc(getExName(cur))} → ${esc(lib.name)}, solo por esta sesión (los presets de día extra no se editan).`
-      :`${esc(getExName(cur))} → ${esc(lib.name)}. El cambio es permanente: queda en tu rutina para las próximas sesiones.`,
-    confirmLabel:'Cambiar ejercicio',
-    danger:false,
-    onConfirm:()=>swapExercise(ci,newExId)
-  });
+function setSwapMode(m){_swapMode=m;$("modal-content").querySelectorAll('.sw-seg>*').forEach((b,i)=>b.classList.toggle('on',(i===0)===(m==='today')));}
+function pickSwap(id){
+  _swapPick=id;
+  $("modal-content").querySelectorAll('.sw-row').forEach(r=>r.classList.toggle('on',r.dataset.id===id));
+  const go=$("modal-content").querySelector('.sw-go');if(go) go.disabled=false;
 }
+function doSwap(){if(_swapPick) swapExercise(_swapCi,_swapPick,isExtraDay(curDayId)?'today':_swapMode);}
 // Edita descanso/duración desde el workout y lo persiste en la rutina. En plaza o
 // grupos el ex de la vista puede ser un clon: se escribe en ambos por id.
 function openTimeEdit(ci){
@@ -6331,23 +6366,32 @@ function applyTimeEdit(ci){
   saveDraft();closeModal();renderWork();
   toast('Tiempos guardados en la rutina','success');
 }
-function swapExercise(ci,newExId){
+function swapExercise(ci,newExId,scope){
   const day=dayById(curDayId);
-  const ex=getCompounds(day)[ci];const lib=getExercise(newExId);
+  let ex=getCompounds(day)[ci];const lib=getExercise(newExId);
   if(!ex||!lib||!curSess){closeModal();return;}
   const entry=curSess.exercises[ci];
   const done=(entry.sets||[]).filter(s=>s.rpe!=null);
   if(done.length) curSess.exercises.push({eid:eidOf(ex),sets:done,note:entry.note||''});
   // groupId/format/formatConfig intactos — en biserie/AMRAP solo cambia el ejercicio.
-  ex.exerciseId=newExId;delete ex.customName;delete ex.name;delete ex.track_mode;
-  // EXTRA_DAYS es const en código: el swap en un día extra vive solo en memoria.
-  if(!isExtraDay(curDayId)) saveRoutine();
+  if(scope==='routine'&&!isExtraDay(curDayId)){
+    const realDay=routine.days.find(x=>x.id===curDayId);
+    const real=realDay&&getDayExercises(realDay).find(x=>x.id===ex.id);
+    if(real){real.exerciseId=newExId;delete real.customName;delete real.name;delete real.track_mode;}
+    if(curSess.swaps) delete curSess.swaps[ex.id];
+    _swapCache=null;
+    saveRoutine();
+  } else {
+    // Solo hoy (y días extra, que son presets de código): override de la sesión.
+    curSess.swaps=curSess.swaps||{};curSess.swaps[ex.id]=newExId;
+  }
+  ex=getCompounds(dayById(curDayId))[ci];
   const mode=getTrackMode(ex);
   const {sets:nsets,hoy}=hoyInitSets(ex,newExId,mode);
   entry.eid=newExId;entry.note='';entry.sets=nsets;
   if(hoy) entry.hoy=hoy; else delete entry.hoy;
   saveDraft();closeModal();renderWork();
-  toast(`Cambiado a ${lib.name}`,'success');
+  toast(scope==='routine'&&!isExtraDay(curDayId)?`Cambiado a ${lib.name} · queda en tu rutina`:`Cambiado a ${lib.name} · solo hoy`,'success');
 }
 
 function filterPicker(q){
