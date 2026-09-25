@@ -753,6 +753,24 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-card-breathe{animation:wkBord
 .wk-hoy .v .x{font-size:18px;letter-spacing:-.4px;}
 .wk-hoy .chip{display:inline-block;font-family:var(--fm);font-size:10px;font-weight:800;letter-spacing:.8px;padding:3px 7px;border-radius:5px;}
 .wk-hoy .why{font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:5px;line-height:1.4;}
+.wk-holdbox{padding:8px 12px 6px;text-align:center;}
+.wk-hdone{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px 2px;font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:1px;color:var(--gn);}
+.wk-hdone b{font-family:var(--fd);font-size:18px;letter-spacing:-.4px;}
+.wk-ring{position:relative;width:180px;height:180px;margin:4px auto 0;}
+.wk-ring svg{transform:rotate(-90deg);display:block;}
+.wk-ring .bg{stroke:var(--bd);}
+.wk-ring .fg{stroke:var(--yw);transition:stroke-dashoffset .2s linear,stroke .3s;}
+.wk-holdbox.hit .wk-ring .fg{stroke:var(--gn);}
+.wk-ring .c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.wk-ring .num{font-family:var(--fd);font-size:56px;font-weight:800;letter-spacing:-1.5px;line-height:.85;font-variation-settings:'wdth' 78;font-variant-numeric:tabular-nums;}
+.wk-holdbox.hit .num,.wk-holdbox.hit .lbl{color:var(--gn);}
+.wk-ring .lbl{font-family:var(--fm);font-size:10.5px;font-weight:700;color:var(--yw-bright);letter-spacing:2px;margin-top:8px;}
+.wk-hmeta{display:flex;justify-content:center;gap:20px;margin-top:10px;font-family:var(--fm);font-size:11px;color:var(--mt);}
+.wk-hmeta b{color:var(--tx);}
+.wk-hbtns{display:flex;gap:8px;margin-top:12px;}
+.wk-hpause{width:56px;height:56px;border-radius:16px;border:1px solid var(--bd-hi);background:var(--cd-hi);display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer;color:var(--tx);padding:0;}
+.wk-hgo{flex:1;height:56px;border-radius:16px;border:none;background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);color:var(--yw-dark);font-family:var(--fs);font-weight:800;font-size:14.5px;letter-spacing:.3px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.wk-holdbox.hit .wk-hgo{background:var(--gn);color:var(--bg);}
 .wk-rir{padding:12px 14px 14px;}
 .wk-rir-q{text-align:center;font-size:12.5px;font-weight:700;margin-bottom:9px;}
 .wk-cells{display:flex;gap:6px;}
@@ -4041,6 +4059,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     if(mode==='weight'){
       html+=numRow('w','KG',`adjW(${currentSi},-2.5,${ci})`,`adjW(${currentSi},2.5,${ci})`,'null')+`<div class="wk-div"></div>`;
     }
+    if(mode==='time'&&!editing&&st.rpe==null) html+=holdTimerHTML(ci,currentSi,st,eid);
     html+=mode==='time'
       ?numRow('r','SEGS',`adjR(${currentSi},-5,${ci})`,`adjR(${currentSi},5,${ci})`,"'Tiempo (segs)'")
       :numRow('r','REPS',`adjR(${currentSi},-1,${ci})`,`adjR(${currentSi},1,${ci})`,"'Repeticiones'");
@@ -4096,6 +4115,70 @@ function rirCellsHTML(s,si,ci,mode,sm){
     <div class="wk-ends"><span>SOBRABA</span><span>FALLO</span></div>
     <div class="wk-cap${has?' set':''}">${has?rirCaption(s.rir,mode):'Marcalo al terminar la serie · arranca el descanso'}</div>
     ${hold?`<div class="wk-hold"><i></i></div><div class="wk-hold-t">Tocá otro número si te equivocaste</div>`:''}`;
+}
+// ══ Timer de ejercicios por tiempo (2b): anillo hasta el objetivo, sigue en verde pasado el objetivo.
+// "Me solté antes"/"Listo" guardan el tiempo real en s.r; el RIR se marca después en segundos.
+// El loop solo toca texto/atributos por id (no re-render) para no cortar un swipe.
+const HOLD_C=2*Math.PI*80;
+let _holdT=null,_holdIv=null,_holdDone=null;
+const fmtHold=x=>{x=Math.max(0,Math.floor(x));return `${Math.floor(x/60)}:${String(x%60).padStart(2,'0')}`;};
+function holdElapsed(){const h=_holdT;return h?((h.pausedAt||Date.now())-h.start-h.paused)/1000:0;}
+function holdTimerHTML(ci,si,st,eid){
+  const h=_holdT&&_holdT.ci===ci&&_holdT.si===si?_holdT:null;
+  const done=!h&&_holdDone&&_holdDone.ci===ci&&_holdDone.si===si?_holdDone:null;
+  if(done) return `<div class="wk-hdone"><span>SOSTUVISTE <b>${fmtHold(st.r)}</b> · OBJETIVO ${done.target}s</span><button class="wk-undo" onclick="holdStart(${ci},${si})">OTRA VEZ</button></div>`;
+  const target=h?h.target:(st.r||30);
+  const last=lastValueOf(eid,'time');
+  const e=h?holdElapsed():0,hit=h&&e>=target;
+  const num=h?(hit?'+'+fmtHold(e-target):fmtHold(target-e)):fmtHold(target);
+  const off=h?HOLD_C*Math.max(0,1-e/target):HOLD_C;
+  let btns;
+  if(!h) btns=`<button class="wk-hgo" onclick="holdStart(${ci},${si})">EMPEZAR ${target}s</button>`;
+  else btns=`<button class="wk-hpause" onclick="holdPause()" aria-label="${h.pausedAt?'Seguir':'Pausa'}">${h.pausedAt
+      ?'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 20 12 7 20"/></svg>'
+      :'<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'}</button>
+    <button class="wk-hgo" data-hold-btn onclick="holdStop()">${hit?'LISTO':'ME SOLTÉ ANTES'}</button>`;
+  return `<div class="wk-holdbox${hit?' hit':''}" id="hold-${ci}-${si}">
+    <div class="wk-ring"><svg width="180" height="180" viewBox="0 0 180 180"><circle class="bg" cx="90" cy="90" r="80" fill="none" stroke-width="12"/><circle class="fg" data-hold-ring cx="90" cy="90" r="80" fill="none" stroke-width="12" stroke-linecap="round" stroke-dasharray="${HOLD_C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg>
+      <div class="c"><div class="num" data-hold-num>${num}</div><div class="lbl" data-hold-lbl>${h?(h.pausedAt?'PAUSA':hit?'¡OBJETIVO!':'SOSTENÉ'):'OBJETIVO'}</div></div></div>
+    <div class="wk-hmeta"><span>OBJETIVO <b>${target}s</b></span>${last?`<span>ÚLTIMA <b>${last}s</b></span>`:''}</div>
+    <div class="wk-hbtns">${btns}</div>
+  </div>`;
+}
+function holdStart(ci,si){
+  const st=curSess.exercises[ci].sets[si];
+  const target=_holdDone&&_holdDone.ci===ci&&_holdDone.si===si?_holdDone.target:(st.r||30);
+  stopTimer();
+  _holdDone=null;
+  _holdT={ci,si,target,start:Date.now(),paused:0,pausedAt:null,hit:false};
+  clearInterval(_holdIv);_holdIv=setInterval(holdTick,200);
+  renderWork();
+}
+function holdPause(){
+  const h=_holdT;if(!h) return;
+  if(h.pausedAt){h.paused+=Date.now()-h.pausedAt;h.pausedAt=null;}else h.pausedAt=Date.now();
+  renderWork();
+}
+function holdStop(){
+  const h=_holdT;if(!h) return;
+  const st=curSess.exercises[h.ci]?.sets?.[h.si];
+  if(st) st.r=Math.max(1,Math.round(holdElapsed()));
+  _holdDone={ci:h.ci,si:h.si,target:h.target};
+  _holdT=null;clearInterval(_holdIv);
+  saveDraft();renderWork();
+}
+function holdTick(){
+  const h=_holdT;if(!h||!curSess){clearInterval(_holdIv);return;}
+  const box=$(`hold-${h.ci}-${h.si}`);if(!box||h.pausedAt) return;
+  const e=holdElapsed(),hit=e>=h.target;
+  box.querySelector('[data-hold-num]').textContent=hit?'+'+fmtHold(e-h.target):fmtHold(h.target-e);
+  box.querySelector('[data-hold-ring]').setAttribute('stroke-dashoffset',(HOLD_C*Math.max(0,1-e/h.target)).toFixed(1));
+  if(hit&&!h.hit){
+    h.hit=true;box.classList.add('hit');
+    box.querySelector('[data-hold-lbl]').textContent='¡OBJETIVO!';
+    const b=box.querySelector('[data-hold-btn]');if(b) b.textContent='LISTO';
+    try{if(navigator.vibrate) navigator.vibrate([80,60,80]);}catch(e){}
+  }
 }
 function exitSetEdit(){curWorkSetEdit=null;renderWork();}
 function wkChipTap(ci,si){
@@ -4909,7 +4992,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
+const _HAPTIC_WRAP_SEL='.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
@@ -5276,6 +5359,7 @@ function jumpInSuperset(targetIdx){
 }
 function finishWorkout(){
   if(!curSess) return;
+  _holdT=null;clearInterval(_holdIv);
   mbStopTick(); clearMbState(); // soltar wake lock + tick metabólico si quedó corriendo
   haptic.confirm(); // celebración doble pulso al cerrar el workout
   _coreRoundExpanded={};
@@ -5541,7 +5625,7 @@ function endOnboarding(){
   $("onboarding-modal").classList.remove('show');
   document.body.classList.remove('modal-open');
 }
-function discardWorkout(){mbStopTick();clearMbState();curSess=null;clearDraft();stopTimer();closeExitModal();showPage('home');}
+function discardWorkout(){_holdT=null;clearInterval(_holdIv);mbStopTick();clearMbState();curSess=null;clearDraft();stopTimer();closeExitModal();showPage('home');}
 function resumeDraft(){
   const d=load("gym-draft",null);if(!d)return;
   curSess=d;curDayId=d.dayId;
