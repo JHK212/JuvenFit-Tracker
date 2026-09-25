@@ -930,6 +930,21 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 .td-hint{text-align:center;font-size:12px;color:var(--mt2);margin:12px 0;}
 .td-foot{position:sticky;bottom:0;margin:0 -18px;padding:0 18px calc(18px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 70%,transparent);}
 .td-cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:66px;border-radius:18px;border:none;background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);color:var(--yw-dark);font-family:var(--fs);font-size:15px;font-weight:800;letter-spacing:.3px;cursor:pointer;}
+/* ── Fase 5 · entreno en curso en el inicio (3e) ── */
+.rs{position:relative;border-radius:24px;background:var(--cd);border:1.5px solid rgba(215,121,62,.45);padding:20px;}
+.rs-k{display:flex;align-items:center;gap:8px;font-family:var(--fm);font-size:10.5px;font-weight:700;letter-spacing:1.6px;color:var(--yw-bright);}
+.rs-t{font-family:var(--fd);font-size:46px;font-weight:800;letter-spacing:-2.2px;line-height:.9;margin-top:16px;font-variation-settings:'wdth' 82;text-transform:uppercase;overflow-wrap:anywhere;}
+.rs-bar{display:flex;gap:4px;margin-top:16px;}
+.rs-bar i{flex:1;height:5px;border-radius:3px;background:var(--bd-hi);}
+.rs-next{display:flex;align-items:center;gap:12px;margin-top:16px;}
+.rs-next .wk-thumb{width:46px;height:46px;border-radius:10px;}
+.rs-next .wk-thumb img{width:40px;height:40px;opacity:.9;}
+.rs-next .l{font-family:var(--fm);font-size:10px;color:var(--mt2);letter-spacing:1.3px;}
+.rs-next .v{font-size:15px;font-weight:700;}
+.rs-go{display:flex;align-items:center;justify-content:center;width:100%;height:58px;border-radius:15px;border:none;background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);color:var(--yw-dark);font-family:var(--fs);font-size:15px;font-weight:800;margin-top:18px;cursor:pointer;}
+.rs-row{display:flex;gap:8px;margin-top:8px;}
+.rs-b{flex:1;height:44px;display:flex;align-items:center;justify-content:center;border-radius:12px;border:1px solid var(--bd-hi);background:none;color:var(--mt);font-family:var(--fs);font-size:12.5px;font-weight:700;cursor:pointer;}
+.rs-b.dn{border-color:rgba(227,106,106,.35);color:var(--dn);}
 #today{padding-bottom:0;}
 </style>
 </head>
@@ -2986,25 +3001,26 @@ function renderHome(){
   const _diaShort=['DOM','LUN','MAR','MIE','JUE','VIE','SAB'][_dn.getUTCDay()];
   $("home-date").textContent=`${_diaShort} · ${_dn.getUTCDate()}.${String(_dn.getUTCMonth()+1).padStart(2,'0')}.${String(_dn.getUTCFullYear()).slice(-2)}`;
 
-  // Draft banner — naranja con dot pulsante
+  // Entreno en curso (3e): reemplaza al bloque del día mientras haya un borrador
   const draft=load("gym-draft",null);
-  const db=$("draft-banner");
-  if(draft){
-    const dayDef=dayById(draft.dayId);
+  const db=$("draft-banner"),heroWrap=document.querySelector('#home-main .hero-wrap');
+  if(draft&&dayById(draft.dayId)){
+    const ds=draftSummary(draft);
     db.style.display="block";
-    db.innerHTML=`<div class="card" style="cursor:default;background:rgba(215,121,62,0.08);border-color:rgba(215,121,62,0.30);box-shadow:var(--lift-in)">
-      <div class="row mb-8" style="align-items:center;gap:8px">
-        <span class="b2-pulse-dot"></span>
-        <span style="font-family:var(--fm);color:var(--yw);font-size:9.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase">Borrador en curso</span>
-        <span class="text-xs text-mt" style="margin-left:auto">${fd(draft.date)} · ${dayDef?.name||'?'}</span>
-      </div>
-      <div class="text-sm text-mt mb-14">Cerraste sin finalizar. ¿Continuás?</div>
-      <div class="flex gap-8">
-        <button class="btn" style="flex:1;padding:12px 0;font-size:14px" onclick="resumeDraft()">Continuar →</button>
-        <button class="btn-out" style="flex:1;padding:12px 0;font-size:14px" onclick="discardDraft()">Descartar</button>
-      </div>
+    if(heroWrap) heroWrap.style.display='none';
+    db.innerHTML=`<div class="rs">
+      <div class="rs-k"><span class="b2-pulse-dot"></span>EN CURSO${ds.ago?` · HACE ${ds.ago.toUpperCase()}`:''}</div>
+      <div class="rs-t">${esc(ds.title)}</div>
+      <div class="rs-bar">${ds.segs.map(f=>`<i style="background:${f>=1?'var(--gn)':f>0?`linear-gradient(90deg,var(--yw) ${Math.round(f*100)}%,var(--bd-hi) ${Math.round(f*100)}%)`:'var(--bd-hi)'}"></i>`).join('')}</div>
+      ${ds.next?`<div class="rs-next"><div class="wk-thumb">${ds.next.eid&&EX_IMGS.has(ds.next.eid)?`<img src="imgs/${ds.next.eid}-0.png" alt="" onerror="this.remove()">`:`<span class="ini">${esc(ds.next.tag)}</span>`}</div><div><div class="l">SIGUE</div><div class="v">${esc(ds.next.label)}</div></div></div>`:''}
+      <button class="rs-go" onclick="resumeDraft()">RETOMAR</button>
+      <div class="rs-row"><button class="rs-b" onclick="finishDraft()">Terminar y guardar</button><button class="rs-b dn" onclick="discardDraft()">Descartar</button></div>
     </div>`;
-  } else {db.style.display="none";db.innerHTML="";}
+    if(ds.ageH>=6&&!draft.stalePrompted){
+      draft.stalePrompted=true;save("gym-draft",draft);
+      setTimeout(()=>showConfirmSheet({title:'¿Terminaste este entreno?',desc:`Lo empezaste hace ${Math.floor(ds.ageH)} h. ¿Lo guardamos como terminado? Solo se guardan las series con RIR.`,confirmLabel:'Guardar como terminado',danger:false,onConfirm:()=>finishDraft(true)}),400);
+    }
+  } else {db.style.display="none";db.innerHTML="";if(heroWrap) heroWrap.style.display='';}
 
   // HERO — bloque naranja con ghost number, REF, D x/y
   const sg=sugDay();
@@ -4992,7 +5008,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
+const _HAPTIC_WRAP_SEL='.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
@@ -5626,6 +5642,56 @@ function endOnboarding(){
   document.body.classList.remove('modal-open');
 }
 function discardWorkout(){_holdT=null;clearInterval(_holdIv);mbStopTick();clearMbState();curSess=null;clearDraft();stopTimer();closeExitModal();showPage('home');}
+// Resumen de un borrador para el inicio: progreso por stop y qué sigue.
+function draftSummary(d){
+  const real=routine.days.find(x=>x.id===d.dayId)||EXTRA_DAYS.find(x=>x.id===d.dayId);
+  const day=d.plaza&&real?plazaDayOf(real):real;
+  const compounds=getCompounds(day),accs=getAccessories(day),mob=getMobilityExs(day);
+  const segs=[];let next=null;
+  const setsOf=i=>(d.exercises[i]&&d.exercises[i].sets)||[];
+  if(mob.length){
+    const f=mob.filter(m=>d.mobility&&d.mobility[m.id]).length/mob.length;
+    segs.push(f);if(f<1&&!next) next={label:'Movilidad',tag:'MOV'};
+  }
+  const seen=new Set();
+  compounds.forEach((ex,i)=>{
+    if(seen.has(i)) return;
+    const grp=groupOfCompoundIdx(compounds,i);
+    const idx=grp?grp.indexes:[i];idx.forEach(x=>seen.add(x));
+    if(grp&&grp.isMetabolic){
+      const f=d.metabolic&&d.metabolic[grp.groupId]?1:0;segs.push(f);
+      if(!f&&!next) next={label:grp.format==='amrap'?'Intervalos':'EMOM',tag:grp.format==='amrap'?'INT':'EMOM'};
+      return;
+    }
+    const all=idx.flatMap(x=>setsOf(x)),done=all.filter(x=>x.rpe!=null).length;
+    const f=all.length?done/all.length:0;segs.push(f);
+    if(f<1&&!next){
+      const first=idx.find(x=>setsOf(x).some(y=>y.rpe==null));
+      const si=first!=null?setsOf(first).findIndex(y=>y.rpe==null):0;
+      const nm=grp?(grp.size===2?'Biserie':'Triserie'):getExName(ex);
+      next={label:`${nm} · ${grp?'vuelta':'serie'} ${si+1}`,eid:eidOf(compounds[first!=null?first:i]),tag:exInitials(ex)};
+    }
+  });
+  if(accs.length){
+    const tot=accs.reduce((t,a)=>t+accRounds(a),0);
+    const c=accs.reduce((t,a)=>{const v=d.accessories&&d.accessories[a.id];return t+(v===true?accRounds(a):Math.min(accRounds(a),parseInt(v)||0));},0);
+    const f=tot?c/tot:0;segs.push(f);if(f<1&&!next) next={label:'Accesorios',tag:'ACC'};
+  }
+  let started=d.startedAt;
+  if(!started&&d.time){const [h,m]=d.time.split(':').map(Number);started=new Date(d.date+'T00:00:00Z').getTime()+((h+3)*60+m)*60000;}
+  const ageMin=started?Math.max(0,(Date.now()-started)/60000):null;
+  const ago=ageMin==null?'':ageMin<60?`${Math.floor(ageMin)} min`:ageMin<48*60?`${Math.floor(ageMin/60)} h`:`${Math.floor(ageMin/1440)} días`;
+  return {title:real.name+(d.plaza?' · Plaza':''),segs,next,ago,ageH:ageMin==null?0:ageMin/60};
+}
+// Terminar un borrador desde el inicio (3e): mismo flujo que TERMINAR dentro del entreno.
+// direct (aviso de >6 h): ya confirmó en la hoja, se guarda sin la segunda confirmación.
+function finishDraft(direct){
+  const d=load("gym-draft",null);if(!d) return;
+  curSess=d;curDayId=d.dayId;_wkSig=null;
+  if(!direct){confirmFinishWorkout();return;}
+  const any=(d.exercises||[]).some(e=>(e.sets||[]).some(x=>x.rpe!=null))||Object.keys(d.metabolic||{}).length>0;
+  if(any) finishWorkout(); else finishFreeWorkout();
+}
 function resumeDraft(){
   const d=load("gym-draft",null);if(!d)return;
   curSess=d;curDayId=d.dayId;
@@ -5646,7 +5712,19 @@ function resumeDraft(){
   });
   const hasMov=day&&(day.blocks||[]).filter(isMobilityBlock).flatMap(b=>b.exercises||[]).length>0;
   const movPending=hasMov&&(looseMovsPending||coreCircuitsPending);
-  curExI=movPending?-1:0;
+  // Retomar donde quedó: primer ejercicio con series sin registrar (los metabólicos se cierran por timer).
+  let resumeAt=0;
+  if(movPending) resumeAt=-1;
+  else if(day){
+    const cmp=getCompounds(day);
+    const i=cmp.findIndex((ex,idx)=>{
+      const g=groupOfCompoundIdx(cmp,idx);
+      if(g&&g.isMetabolic) return !(d.metabolic&&d.metabolic[g.groupId]);
+      return (d.exercises[idx]?.sets||[]).some(x=>x.rpe==null);
+    });
+    resumeAt=i>=0?i:(getAccessories(day).length?cmp.length:0);
+  }
+  curExI=resumeAt;
   _wkSig=null;
   showPage('work');renderWork();
 }
