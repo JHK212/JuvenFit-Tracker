@@ -746,6 +746,13 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-card-breathe{animation:wkBord
 @keyframes wkPop{0%{transform:scale(.84);opacity:.4;}60%{transform:scale(1.05);}100%{transform:none;opacity:1;}}
 .wk-unit{display:flex;justify-content:center;gap:6px;align-items:center;margin-top:4px;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.5px;color:var(--mt2);}
 .wk-div{height:1px;background:var(--bd);margin:0 12px;}
+.wk-sug{font-family:var(--fm);font-size:8.5px;font-weight:800;letter-spacing:1px;color:var(--yw);border:1px solid rgba(215,121,62,.5);padding:1px 5px;border-radius:4px;}
+.wk-hoy{margin-top:12px;padding:12px 14px;border-radius:16px;background:var(--sf);border:1px solid var(--bd-hi);display:flex;align-items:center;gap:12px;}
+.wk-hoy .k{font-family:var(--fm);font-size:9.5px;font-weight:800;letter-spacing:1.5px;color:var(--yw);}
+.wk-hoy .v{font-family:var(--fd);font-size:30px;font-weight:800;letter-spacing:-1.2px;line-height:1;margin-top:3px;white-space:nowrap;}
+.wk-hoy .v .x{font-size:18px;letter-spacing:-.4px;}
+.wk-hoy .chip{display:inline-block;font-family:var(--fm);font-size:10px;font-weight:800;letter-spacing:.8px;padding:3px 7px;border-radius:5px;}
+.wk-hoy .why{font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:5px;line-height:1.4;}
 .wk-rir{padding:12px 14px 14px;}
 .wk-rir-q{text-align:center;font-size:12.5px;font-weight:700;margin-bottom:9px;}
 .wk-cells{display:flex;gap:6px;}
@@ -3839,6 +3846,103 @@ function renderRoutine(){
 }
 
 // ══ WORKOUT ══
+// ══ Tarjeta HOY · sugerencia de carga desde la sesión anterior (fase 2 RIR) ══
+// Solo si la última sesión válida del ejercicio (no libre/plaza) fue hace ≤10 días, con todas las
+// series planificadas registradas. Doble progresión: tope del rango con RIR≥2 → sube; RIR 0-1 →
+// repite (2.ª vez seguida → sube); no llegó → más reps o baja si fue al fallo. Salto >15% (mancuernas
+// livianas) → primero reps por encima del rango. HOY_REPS_OVER: reps extra antes del salto (a
+// confirmar con el profe).
+const HOY_MAX_DAYS=10,HOY_REPS_OVER=3;
+function repsRange(reps){
+  const str=String(reps==null?'':reps).toLowerCase().replace(',','.');
+  const mul=/min/.test(str)?60:1;
+  const m=str.match(/(\d+(?:\.\d+)?)\s*(?:-|–|a)\s*(\d+(?:\.\d+)?)/);
+  if(m) return {lo:Math.round(+m[1]*mul),hi:Math.round(+m[2]*mul)};
+  const n=parseFloat(str);
+  return isNaN(n)||n<=0?null:{lo:Math.round(n*mul),hi:Math.round(n*mul)};
+}
+function hoyStep(ex){
+  const lib=getExercise(eidOf(ex));
+  const big=(lib&&['sentadilla','bisagra'].includes(lib.movement))||/prensa|hip-thrust/.test(eidOf(ex)||'');
+  return big?5:2.5;
+}
+function hoyEligible(eid,planned,beforeKey){
+  const sorted=[...sessions].filter(x=>!x.free&&!x.plaza).sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||'')));
+  for(const x of sorted){
+    const key=x.date+(x.time||'');
+    if(beforeKey&&key>=beforeKey) continue;
+    const e=(x.exercises||[]).find(y=>y.eid===eid);
+    if(!e) continue;
+    return {sess:x,key,sets:doneSets(e)};
+  }
+  return null;
+}
+function hoySuggestion(ex){
+  const eid=eidOf(ex),mode=getTrackMode(ex),rg=repsRange(ex.reps);
+  if(!eid||!rg) return null;
+  const planned=parseInt(ex.sets)||1;
+  const last=hoyEligible(eid,planned);
+  if(!last) return null;
+  const days=Math.round((new Date(td()+'T00:00:00Z')-new Date(last.sess.date+'T00:00:00Z'))/86400000);
+  const sets=last.sets;
+  if(days>HOY_MAX_DAYS||sets.length<planned) return null;
+  if(sets.some(x=>!(x.r>0)||(mode==='weight'&&!(x.w>0)))) return null;
+  const rirs=sets.map(rirOfSet);
+  if(rirs.some(v=>v==null)) return null;
+  const legacy=sets.some(x=>x.rir==null);
+  const minRir=Math.min(...rirs),maxRir=Math.max(...rirs);
+  const maxR=Math.max(...sets.map(x=>x.r));
+  const allTop=sets.every(x=>x.r>=rg.hi),allLo=sets.every(x=>x.r>=rg.lo);
+  const rirTxt=minRir===maxRir?`RIR ${minRir}`:`RIR ${minRir}–${maxRir}`;
+  const when=days===0?'Hoy':days===1?'Ayer':`Hace ${days} días`;
+  let out;
+  if(mode==='weight'){
+    const W=Math.max(...sets.map(x=>x.w)),step=hoyStep(ex);
+    const why=`${when}: ${W} × ${sets.map(x=>x.r).join('·')} · ${legacy?'≈':''}${rirTxt}`;
+    if(allTop&&minRir>=2){
+      if(step/W>0.15&&maxR<rg.hi+HOY_REPS_OVER) out={w:W,r:Math.min(maxR+2,rg.hi+HOY_REPS_OVER),dir:'reps'};
+      else out={w:W+step,r:rg.lo,dir:'up'};
+    } else if(allTop){
+      const prev=hoyEligible(eid,planned,last.key);
+      const prevTop=prev&&prev.sets.length>=planned&&Math.max(...prev.sets.map(x=>x.w))===W&&prev.sets.every(x=>x.r>=rg.hi);
+      out=prevTop&&step/W<=0.15?{w:W+step,r:rg.lo,dir:'up'}:{w:W,r:rg.hi,dir:'same'};
+    } else if(allLo) out={w:W,r:Math.min(rg.hi,maxR+1),dir:maxR+1>rg.lo?'reps':'same'};
+    else if(minRir===0&&W-step>0) out={w:W-step,r:rg.lo,dir:'down'};
+    else out={w:W,r:rg.lo,dir:'same'};
+    out.why=why;out.step=step;out.prevW=W;
+  } else {
+    const inc=mode==='time'?5:1,u=mode==='time'?'s':'';
+    const why=`${when}: ${sets.map(x=>x.r+u).join('·')} · ${legacy?'≈':''}${rirTxt}`;
+    if(minRir>=2) out={r:maxR+inc,dir:'reps'};
+    else if(minRir===0&&!allLo) out={r:Math.max(1,maxR-inc),dir:'down'};
+    else out={r:maxR,dir:'same'};
+    out.why=why;out.prevR=maxR;
+  }
+  out.legacy=legacy;out.mode=mode;
+  return out;
+}
+function hoyInitSets(ex,eid,mode){
+  const hoy=hoySuggestion(ex);
+  const lastVal=lastValueOf(eid,mode),targetReps=repsAsNumber(ex.reps)||10;
+  const sets=Array.from({length:parseInt(ex.sets)||1},()=>({
+    w:mode==='weight'?(hoy&&hoy.w!=null?hoy.w:(lastW(eid)||0)):0,
+    r:hoy?hoy.r:(mode==='weight'?targetReps:(lastVal||targetReps)),
+    rpe:null,rir:null
+  }));
+  return {sets,hoy};
+}
+function hoyCardHTML(hoy){
+  const chip=hoy.legacy?['≈ ESTIMADO','var(--bd-hi)','var(--tx)']
+    :hoy.dir==='up'?[`↑ +${hoy.step} KG`,'var(--gn)','var(--bg)']
+    :hoy.dir==='down'?[hoy.mode==='weight'?`↓ −${hoy.step} KG`:'↓ MENOS','var(--yw)','var(--yw-dark)']
+    :hoy.dir==='reps'?['↑ MÁS REPS','var(--gn)','var(--bg)']
+    :['= REPETÍ','var(--bd-hi)','var(--tx)'];
+  const big=hoy.mode==='weight'
+    ?`${hoy.w} kg${hoy.dir==='reps'?` <span class="x">× ${hoy.r}</span>`:''}`
+    :`${hoy.r}<span class="x">${hoy.mode==='time'?' s':' reps'}</span>`;
+  return `<div class="wk-hoy"><div style="flex:none"><div class="k">HOY</div><div class="v">${big}</div></div>
+    <div style="flex:1;min-width:0"><span class="chip" style="background:${chip[1]};color:${chip[2]}">${chip[0]}</span><div class="why">${esc(hoy.why)}</div></div></div>`;
+}
 function startWorkout(dayId,customDate,plaza,startAt){
   // Unlock AudioContext en el gesto de tap/hold del usuario — habilita beeps del timer end.
   try{ if(typeof _mbEnsureAudio==='function') _mbEnsureAudio(); }catch(e){}
@@ -3859,16 +3963,10 @@ function startWorkout(dayId,customDate,plaza,startAt){
   const sessTime=sessDate===td()?nowTime():null;
   curSess={id:uid(),date:sessDate,time:sessTime,dayId,startedAt:Date.now(),
     exercises:compounds.map(e=>{
-      const mode=getTrackMode(e);
-      const eid=eidOf(e);
-      // Para weight: w=último peso, r=reps del target. Para reps/time: w=0, r=target (reps o segs).
-      const lastVal=lastValueOf(eid,mode);
-      const targetReps=repsAsNumber(e.reps)||10;
-      return {eid,sets:Array.from({length:parseInt(e.sets)||1},()=>({
-        w:mode==='weight'?(lastW(eid)||0):0,
-        r:mode==='weight'?targetReps:(lastVal||targetReps),
-        rpe:null,rir:null
-      })),note:''};
+      const mode=getTrackMode(e),eid=eidOf(e);
+      // HOY: precarga peso/reps sugeridos; sin sugerencia → último peso + reps del target.
+      const {sets,hoy}=hoyInitSets(e,eid,mode);
+      return hoy?{eid,sets,note:'',hoy}:{eid,sets,note:''};
     }),
     accessories:accessories.reduce((o,a)=>{o[a.id]=0;return o;},{}),
     mobility:mobility.reduce((o,m)=>{o[m.id]=false;return o;},{}),
@@ -3927,13 +4025,17 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   if(cue) html+=`<div class="wk-cue" onclick="this.classList.toggle('open')">${esc(cue)}</div>`;
   html+=`</div>`;
 
+  const hoy=curSess.exercises[ci]?.hoy;
+  if(hoy&&sets[0]&&sets[0].rpe==null&&!editing) html+=hoyCardHTML(hoy);
   if(currentSi>=0){
     const st=sets[currentSi];
+    const sug=hoy&&currentSi===0&&!editing&&st.rpe==null;
+    const sugW=sug&&mode==='weight'&&st.w===hoy.w,sugR=sug&&mode!=='weight'&&st.r===hoy.r;
     html+=`<div class="wk-card${editing?' edit':''}"><div class="wk-card-breathe"></div>
       <div class="wk-card-h"><span class="dot"></span><span class="lbl">${editing?`EDITANDO SERIE ${currentSi+1}`:`SERIE ${currentSi+1} DE ${sets.length}`}</span>${editing?`<button class="wk-exit" onclick="exitSetEdit()">SALIR ✕</button>`:''}</div>`;
     const numRow=(field,label,dn,up,typeLbl)=>`<div class="wk-row">
         <button class="wk-pm" onclick="event.stopPropagation();${dn}" aria-label="Menos">−</button>
-        <div class="wk-val" onclick="typeVal(${currentSi},'${field}',${typeLbl},${ci})"><span id="val-${field}-${ci}-${currentSi}" class="wk-num">${field==='w'?st.w:st.r}</span><div class="wk-unit">${label}</div></div>
+        <div class="wk-val" onclick="typeVal(${currentSi},'${field}',${typeLbl},${ci})"><span id="val-${field}-${ci}-${currentSi}" class="wk-num">${field==='w'?st.w:st.r}</span><div class="wk-unit">${label}${(field==='w'?sugW:sugR)?'<span class="wk-sug">SUGERIDO</span>':''}</div></div>
         <button class="wk-pm" onclick="event.stopPropagation();${up}" aria-label="Más">+</button>
       </div>`;
     if(mode==='weight'){
@@ -6058,14 +6160,9 @@ function swapExercise(ci,newExId){
   // EXTRA_DAYS es const en código: el swap en un día extra vive solo en memoria.
   if(!isExtraDay(curDayId)) saveRoutine();
   const mode=getTrackMode(ex);
-  const targetReps=repsAsNumber(ex.reps)||10;
-  const lastVal=lastValueOf(newExId,mode);
-  entry.eid=newExId;entry.note='';
-  entry.sets=Array.from({length:parseInt(ex.sets)||1},()=>({
-    w:mode==='weight'?(lastW(newExId)||0):0,
-    r:mode==='weight'?targetReps:(lastVal||targetReps),
-    rpe:null,rir:null
-  }));
+  const {sets:nsets,hoy}=hoyInitSets(ex,newExId,mode);
+  entry.eid=newExId;entry.note='';entry.sets=nsets;
+  if(hoy) entry.hoy=hoy; else delete entry.hoy;
   saveDraft();closeModal();renderWork();
   toast(`Cambiado a ${lib.name}`,'success');
 }
