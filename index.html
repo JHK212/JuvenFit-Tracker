@@ -122,6 +122,14 @@ input:focus,textarea:focus{border-color:rgba(96,165,250,0.4)!important;box-shado
 .rpe-btn.active-yw{border-color:var(--yw);background:var(--cd);color:var(--yw);}
 .rpe-btn.active-dn{border-color:var(--dn);background:var(--cd);color:var(--dn);}
 .ex-tabs{display:flex;gap:6px;padding:14px 22px 0;overflow-x:auto;}
+.wk-vp{overflow:hidden;touch-action:pan-y;}
+/* Barra de ejercicios fija bajo el header sticky del workout (--wk-head-h lo mide fitWorkHead) */
+#work-tabs{position:sticky;top:var(--wk-head-h,0px);z-index:9;background:var(--bg);padding-bottom:10px;}
+/* Sin rebote elástico vertical en el workout: un swipe horizontal que arranca durante el rebote
+   se mezcla con el scroll vertical que iOS ya tomó (preventDefault ignorado) y se ve un tirón. */
+html.in-work,html.in-work body{overscroll-behavior-y:none;}
+.wk-track{display:flex;align-items:flex-start;will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+.wk-panel{flex:0 0 100%;min-width:0;contain:layout paint;transform:translateZ(0);}
 .ex-tab{padding:8px 14px;border-radius:8px;border:1px solid var(--bd);background:var(--cd);color:var(--mt);font-family:var(--fm);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;white-space:nowrap;position:relative;min-width:40px;text-align:center;transition:border-color 120ms ease,color 120ms ease;}
 .ex-tab.active{border-color:var(--yw);background:var(--cd);color:var(--yw);}
 .set-card{background:var(--cd);border-radius:14px;border:1px solid var(--bd);padding:16px;margin-bottom:10px;}
@@ -1676,6 +1684,15 @@ let curWorkSetEdit=null,_lastCurExI=null;
 // Fase 4 · auto-paso post-RIR + bottom sheet info ejercicio
 let _workCountdown=null;        // {ci, si, rec, t} · ventana de 2s post-RIR para corregir
 let _lastSetTip=null;            // {ci, si, rec} para el "Tip del set anterior" colapsable
+// Carrusel del workout: todos los stops (MOV · units · ACC) lado a lado en una fila movida con
+// transform (swipe propio, no scroll nativo: el scroll-snap de iOS tiene inercia no controlable,
+// se come el primer tap post-swipe y a veces no encuadra).
+// _wkSig = firma de los stops dibujados; si no cambia, renderWork redibuja solo tabs + panel activo.
+// _wkDirty: paneles a redibujar cuando no haya gesto ni animación en curso.
+let _wkSig=null,_wkStops=[],_wkRO=null,_wkLiveK=null,_wkK=0,_wkDrag=null,_wkSwallow=false,_wkAnimT=null;
+let _wkDirty=new Set(),_wkFlushT=null,_wkPending=null,_wkAnimDone=null;
+const WK_ANIM_MS=320;
+const WK_EASE='cubic-bezier(.22,.61,.36,1)';
 let _infoSheetTab='coach';       // tab activa del bottom sheet
 let _infoSheetCi=null;           // ci del ejercicio cuyo sheet está abierto
 let calYear,calMonth;
@@ -2262,6 +2279,7 @@ function init(){
 function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   $(id).classList.add('active');
+  document.documentElement.classList.toggle('in-work',id==='work');
   window.scrollTo(0,0);
   if(id==='home') renderHome();
   if(id==='editR') renderEditR();
@@ -3703,6 +3721,7 @@ function startWorkout(dayId,customDate,plaza){
   }
   // Cualquier timer metabólico colgado de una sesión anterior se descarta al abrir una nueva
   clearMbState();
+  _wkSig=null;
   saveDraft();showPage('work');renderWork();
   if(!load('gym-rir-seen',false)) setTimeout(openRirHelp,400);
 }
@@ -4373,7 +4392,14 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
   return html;
 }
 
-function renderWork(){
+// opts.flush: solo redibuja paneles pendientes (_wkDirty), no el activo.
+// Con un dedo apoyado en el carrusel el render se posterga al soltar: reemplazar el nodo bajo el
+// dedo hace que iOS deje de entregar touchmove/touchend al viewport y el swipe queda congelado.
+function renderWork(opts){
+  if(_wkDrag&&$("work-track")){
+    if(performance.now()-_wkDrag.tLast>1500) _wkDrag=null; // touchend perdido: no trabar la app
+    else{_wkPending=(_wkPending&&!_wkPending.flush)?_wkPending:(opts||{});return;}
+  }
   // Al cambiar de ejercicio, resetear el edit forzado de set (vuelve al flujo "primer sin RPE")
   if(_lastCurExI!==null && _lastCurExI!==curExI) curWorkSetEdit=null;
   _lastCurExI=curExI;
@@ -4411,7 +4437,7 @@ function renderWork(){
     const movColor=BLOCK_TYPES.movilidad.color;
     const movDot=`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${movColor}"></span>`;
     const movDoneTag=movDone?`<span style="position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--gn);box-shadow:0 0 6px -1px rgba(61,214,140,0.6)"></span>`:'';
-    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="curExI=-1;renderWork()" style="min-width:48px;padding:8px 10px">${movDot}${movDoneTag}MOV</button>`;
+    tabsHtml+=`<button class="ex-tab${curExI===-1?' active':''}" onclick="goWorkStop(0)" style="min-width:48px;padding:8px 10px">${movDot}${movDoneTag}MOV</button>`;
   }
   // Construir "units": cada unit es un single compound o un grupo (biserie/triserie).
   // Tabs muestran UN solo botón por unit. Si curExI cae en un grupo, el tab activo es el del primero del grupo.
@@ -4426,6 +4452,14 @@ function renderWork(){
     }
     else{seenIdx.add(i);units.push({type:'single',indexes:[i],firstIdx:i});}
   });
+  const _curU=units.find(u=>u.indexes.includes(curExI));
+  if(_curU&&curExI!==_curU.firstIdx) curExI=_curU.firstIdx;
+  const stops=[];
+  if(mobility.length) stops.push({kind:'mov',curExIVal:-1});
+  units.forEach(u=>stops.push({kind:'unit',curExIVal:u.firstIdx,unit:u}));
+  if(accessories.length) stops.push({kind:'acc',curExIVal:compounds.length});
+  const stopK=v=>stops.findIndex(st=>st.curExIVal===v);
+  const activeK=Math.max(0,stopK(curExI));
   // Índice "lógico" de la unit activa
   const activeUnitIdx=units.findIndex(u=>u.indexes.includes(curExI));
   // Helper para resolver el color del bloque de un ejercicio (paleta categórica).
@@ -4445,25 +4479,25 @@ function renderWork(){
         const label=u.format==='amrap'?'Intervalos':'EMOM';
         const mbVar=u.format==='amrap'?'var(--yw)':'var(--ac)';
         const blockDot=`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${mbVar}"></span>`;
-        return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="${active?`border-color:${mbVar};color:${mbVar};`:''}min-width:64px;padding:8px 10px">${blockDot}${done?doneDot:''}${label}</button>`;
+        return `<button class="ex-tab${active?' active':''}" onclick="goWorkStop(${stopK(u.firstIdx)})" style="${active?`border-color:${mbVar};color:${mbVar};`:''}min-width:64px;padding:8px 10px">${blockDot}${done?doneDot:''}${label}</button>`;
       }
       const done=u.indexes.every(i=>curSess.exercises[i]?.sets?.every(s=>s.rpe!==null));
       const label=u.size===2?'BI':u.size===3?'TRI':'×'+u.size;
       const grpColor=blockColorOfEx(compounds[u.firstIdx]);
       const grpDot=grpColor?`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${grpColor}"></span>`:'';
-      return `<button class="ex-tab${active?' active':''}" onclick="curExI=${u.firstIdx};renderWork()" style="min-width:48px;padding:8px 10px">${grpDot}${done?doneDot:''}${label}</button>`;
+      return `<button class="ex-tab${active?' active':''}" onclick="goWorkStop(${stopK(u.firstIdx)})" style="min-width:48px;padding:8px 10px">${grpDot}${done?doneDot:''}${label}</button>`;
     }
     const i=u.firstIdx;
     const done=curSess.exercises[i]?.sets?.every(s=>s.rpe!==null);
     const exColor=blockColorOfEx(compounds[i]);
     const exDot=exColor?`<span style="position:absolute;top:5px;left:5px;width:5px;height:5px;border-radius:50%;background:${exColor}"></span>`:'';
-    return`<button class="ex-tab${active?' active':''}" onclick="curExI=${i};renderWork()">${exDot}${done?doneDot:''}${String(i+1).padStart(2,'0')}</button>`;
+    return`<button class="ex-tab${active?' active':''}" onclick="goWorkStop(${stopK(i)})">${exDot}${done?doneDot:''}${String(i+1).padStart(2,'0')}</button>`;
   }).join('');
-  if(accessories.length) tabsHtml+=`<button class="ex-tab${curExI===compounds.length?' active':''}" onclick="curExI=${compounds.length};renderWork()">ACC</button>`;
+  if(accessories.length) tabsHtml+=`<button class="ex-tab${curExI===compounds.length?' active':''}" onclick="goWorkStop(${stops.length-1})">ACC</button>`;
 
-  let html=`<div class="ex-tabs">${tabsHtml}</div><div class="sec">`;
-
-  if(curExI===-1){
+  const buildPanel=(st)=>{
+  let html=`<div class="sec">`;
+  if(st.kind==='mov'){
     // ── Mobility + Core view · Sport v3 editorial ──
     // Reusamos el pre-cálculo de arriba: _looseMov + _coreCircuits.
     const looseMov=_looseMov;
@@ -4577,20 +4611,17 @@ function renderWork(){
       });
       html+=`</div>`;
     });
-  } else if(curExI<compounds.length){
+  } else if(st.kind==='unit'){
     // Compound exercise view (single o grupo unificado)
-    html+=`<div id="work-pr" class="pr-banner"><div style="font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.5px;color:#062414;background:var(--gn);padding:4px 8px;border-radius:5px">PR</div><div><div style="font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gn)">Nuevo récord</div><div id="work-pr-name" class="text-xs text-mt"></div></div></div>`;
-    const grp=groupOfCompoundIdx(compounds,curExI);
+    const grp=groupOfCompoundIdx(compounds,st.curExIVal);
     if(grp){
-      // Redirigir al primero del grupo si no estamos parados ahí
-      if(curExI!==grp.indexes[0]){curExI=grp.indexes[0];return renderWork();}
       if(grp.isMetabolic){
         html+=renderMetabolicUnitHTML(grp,compounds,day);
       } else {
         html+=renderGroupedWorkoutHTML(grp,compounds,day);
       }
     } else {
-      html+=renderSingleCompoundWorkoutHTML(curExI,compounds,day);
+      html+=renderSingleCompoundWorkoutHTML(st.curExIVal,compounds,day);
     }
 
   } else {
@@ -4622,30 +4653,209 @@ function renderWork(){
     });
   }
   
-  // Nav por UNITS. -1 = MOV (si hay), 0..units.length-1 = units, units.length = ACC.
-  // Calculo qué unit/etapa está activa y cuál es la próxima/anterior.
-  const movIdx=mobility.length?-1:null;
-  const accIdx=accessories.length?units.length:null;
-  // "Stops" lineales que el alumno recorre con anterior/siguiente
-  const stops=[];
-  if(mobility.length) stops.push({kind:'mov',curExIVal:-1});
-  units.forEach(u=>stops.push({kind:'unit',curExIVal:u.firstIdx,unit:u}));
-  if(accessories.length) stops.push({kind:'acc',curExIVal:compounds.length});
-  // Encontrar el stop actual
-  let curStopIdx=-1;
-  if(curExI===-1) curStopIdx=stops.findIndex(s=>s.kind==='mov');
-  else if(curExI===compounds.length) curStopIdx=stops.findIndex(s=>s.kind==='acc');
-  else {
-    const u=units.findIndex(u=>u.indexes.includes(curExI));
-    if(u>=0){const targetCurExI=units[u].firstIdx;curStopIdx=stops.findIndex(s=>s.curExIVal===targetCurExI);}
-  }
-  // Fase 4.1: botones Anterior/Siguiente sacados — el usuario navega con las tabs arriba
-  // o con "Siguiente ejercicio →" / "🏁 Finalizar entreno" del estado D (todos sets completos).
   html+=`</div>`;
-  
-  $("work-content").innerHTML=html;
+  return html;
+  };
+  // Paneles no activos se dibujan sin el edit forzado (curWorkSetEdit es del ejercicio activo).
+  const panelFor=(st,k)=>{
+    if(k===activeK) return buildPanel(st);
+    const ed=curWorkSetEdit;curWorkSetEdit=null;
+    try{return buildPanel(st);}finally{curWorkSetEdit=ed;}
+  };
+  const sig=curDayId+'#'+stops.map(st=>st.kind+st.curExIVal).join('|');
+  _wkStops=stops;
+  let track=$("work-track");
+  if(!track||_wkSig!==sig){
+    $("work-content").innerHTML=`<div class="ex-tabs" id="work-tabs">${tabsHtml}</div><div style="padding:0 20px"><div id="work-pr" class="pr-banner" style="margin:14px 0 0"><div style="font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.5px;color:#062414;background:var(--gn);padding:4px 8px;border-radius:5px">PR</div><div><div style="font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gn)">Nuevo récord</div><div id="work-pr-name" class="text-xs text-mt"></div></div></div></div><div class="wk-vp" id="work-vp"><div class="wk-track" id="work-track">${stops.map((st,k)=>`<div class="wk-panel" data-k="${k}">${panelFor(st,k)}</div>`).join('')}</div></div>`;
+    _wkSig=sig;_wkDirty.clear();_wkDrag=null;
+    track=$("work-track");
+    bindWorkSwipe($("work-vp"));
+    fitWorkHead();
+    if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitWorkHead);
+    slideWorkTo(activeK,false);
+  } else {
+    $("work-tabs").innerHTML=tabsHtml;
+    _wkDirty.forEach(k=>{if(track.children[k]&&stops[k]) track.children[k].innerHTML=panelFor(stops[k],k);});
+    const flushedActive=_wkDirty.has(activeK);
+    _wkDirty.clear();
+    if(!(opts&&opts.flush)&&!flushedActive&&track.children[activeK]) track.children[activeK].innerHTML=buildPanel(stops[activeK]);
+    if(!_wkDrag&&_wkK!==activeK) slideWorkTo(activeK,true);
+  }
+  [...track.children].forEach((p,k)=>p.classList.toggle('on',k===activeK));
+  _wkLiveK=activeK;
+  fitWorkTrack();
+  const tabsEl=$("work-tabs"),at=tabsEl&&tabsEl.querySelector('.active');
+  if(at) tabsEl.scrollLeft=at.offsetLeft-tabsEl.clientWidth/2+at.offsetWidth/2;
   if(curSess) saveDraft();
 }
+function workW(){const vp=$("work-vp");return (vp&&vp.clientWidth)||1;}
+function fitWorkHead(){
+  const h=document.querySelector('#work .work-header-new');
+  if(h) document.documentElement.style.setProperty('--wk-head-h',h.offsetHeight+'px');
+}
+function setWorkX(px,animate,ease){
+  const t=$("work-track");if(!t) return;
+  t.style.transition=animate?`transform ${WK_ANIM_MS}ms ${ease||WK_EASE}`:'none';
+  t.style.transform=`translate3d(${px}px,0,0)`;
+}
+// done: callback al terminar la animación (antes de ajustar alto). Si otro gesto arranca antes,
+// se ejecuta en ese momento (finishWorkAnim) para no dejar vecinos desalineados.
+function slideWorkTo(k,animate,ease,done){
+  finishWorkAnim();
+  _wkK=k;setWorkX(-k*workW(),animate,ease);
+  _wkAnimDone=done||null;
+  _wkAnimT=setTimeout(()=>{finishWorkAnim();fitWorkTrack();scheduleWorkFlush();},animate?WK_ANIM_MS+20:0);
+}
+function finishWorkAnim(){
+  clearTimeout(_wkAnimT);
+  if(_wkAnimDone){const f=_wkAnimDone;_wkAnimDone=null;f();}
+}
+// Scrolleado hacia abajo: los paneles destino se corren en Y lo mismo que el scroll, así entran
+// mostrando su inicio. Al terminar, se sacan el corrimiento y se sube la página en el mismo frame:
+// se cancelan y no hay salto visible.
+function alignWorkPanels(ks){
+  const off=Math.max(0,window.scrollY),track=$("work-track");
+  if(!off||!track) return 0;
+  ks.forEach(i=>{const p=track.children[i];if(p&&i!==_wkK) p.style.transform=`translate3d(0,${off}px,0)`;});
+  return off;
+}
+function unalignWorkPanels(scrollTop){
+  const track=$("work-track");
+  if(track) [...track.children].forEach(p=>{if(p.style.transform) p.style.transform='';});
+  if(scrollTop) window.scrollTo(0,0);
+}
+// Alto del viewport = alto del panel activo (los vecinos quedan recortados, solo se ven al deslizar).
+function fitWorkTrack(){
+  const vp=$("work-vp"),track=$("work-track");if(!vp||!track) return;
+  const pnl=track.querySelector('.wk-panel.on');if(!pnl) return;
+  vp.style.height=pnl.offsetHeight+'px';
+  if(typeof ResizeObserver==='function'){
+    if(_wkRO) _wkRO.disconnect();
+    _wkRO=new ResizeObserver(()=>{if(!_wkDrag) vp.style.height=pnl.offsetHeight+'px';});
+    _wkRO.observe(pnl);
+  }
+}
+function growWorkVp(a,b,hs,off){
+  const vp=$("work-vp"),track=$("work-track");if(!vp||!track) return;
+  const hOf=i=>hs?(hs[i]||0):(track.children[i]?track.children[i].offsetHeight:0);
+  const h=Math.max(hOf(a),(off||0)+hOf(b));
+  const cur=hs?hs.vp:vp.offsetHeight;
+  if(h&&h>cur){vp.style.height=h+'px';if(hs) hs.vp=h;}
+}
+// Adopta el stop k como activo SIN tocar el DOM de los paneles (solo estado, tab y clase).
+function adoptWorkStop(k){
+  const st=_wkStops[k];if(!st) return false;
+  const track=$("work-track");
+  const changed=st.curExIVal!==curExI;
+  if(changed){
+    const fromK=_wkStops.findIndex(x=>x.curExIVal===curExI);
+    curWorkSetEdit=null;cancelSetCountdown(true);
+    curExI=st.curExIVal;_lastCurExI=curExI;
+    if(fromK>=0) _wkDirty.add(fromK);
+    if(st.unit&&st.unit.isMetabolic) _wkDirty.add(k);
+    if(track) [...track.children].forEach((p,i)=>p.classList.toggle('on',i===k));
+    if(curSess) saveDraft();
+  }
+  _wkLiveK=k;markWorkTab(k);
+  return changed;
+}
+function scheduleWorkFlush(){
+  clearTimeout(_wkFlushT);
+  if(!_wkDirty.size) return;
+  _wkFlushT=setTimeout(()=>{
+    if(_wkDrag){scheduleWorkFlush();return;}
+    renderWork({flush:true});
+  },500);
+}
+function goWorkStop(k){
+  if(!_wkStops[k]) return;
+  finishWorkAnim();
+  const off=k!==_wkK?alignWorkPanels([k]):0;
+  growWorkVp(_wkK,k,null,off);
+  adoptWorkStop(k);
+  slideWorkTo(k,true,undefined,off?()=>unalignWorkPanels(true):null);
+}
+function markWorkTab(k){
+  const tabsEl=$("work-tabs");if(!tabsEl) return;
+  const tabs=tabsEl.querySelectorAll('.ex-tab');
+  tabs.forEach((t,i)=>t.classList.toggle('active',i===k));
+  const at=tabs[k];
+  if(at) tabsEl.scrollLeft=at.offsetLeft-tabsEl.clientWidth/2+at.offsetWidth/2;
+}
+// Swipe propio: el panel sigue al dedo 1:1; al soltar, >20% del ancho o flick rápido cambia de stop.
+// El nuevo stop se adopta al SOLTAR (no al terminar la animación) → se puede tocar al instante.
+// Gesto más vertical que horizontal → se lo deja al scroll de la página (touch-action:pan-y).
+function bindWorkSwipe(vp){
+  if(!vp) return;
+  vp.addEventListener('touchstart',e=>{
+    _wkSwallow=false;
+    if(e.touches.length!==1){_wkDrag=null;return;}
+    const t=e.touches[0];
+    finishWorkAnim();
+    _wkDrag={x0:t.clientX,y0:t.clientY,dx:0,lock:null,hs:null,samples:[],tLast:performance.now(),off:0};
+    clearTimeout(_wkFlushT);
+  },{passive:true});
+  vp.addEventListener('touchmove',e=>{
+    const d=_wkDrag;if(!d) return;
+    const t=e.touches[0],dx=t.clientX-d.x0,dy=t.clientY-d.y0;
+    d.tLast=performance.now();
+    if(!d.lock){
+      if(Math.abs(dx)<8&&Math.abs(dy)<8) return;
+      d.lock=Math.abs(dx)>Math.abs(dy)?'x':'y';
+    }
+    if(d.lock!=='x') return;
+    e.preventDefault(); // gesto ya fijado horizontal: evita que la página se mueva en vertical a la vez
+    const n=_wkStops.length;
+    const atEdge=(_wkK===0&&dx>0)||(_wkK===n-1&&dx<0);
+    d.dx=atEdge?dx*0.3:dx;
+    if(!d.hs){
+      // Alturas medidas una sola vez por gesto: leer offsetHeight en cada touchmove fuerza layout.
+      const track=$("work-track"),vp=$("work-vp");
+      d.hs={vp:vp?vp.offsetHeight:0};
+      [_wkK-1,_wkK,_wkK+1].forEach(i=>{const p=track&&track.children[i];if(p) d.hs[i]=p.offsetHeight;});
+      d.off=alignWorkPanels([_wkK-1,_wkK+1]);
+    }
+    const now=performance.now();
+    d.samples.push({x:d.dx,t:now});
+    while(d.samples.length>2&&now-d.samples[0].t>60) d.samples.shift();
+    // Transform directo en el touchmove (ya viene alineado a vsync); un rAF extra suma un frame de lag.
+    const w=workW();
+    setWorkX(-_wkK*w+d.dx,false);
+    const k=Math.max(0,Math.min(n-1,Math.round(_wkK-d.dx/w)));
+    if(k!==_wkLiveK){_wkLiveK=k;markWorkTab(k);}
+    growWorkVp(_wkK,d.dx<0?_wkK+1:_wkK-1,d.hs,d.off);
+  },{passive:false});
+  const runPending=()=>{if(_wkPending){const o=_wkPending;_wkPending=null;renderWork(o);}};
+  const end=()=>{
+    const d=_wkDrag;_wkDrag=null;
+    if(!d||d.lock!=='x'){runPending();return;}
+    _wkSwallow=true; // el click sintético de este mismo gesto no debe tocar botones
+    const n=_wkStops.length,w=workW();
+    const sa=d.samples[0],sb=d.samples[d.samples.length-1];
+    const v=sa&&sb&&sb.t>sa.t?(sb.x-sa.x)/(sb.t-sa.t):0; // px/ms, últimos ~60ms
+    let k=_wkK;
+    if(d.dx<-w*0.4||v<-0.5) k++;
+    else if(d.dx>w*0.4||v>0.5) k--;
+    k=Math.max(0,Math.min(n-1,k));
+    // Handoff sin salto: la curva arranca con la velocidad del dedo (pendiente inicial y1/x1 =
+    // v·T/distancia restante) y desacelera hasta encuadrar.
+    const fromX=-_wkK*w+d.dx,toX=-k*w,rem=toX-fromX;
+    let ease;
+    if(Math.abs(rem)>1&&Math.sign(rem)===Math.sign(v)){
+      const slope=Math.abs(v)*WK_ANIM_MS/Math.abs(rem);
+      ease=`cubic-bezier(.25,${Math.min(1,Math.max(.1,slope*.25)).toFixed(3)},.35,1)`;
+    }
+    const changed=adoptWorkStop(k);
+    const off=d.off;
+    slideWorkTo(k,true,ease,off?()=>unalignWorkPanels(changed):null);
+    if(changed){try{if(navigator.vibrate) navigator.vibrate(12); else haptic();}catch(e){}}
+    runPending();
+  };
+  vp.addEventListener('touchend',end,{passive:true});
+  vp.addEventListener('touchcancel',end,{passive:true});
+  vp.addEventListener('click',e=>{if(_wkSwallow){_wkSwallow=false;e.stopPropagation();e.preventDefault();}},true);
+}
+window.addEventListener('resize',()=>{if($("work-track")){setWorkX(-_wkK*workW(),false);fitWorkHead();}});
 
 // ══ HAPTIC FEEDBACK (Bento Tri · Nivel 2 · selectivo en acciones clave) ══
 // Truco para iOS 17.4-26.4: <input type="checkbox" switch> dentro de un <label>
@@ -4812,7 +5022,7 @@ function startSetCountdown(ci,si,rec){
     _lastSetTip={ci,si,rec:_workCountdown.rec};
     cancelSetCountdown(false);
     setTimeout(()=>{
-      const setCard=document.querySelector('.grp-round-active');
+      const setCard=document.querySelector('.wk-panel.on .grp-round-active');
       if(setCard) setCard.scrollIntoView({behavior:'smooth',block:'start'});
     },50);
   },2000)};
@@ -4906,11 +5116,8 @@ function gotoNextExercise(){
   let curIdx=-1;
   for(let i=0;i<units.length;i++){if(units[i].firstIdx<=curExI){curIdx=i;}else break;}
   if(curIdx>=0 && curIdx<units.length-1){
-    curExI=units[curIdx+1].firstIdx;
-    curWorkSetEdit=null;_lastSetTip=null;
-    cancelSetCountdown(true);
-    renderWork();
-    setTimeout(()=>window.scrollTo({top:0,behavior:'smooth'}),50);
+    _lastSetTip=null;
+    goWorkStop(_wkStops.findIndex(st=>st.curExIVal===units[curIdx+1].firstIdx));
   } else {
     // Era el último — abrir modal de salida con "Guardar y salir" como CTA
     confirmExit();
@@ -5345,6 +5552,7 @@ function resumeDraft(){
   const hasMov=day&&(day.blocks||[]).filter(isMobilityBlock).flatMap(b=>b.exercises||[]).length>0;
   const movPending=hasMov&&(looseMovsPending||coreCircuitsPending);
   curExI=movPending?-1:0;
+  _wkSig=null;
   showPage('work');renderWork();
 }
 function discardDraft(){
