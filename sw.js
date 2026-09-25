@@ -1,4 +1,4 @@
-const CACHE = 'app-v132';
+const CACHE = 'app-v133';
 
 self.addEventListener('install', e => {
   e.waitUntil(

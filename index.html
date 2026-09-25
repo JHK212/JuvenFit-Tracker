@@ -360,23 +360,6 @@ label.haptic-switch.rpe-btn-min{
 }
 
 /* ─── RPE segmented control minimalista (Fase 4.2 set card sin caja) ─── */
-.rir-q{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--tx);letter-spacing:0.1px;margin-bottom:10px}
-.rir-help{width:22px;height:22px;border-radius:50%;border:1px solid var(--bd);background:none;color:var(--mt);font-family:var(--fm);font-size:11px;font-weight:700;cursor:pointer;padding:0;line-height:20px}
-.rir-bar{display:flex;height:46px;border-radius:10px;overflow:hidden;background:linear-gradient(90deg,var(--gn),var(--yw),var(--dn))}
-.rir-seg{flex:1;position:relative;display:flex;align-items:center;justify-content:center;border:none;background:none;padding:0;cursor:pointer;font-family:var(--fm);font-size:15px;font-weight:700;color:var(--bg);border-left:1px solid var(--bg)}
-.rir-seg:first-child{border-left:none}
-.rir-seg .rir-dim{position:absolute;inset:0;background:var(--bg);opacity:0;transition:opacity 150ms ease;pointer-events:none}
-.rir-bar.has-val .rir-seg .rir-dim{opacity:0.62}
-.rir-bar.has-val .rir-seg.on .rir-dim{opacity:0}
-.rir-seg.on{box-shadow:inset 0 0 0 2px var(--tx)}
-.rir-seg span.rir-n{position:relative}
-.rir-bar.has-val .rir-seg:not(.on) span.rir-n{color:var(--mt)}
-.rir-ends{display:flex;justify-content:space-between;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--mt);margin-top:6px}
-.rir-cap{font-size:12.5px;text-align:center;color:var(--mt);margin-top:10px;line-height:1.4;min-height:18px}
-.rir-cap.set{color:var(--tx);font-weight:600}
-.rir-hold{height:2px;background:var(--bd);border-radius:1px;margin-top:10px;overflow:hidden}
-.rir-hold i{display:block;height:100%;width:0;background:var(--ac);animation:rirHold 2s linear forwards}
-@keyframes rirHold{to{width:100%}}
 .rpe-btn-min{flex:1;padding:13px 0;border-radius:10px;background:var(--cd);border:1px solid var(--bd);color:var(--mt);font-family:var(--fs);font-size:13.5px;font-weight:600;letter-spacing:-0.1px;cursor:pointer;transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),background 110ms ease,border-color 120ms ease,filter 110ms ease,color 120ms ease;}
 .rpe-btn-min:hover{background:var(--sf);}
 .rpe-btn-min:active,.rpe-btn-min.is-pressing{transform:scale(0.94);filter:brightness(0.84);}
@@ -812,6 +795,96 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-card-breathe{animation:wkBord
 .timer-bar .timer-fill{width:100%;transform-origin:left;transform:scaleX(0);transition:transform .2s linear;}
 .timer-bar.ended .timer-fill{transform:scaleX(1);}
 .wk-tbtn{height:36px;min-width:36px;padding:0 10px;border-radius:9px;border:1px solid var(--bd-hi);background:none;color:var(--tx);font-family:var(--fm);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none;}
+/* ── Fase 2 · biserie/triserie ── */
+.wk-tag{font-family:var(--fm);font-size:10px;font-weight:800;letter-spacing:1.5px;color:var(--yw-dark);background:var(--yw);padding:4px 8px;border-radius:6px;white-space:nowrap;}
+.wk-grp-h{display:flex;align-items:center;gap:10px;margin:6px 4px 12px;}
+.wk-grp-h .rl{flex:1;font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:1.5px;color:var(--tx);}
+.wk-grp-h .rl.edit{color:var(--ac);}
+.wk-bis{display:flex;flex-direction:column;gap:10px;}
+.wk-bi{position:relative;border-radius:20px;background:var(--cd);border:1.5px solid var(--bd-hi);padding:12px;transition:border-color .25s;}
+.wk-bi.cur{border-color:var(--yw);}
+.wk-bi.ok{border-color:rgba(61,214,140,.3);}
+.wk-bi.edit{border-color:rgba(91,157,248,.6);}
+.wk-breathe{position:absolute;inset:-1.5px;border-radius:20px;border:1.5px solid var(--yw-bright);pointer-events:none;opacity:0;}
+body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-breathe{animation:wkBorder 2.4s ease-in-out infinite;}
+.wk-bi-top{display:flex;align-items:center;gap:10px;}
+.wk-bi-lbl{font-family:var(--fd);font-size:19px;font-weight:800;width:26px;color:var(--yw);flex:none;}
+.wk-bi.ok .wk-bi-lbl{color:var(--gn);}
+.wk-bi.edit .wk-bi-lbl{color:var(--ac);}
+.wk-thumb{position:relative;width:56px;height:56px;border-radius:11px;background:var(--bg);overflow:hidden;flex:none;display:flex;align-items:center;justify-content:center;}
+.wk-thumb img{position:absolute;inset:0;margin:auto;width:50px;height:50px;object-fit:contain;filter:invert(1);mix-blend-mode:screen;pointer-events:none;}
+.wk-thumb .f0{opacity:.8;}.wk-thumb .f1{opacity:0;}
+body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f0{animation:wkF0 3s ease-in-out infinite;}
+body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1 3s ease-in-out infinite;}
+.wk-thumb .ini{font-family:var(--fm);font-size:12px;font-weight:800;color:var(--mt2);}
+.wk-bi-name{font-family:var(--fd);font-size:17px;font-weight:800;letter-spacing:-.4px;line-height:1.1;}
+.wk-bi-meta{font-family:var(--fd);font-size:15px;font-weight:800;margin-top:3px;}
+.wk-bi-done{font-family:var(--fm);font-size:11px;font-weight:700;color:var(--gn);display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;border:1px solid rgba(61,214,140,.3);background:none;cursor:pointer;flex:none;}
+.wk-mini{display:flex;gap:8px;margin-top:10px;}
+.wk-mbox{flex:1;display:flex;align-items:center;gap:6px;background:var(--bg);border-radius:12px;padding:6px;min-width:0;}
+.wk-mbtn{width:34px;height:40px;border-radius:9px;background:var(--cd-hi);border:none;color:var(--tx);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex:none;}
+.wk-mval{flex:1;text-align:center;cursor:pointer;white-space:nowrap;}
+.wk-mval .wk-num{font-size:28px;letter-spacing:-1px;}
+.wk-mval small{font-family:var(--fm);font-size:9px;color:var(--mt2);margin-left:3px;letter-spacing:.5px;}
+.wk-cells.sm{gap:5px;margin-top:10px;}
+.wk-cells.sm .wk-cell{height:42px;border-radius:10px;font-size:17px;letter-spacing:-.6px;}
+.wk-ends.sm{font-size:9px;margin-top:5px;letter-spacing:1.1px;}
+.wk-note{margin-top:10px;font-size:12px;color:var(--mt);text-align:center;}
+.wk-past{display:flex;flex-direction:column;margin-top:12px;}
+.wk-prow{display:flex;align-items:center;gap:12px;padding:12px 6px;border:none;border-bottom:1px solid var(--bd);background:none;color:inherit;text-align:left;cursor:pointer;width:100%;}
+.wk-prow .n{font-family:var(--fm);font-size:10.5px;font-weight:700;color:var(--mt2);width:26px;flex:none;}
+.wk-prow .v{flex:1;font-family:var(--fm);font-size:11.5px;color:var(--mt);}
+/* ── Fase 2 · movilidad ── */
+.wk-h1{font-family:var(--fd);font-size:32px;font-weight:800;letter-spacing:-1.3px;margin:14px 4px 4px;font-variation-settings:'wdth' 82;}
+.wk-h1s{font-size:13px;color:var(--mt);margin:0 4px 14px;}
+.wk-mvs{display:flex;flex-direction:column;gap:8px;}
+.wk-mv{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;border-radius:16px;text-align:left;background:var(--cd);border:1.5px solid var(--bd);width:100%;color:inherit;cursor:pointer;transition:background .2s,border-color .2s;}
+.wk-mv .wk-thumb{width:50px;height:50px;border:1px solid var(--bd);}
+.wk-mv .wk-thumb img{width:44px;height:44px;opacity:.9;}
+.wk-mv.ok .wk-thumb img{opacity:.45;}
+.wk-mv .nm{font-family:var(--fd);font-size:17px;font-weight:700;}
+.wk-mv .ds{font-family:var(--fm);font-size:11px;color:var(--mt);margin-top:3px;}
+.wk-mv .ck{width:30px;height:30px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;border:2px solid var(--bd-hi);color:var(--bg);}
+/* ── Fase 2 · accesorios (contador de rondas) ── */
+.wk-accs{display:flex;flex-direction:column;gap:12px;}
+.wk-acc{position:relative;padding:14px;border-radius:20px;background:var(--cd);border:1.5px solid var(--bd);transition:background .25s,border-color .25s;}
+.wk-acc.ok{background:rgba(61,214,140,.05);border-color:rgba(61,214,140,.3);}
+.wk-acc-top{display:flex;align-items:center;gap:8px;}
+.wk-acc .wk-thumb{width:52px;height:52px;border:1px solid var(--bd);}
+.wk-acc .wk-thumb img{width:46px;height:46px;}
+.wk-acc.ok .wk-thumb img{opacity:.4;}
+.wk-acc-tag{font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:var(--mt);}
+.wk-acc-ok{width:30px;height:30px;border-radius:50%;background:var(--gn);color:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;}
+.wk-acc-nm{font-family:var(--fd);font-size:24px;font-weight:800;letter-spacing:-.8px;line-height:1;margin-top:12px;font-variation-settings:'wdth' 84;}
+.wk-acc-lns{display:flex;flex-direction:column;gap:3px;margin-top:10px;}
+.wk-acc-ln{display:flex;align-items:baseline;gap:8px;}
+.wk-acc-ln b{font-family:var(--fd);font-size:20px;font-weight:800;letter-spacing:-.5px;min-width:38px;}
+.wk-acc-ln span{font-size:13.5px;color:var(--mt);}
+.wk-dots{display:flex;gap:4px;margin-top:14px;}
+.wk-dots i{flex:1;height:6px;border-radius:3px;background:var(--bd-hi);transition:background .3s;}
+.wk-dots i.on{background:var(--yw);}
+.wk-acc.ok .wk-dots i{background:var(--gn);}
+.wk-acc-meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-family:var(--fm);font-size:10.5px;font-weight:700;letter-spacing:1px;color:var(--mt);}
+.wk-acc.ok .wk-acc-meta>span{color:var(--gn);}
+.wk-undo{font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1px;color:var(--mt2);background:none;border:none;cursor:pointer;padding:4px;}
+.wk-rbtn{display:flex;align-items:center;justify-content:center;width:100%;margin-top:12px;height:52px;border-radius:14px;background:var(--cd-hi);color:var(--yw-bright);border:1px solid var(--bd-hi);font-family:var(--fs);font-size:14px;font-weight:800;letter-spacing:.3px;cursor:pointer;}
+.wk-acc.cur .wk-rbtn{background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);color:var(--yw-dark);border-color:transparent;}
+.wk-cta.off{background:var(--sf);color:var(--yw-bright);border:1px solid var(--bd-hi);}
+/* ── Fase 2 · resumen ── */
+.sm-hero{background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);border-radius:24px;padding:24px 22px;color:var(--yw-dark);position:relative;overflow:hidden;animation:rise .5s both;}
+.sm-ghost{position:absolute;top:-18px;right:-10px;font-family:var(--fd);font-size:160px;font-weight:800;line-height:.85;color:transparent;-webkit-text-stroke:1.5px rgba(22,11,4,.22);pointer-events:none;}
+.sm-k{position:relative;font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.8px;opacity:.7;}
+.sm-t{position:relative;font-family:var(--fd);font-weight:800;letter-spacing:-2.6px;line-height:.9;font-variation-settings:'wdth' 82;margin-top:26px;text-transform:uppercase;overflow-wrap:anywhere;}
+.sm-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px;}
+.sm-st{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:14px 12px;}
+.sm-st .l{font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.4px;color:var(--mt);}
+.sm-st .v{font-family:var(--fd);font-size:30px;font-weight:800;margin-top:8px;}
+.sm-note{font-family:var(--fm);font-size:10px;color:var(--mt2);margin:10px 4px 0;}
+.sm-list{display:flex;flex-direction:column;margin-top:12px;}
+.sm-row{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--bd);}
+.sm-row .n{flex:1;font-size:13.5px;font-weight:600;min-width:0;}
+.sm-row .s{font-family:var(--fm);font-size:11px;color:var(--mt);text-align:right;}
+.sm-cta{display:flex;align-items:center;justify-content:center;width:100%;margin-top:18px;height:60px;border-radius:18px;background:var(--yw-dark);border:1px solid var(--bd-hi);color:var(--yw-bright);font-family:var(--fs);font-size:15px;font-weight:800;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -2605,28 +2678,13 @@ function rirCaption(rir,mode){
   if(rir>=RIR_MAX) return 'Te quedaban 5 reps o más';
   return `Te quedaban ${rir} reps`;
 }
-function rirBarHTML(s,si,ci,mode){
-  const q=mode==='time'?'¿Cuánto más aguantabas?':'¿Cuántas reps más podías hacer?';
-  const has=s.rir!=null;
-  const hold=_workCountdown&&_workCountdown.ci===ci&&_workCountdown.si===si;
-  let segs='';
-  for(let v=RIR_MAX;v>=0;v--){
-    const lbl=mode==='time'?`${v*5}${v===RIR_MAX?'+':''}`:`${v}${v===RIR_MAX?'+':''}`;
-    segs+=`<button class="rir-seg${s.rir===v?' on':''}" onclick="setRir(${si},${v},${ci})" aria-label="${rirCaption(v,mode)}"><span class="rir-dim"></span><span class="rir-n">${lbl}</span></button>`;
-  }
-  return `<div class="rir-q">${q}<button class="rir-help" onclick="event.stopPropagation();openRirHelp()" aria-label="Qué es RIR">?</button></div>
-    <div class="rir-bar${has?' has-val':''}">${segs}</div>
-    <div class="rir-ends"><span>Sobraba</span><span>Fallo</span></div>
-    <div class="rir-cap${has?' set':''}">${has?rirCaption(s.rir,mode):'Marcalo al terminar la serie · arranca el descanso'}</div>
-    ${hold?`<div class="rir-hold"><i></i></div><div class="rir-cap" style="margin-top:6px;font-size:11.5px">Tocá otro número si te equivocaste</div>`:''}`;
-}
 function openRirHelp(){
   save('gym-rir-seen',true);
   let html=`<div style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.8px;color:var(--mt);text-transform:uppercase;margin-bottom:6px">Cómo marcar el esfuerzo</div>`;
   html+=`<div style="font-size:20px;font-weight:800;margin-bottom:10px">RIR · reps en reserva</div>`;
   html+=`<div class="text-sm" style="line-height:1.5;margin-bottom:14px">Al terminar cada serie, pensá: <b>¿cuántas repeticiones más podría haber hecho con buena técnica?</b> Eso es el RIR.</div>`;
-  html+=`<div class="rir-bar" style="pointer-events:none;margin-bottom:6px">${[5,4,3,2,1,0].map(v=>`<div class="rir-seg"><span class="rir-n">${v}${v===5?'+':''}</span></div>`).join('')}</div>`;
-  html+=`<div class="rir-ends" style="margin-bottom:14px"><span>Sobraba</span><span>Fallo</span></div>`;
+  html+=`<div class="wk-cells" style="pointer-events:none;margin-bottom:6px">${[5,4,3,2,1,0].map(v=>`<div class="wk-cell" style="background:${rirColorVar(v)};cursor:default">${v}${v===5?'+':''}</div>`).join('')}</div>`;
+  html+=`<div class="wk-ends" style="margin-bottom:14px"><span>SOBRABA</span><span>FALLO</span></div>`;
   html+=`<div class="text-sm text-mt" style="line-height:1.6;margin-bottom:14px"><b style="color:var(--tx)">0</b> · no salía ni una más<br><b style="color:var(--tx)">2</b> · te quedaban un par<br><b style="color:var(--tx)">5+</b> · te sobraba mucho</div>`;
   html+=`<div class="text-sm" style="line-height:1.5;margin-bottom:6px">No hay respuesta correcta: marcá lo que pasó de verdad. Con ese dato se ajusta el peso de la próxima sesión.</div>`;
   html+=`<div class="text-sm text-mt" style="line-height:1.5;margin-bottom:16px">Al marcarlo arranca el descanso.</div>`;
@@ -3796,7 +3854,7 @@ function startWorkout(dayId,customDate,plaza){
         rpe:null,rir:null
       })),note:''};
     }),
-    accessories:accessories.reduce((o,a)=>{o[a.id]=false;return o;},{}),
+    accessories:accessories.reduce((o,a)=>{o[a.id]=0;return o;},{}),
     mobility:mobility.reduce((o,m)=>{o[m.id]=false;return o;},{}),
     metabolic:{}  // por groupId: {completedAt, totalSecs, format, cfg}
   };
@@ -3813,139 +3871,10 @@ function startWorkout(dayId,customDate,plaza){
   if(!load('gym-rir-seen',false)) setTimeout(openRirHelp,400);
 }
 
-// HTML de un set-card (un set de un ejercicio del workout) — reutilizable single y grupo.
-// opts: {ci, allowAddRemove (true en single, false en grupo)}
-function renderSetCardHTML(s,si,sets,ex,mode,opts){
-  const ci=opts.ci;
-  const allowAddRemove=opts.allowAddRemove!==false;
-  const isLast=si===sets.length-1;
 
-  // ════════════════════════════════════════════════════════════════
-  // GROUPED BENTO (biserie/triserie) · visual Bento Tri pero apilando
-  // todas las series como antes (no es focused mode). Card --cd, border
-  // tintado por RPE, inputs --sf, números mono, RPE segmented sin emojis.
-  // ════════════════════════════════════════════════════════════════
-  if(opts.groupedBento){
-    const bcGB = s.rpe
-      ? ({liviano:'var(--gn)',justo:'var(--yw)',limite:'var(--dn)'}[s.rpe])
-      : 'var(--bd)';
-    const valStyle='font-size:26px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-0.6px;line-height:1';
-    const wBtnStyle='width:38px;height:38px;font-size:18px;border-radius:10px;background:var(--sf)';
-    const lblStyle='font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt);margin-bottom:8px';
-    const unitStyle='font-size:9.5px;color:var(--mt2);margin-top:6px;font-weight:600;letter-spacing:0.5px';
-
-    let fieldsHtml='';
-    if(mode==='weight'){
-      fieldsHtml=`<div style="display:flex;justify-content:center;gap:28px;margin:4px 0 14px;flex-wrap:wrap">
-        <div style="text-align:center">
-          <div style="${lblStyle}">Peso</div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjW(${si},-2.5,${ci})">−</button>
-            <div id="val-w-${ci}-${si}" class="mono fw-700" style="${valStyle};min-width:60px" onclick="typeVal(${si},'w',null,${ci})">${s.w}</div>
-            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjW(${si},2.5,${ci})">+</button>
-          </div>
-          <div style="${unitStyle}">kg</div>
-        </div>
-        <div style="text-align:center">
-          <div style="${lblStyle}">Reps</div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button>
-            <div id="val-r-${ci}-${si}" class="mono fw-700" style="${valStyle};min-width:42px" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
-            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button>
-          </div>
-        </div>
-      </div>`;
-    } else if(mode==='reps'){
-      fieldsHtml=`<div style="display:flex;justify-content:center;margin:4px 0 14px">
-        <div style="text-align:center">
-          <div style="${lblStyle}">Reps</div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button>
-            <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:36px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1;min-width:70px" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div>
-            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button>
-          </div>
-        </div>
-      </div>`;
-    } else if(mode==='time'){
-      fieldsHtml=`<div style="display:flex;justify-content:center;margin:4px 0 14px">
-        <div style="text-align:center">
-          <div style="${lblStyle}">Tiempo</div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},-5,${ci})">−</button>
-            <div id="val-r-${ci}-${si}" class="mono fw-700" style="font-size:34px;text-align:center;cursor:pointer;color:var(--tx);letter-spacing:-1px;line-height:1;min-width:80px" onclick="typeVal(${si},'r','Tiempo (segs)',${ci})">${s.r}</div>
-            <button tabindex="-1" class="w-btn" style="${wBtnStyle}" onclick="event.stopPropagation();adjR(${si},5,${ci})">+</button>
-          </div>
-          <div style="${unitStyle}">segs</div>
-        </div>
-      </div>`;
-    }
-
-    let html=`<div style="background:var(--cd);border:1px solid ${bcGB};border-radius:var(--r-card);padding:14px;margin-bottom:10px;box-shadow:var(--lift-in);transition:border-color 180ms ease">`;
-    html+=fieldsHtml;
-    html+=`<div style="height:1px;background:var(--bd);margin:0 2px 12px"></div>`;
-    html+=`<div style="padding:0 2px">${rirBarHTML(s,si,ci,mode)}</div>`;
-    html+=`</div>`;
-    return html;
-  }
-
-  // ════════════════════════════════════════════════════════════════
-  // LEGACY · grouped workout (biserie/triserie) — sigue como antes, con caja.
-  // ════════════════════════════════════════════════════════════════
-  const bc=s.rpe?({liviano:'var(--gn)',justo:'var(--yw)',limite:'var(--dn)'}[s.rpe]+'30'):'var(--bd)';
-  const hdr=(isLast&&allowAddRemove)
-    ?`<div class="row mb-12"><span class="text-xs fw-700 text-mt">SERIE ${si+1}</span><div class="flex gap-6">${sets.length>1?`<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="removeWorkSet()">−</button>`:''}<button class="w-btn" style="width:28px;height:28px;border-radius:8px;font-size:16px" onclick="addWorkSet()">+</button></div></div>`
-    :`<div class="text-xs fw-700 text-mt mb-12">SERIE ${si+1}</div>`;
-  let fieldsHtml='';
-  if(mode==='weight'){
-    fieldsHtml+=`<div class="row mb-12"><span class="text-sm text-mt fw-600">PESO</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},-2.5,${ci})">−</button><div id="val-w-${ci}-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'w',null,${ci})">${s.w}<span class="text-sm text-mt">kg</span></div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjW(${si},2.5,${ci})">+</button></div></div>`;
-    fieldsHtml+=`<div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">REPS</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button><div id="val-r-${ci}-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button></div></div>`;
-  } else if(mode==='reps'){
-    fieldsHtml+=`<div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">REPS</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-1,${ci})">−</button><div id="val-r-${ci}-${si}" class="mono fw-800" style="font-size:28px;width:100px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r','Repeticiones',${ci})">${s.r}</div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},1,${ci})">+</button></div></div>`;
-  } else if(mode==='time'){
-    fieldsHtml+=`<div class="row" style="margin-bottom:14px"><span class="text-sm text-mt fw-600">TIEMPO</span><div class="flex gap-8" style="align-items:center"><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},-5,${ci})">−</button><div id="val-r-${ci}-${si}" class="mono fw-800" style="font-size:28px;min-width:110px;text-align:center;cursor:pointer" onclick="typeVal(${si},'r','Tiempo (segs)',${ci})">${s.r}<span class="text-sm text-mt"> segs</span></div><button tabindex="-1" class="w-btn" onclick="event.stopPropagation();adjR(${si},5,${ci})">+</button></div></div>`;
-  }
-  let html=`<div class="set-card" style="border-color:${bc}">${hdr}
-    ${fieldsHtml}
-    ${rirBarHTML(s,si,ci,mode)}`;
-  if(s.rpe){
-    const rd=setRecData(s.rpe,s.r,ex.reps,null,mode);
-    if(rd) html+=`<div class="tips-box mt-12">${rd.phrase}</div>`;
-  }
-  html+=`</div>`;
-  return html;
-}
-
-// Header común de un ejercicio en el workout: tag de bloque + nombre + meta + tips + última sesión rec
-function renderCompoundHeaderHTML(ex,ci,day,opts){
-  opts=opts||{};
-  const blockOfThisEx=blockOfExercise(day,ex.id);
-  const blockTagHtml=(blockOfThisEx&&blockOfThisEx.type)?(()=>{
-    const bt=BLOCK_TYPES[blockOfThisEx.type]||BLOCK_TYPES.custom;
-    const lbl=blockOfThisEx.type==='custom'&&blockOfThisEx.label?blockOfThisEx.label:bt.label;
-    return `<span style="font-family:var(--fm);background:${bt.color};color:var(--action-tx);font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:1.2px;margin-right:8px;vertical-align:middle">${lbl}</span>`;
-  })():'';
-  const exDisplayName=getExName(ex);
-  const setsRepsLbl=formatSetsReps(ex);
-  const restPart=ex.rest?`${fmtTime(restAsSeconds(ex.rest))} desc`:'';
-  const mode=getTrackMode(ex);
-  const pr=prOf(eidOf(ex),mode);
-  const prPart=pr>0?`PR ${formatPR(pr,mode)}`:'';
-  const metaParts=[setsRepsLbl,restPart,prPart].filter(Boolean);
-  const metaLine=metaParts.join('  ·  ');
-  const titleSize=opts.compact?'18px':'24px';
-  const titleSizeNew=opts.compact?'16px':'20px';
-  let html=`<div class="${opts.compact?'mb-12':'mb-20'}"><div class="row" style="margin-bottom:6px;align-items:flex-start;gap:10px"><div style="font-size:${titleSizeNew};font-weight:600;color:var(--tx);letter-spacing:-0.3px;flex:1;min-width:0;line-height:1.15">${opts.compact?'':blockTagHtml}${esc(exDisplayName)}</div><button class="icon-btn" onclick="showExHistoryModal('${eidOf(ex)}')" style="width:32px;height:32px;font-size:14px;flex-shrink:0;border-radius:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg></button></div>${metaLine?`<div style="font-family:var(--fm);font-size:10.5px;color:var(--mt);font-weight:500;letter-spacing:0.5px;text-transform:uppercase">${metaLine}</div>`:''}${ex.objective?`<div style="font-size:12px;color:var(--mt);margin-top:4px;font-weight:500">${esc(ex.objective)}</div>`:''}`;
-  if(ex.notes) html+=`<button class="tips-btn" style="font-size:11px;font-family:var(--fm);letter-spacing:1px;text-transform:uppercase;font-weight:600;margin-top:8px" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.textContent=this.nextElementSibling.style.display==='none'?'Ver tips':'Ocultar tips'">Ver tips</button><div class="tips-box" style="display:none;font-size:13px">${esc(ex.notes)}</div>`;
-  html+=`</div>`;
-  return html;
-}
-
-// Workout FOCUSED MODE (Bento Tri Fase 4): pantalla limpia, "una decisión por momento".
-// Estados:
-//   A · Ingresando (rpe=null): peso/reps + barra RIR
-//   C · RIR marcado + auto-paso activo: countdown card con rec
-//   D · Todos sets completos: "Ejercicio completo" + Siguiente / Finalizar
-// La info no-crítica (tip coach, historial, última sesión) vive en el bottom sheet ⓘ.
+// Panel de ejercicio suelto: tarjeta de la serie actual (RIR en celdas, 2s para corregir),
+// series hechas como chips; completo → lista editable + SIGUIENTE. Info secundaria en la hoja
+// de info (tocar el dibujo).
 function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   const ex=compounds[ci];
   const sets=curSess.exercises[ci]?.sets||[];
@@ -4010,10 +3939,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
       html+=`<button class="wk-li" onclick="setForcedSetEdit(${i})"><span class="n">S${i+1}</span><span class="v">${v}</span><span class="r"><i style="background:${rirColorVar(r)}"></i>${r==null?'':(x.rir==null?'≈':'')+rirShort(r,mode)}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mt2)" stroke-width="2.2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`;
     });
     html+=`<button class="wk-extra" onclick="addWorkSet(${ci})">+ SERIE EXTRA</button></div>`;
-    const k=_wkStops.findIndex(x=>x.curExIVal===ci),nx=_wkStops[k+1];
-    html+=nx
-      ?`<button class="wk-cta" onclick="goWorkStop(${k+1})">SIGUIENTE · ${esc(wkStopName(nx,compounds).toUpperCase())} →</button>`
-      :`<button class="wk-cta" onclick="confirmFinishWorkout()">TERMINAR ENTRENO</button>`;
+    html+=wkNextCTA(ci,compounds);
   }
 
   if(sessNote){
@@ -4029,7 +3955,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   html+=`</div>`;
   return html;
 }
-// Celdas RIR del rediseño (tarjeta de serie). Mismo flujo que rirBarHTML: tap = setRir → descanso + 2s.
+// Celdas RIR (tarjeta de serie y biserie). Tap = setRir → descanso + 2s para corregir.
 const RIR_VARS=['--dn','--rir-1','--yw','--rir-3','--rir-4','--gn'];
 function rirColorVar(v){return v==null?'var(--mt2)':`var(${RIR_VARS[Math.max(0,Math.min(RIR_MAX,v))]})`;}
 // RIR de un set; sesiones del semáforo (sin rir) se aproximan: liviano=4, justo=2, límite=0.
@@ -4038,7 +3964,7 @@ function rirOfSet(x){
   return x.rpe==='liviano'?4:x.rpe==='justo'?2:x.rpe==='limite'?0:null;
 }
 function setShort(x,mode){return mode==='weight'?`${x.w}×${x.r}`:mode==='time'?`${x.r}s`:`${x.r} reps`;}
-function rirCellsHTML(s,si,ci,mode){
+function rirCellsHTML(s,si,ci,mode,sm){
   const has=s.rir!=null;
   const hold=_workCountdown&&_workCountdown.ci===ci&&_workCountdown.si===si;
   let cells='';
@@ -4046,6 +3972,7 @@ function rirCellsHTML(s,si,ci,mode){
     const lbl=mode==='time'?`${v*5}${v===RIR_MAX?'+':''}`:`${v}${v===RIR_MAX?'+':''}`;
     cells+=`<button class="wk-cell${s.rir===v?' sel':''}" style="background:${rirColorVar(v)}" onclick="setRir(${si},${v},${ci})" aria-label="${rirCaption(v,mode)}">${lbl}</button>`;
   }
+  if(sm) return `<div class="wk-cells sm${has?' has':''}">${cells}</div><div class="wk-ends sm"><span>SOBRABA</span><span>FALLO</span></div>`;
   return `<div class="wk-rir-q">${mode==='time'?'¿Cuánto más aguantabas?':'¿Cuántas más te salían?'}</div>
     <div class="wk-cells${has?' has':''}">${cells}</div>
     <div class="wk-ends"><span>SOBRABA</span><span>FALLO</span></div>
@@ -4060,7 +3987,7 @@ function wkChipTap(ci,si){
 function exInitials(ex){
   return getExName(ex).split(/\s+/).filter(w=>w.length>2||/^\d/.test(w)).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'EJ';
 }
-function accDone(a){return !!(curSess&&curSess.accessories&&curSess.accessories[a.id]);}
+function accDone(a){return accCount(a)>=accRounds(a);}
 function wkStopName(st,compounds){
   if(st.kind==='mov') return 'Movilidad';
   if(st.kind==='acc') return 'Accesorios';
@@ -4230,132 +4157,78 @@ function mbResetCompleted(gid){
 function renderGroupedWorkoutHTML(grp,compounds,day){
   const indexes=grp.indexes;
   const firstEx=compounds[indexes[0]];
-  const groupLabel=groupTerm(grp.size);
-  const exs=indexes.map(i=>compounds[i]);
   const restSec=restAsSeconds(firstEx.rest);
-  // Banner editorial compacto (titulo del grupo)
-  let html=`<div class="grp-banner">
-    <div class="grp-banner-top">
-      <span><span class="tag-rule"></span>${groupLabel.toUpperCase()} · ${grp.size} EJ</span>
-      <span>SIN DESCANSO ENTRE<span class="tag-rule"></span></span>
-    </div>
-    <div class="grp-banner-name">${exs.map((e,i)=>`<span class="grp-banner-ex"><span class="grp-banner-num">${String(i+1).padStart(2,'0')}</span>${esc(getExName(e))}</span>`).join('<span class="grp-banner-plus">+</span>')}</div>
-  </div>`;
-  // Numero de vueltas + vuelta activa
   const maxSets=Math.max(...indexes.map(ci=>(curSess.exercises[ci]?.sets||[]).length));
-  const firstCi=indexes[0];
-  let activeSi=-1;
-  // 1. Si el usuario forzó edit de una vuelta, esa manda
-  if(curWorkSetEdit!=null && curWorkSetEdit>=0 && curWorkSetEdit<maxSets){
-    activeSi=curWorkSetEdit;
-  } else {
-    // 2. Detectar la primera vuelta incompleta
-    for(let si=0;si<maxSets;si++){
-      let hasIncomplete=false;
-      for(const ci of indexes){
-        const sets=curSess.exercises[ci]?.sets||[];
-        if(si<sets.length && sets[si].rpe===null){hasIncomplete=true;break;}
-      }
-      if(hasIncomplete){activeSi=si;break;}
-    }
-  }
-  // Helper: linea resumen de un ejercicio en una vuelta done
-  const summaryRow=(ci,gi,s)=>{
-    const ex=compounds[ci];
-    const mode=getTrackMode(ex);
-    const valLabel=(mode==='weight'?`${s.w} <span class="grp-sum-unit">kg ×</span> ${s.r}`:mode==='reps'?`${s.r} <span class="grp-sum-unit">reps</span>`:`${s.r}<span class="grp-sum-unit">s</span>`)+(s.rir!=null?`<span class="grp-sum-unit"> · ${rirShort(s.rir,mode)}</span>`:'');
-    const rpeCls=s.rpe==='liviano'?'gn':s.rpe==='justo'?'yw':s.rpe==='limite'?'dn':'';
-    return `<div class="grp-sum-row">
-      <span class="grp-sum-num">${String(gi+1).padStart(2,'0')}</span>
-      <span class="grp-sum-name">${esc(getExName(ex))}</span>
-      <span class="grp-sum-val">${valLabel}</span>
-      ${rpeCls?`<span class="grp-sum-rpe grp-sum-rpe-${rpeCls}"></span>`:''}
+  const setAt=(ci,r)=>curSess.exercises[ci]?.sets?.[r];
+  // Un miembro con menos series que el resto no bloquea la vuelta (set inexistente = hecho).
+  const roundDone=r=>indexes.every(ci=>{const x=setAt(ci,r);return !x||x.rpe!=null;});
+  const editing=curWorkSetEdit!=null&&curWorkSetEdit>=0&&curWorkSetEdit<maxSets;
+  let round=editing?curWorkSetEdit:-1;
+  if(!editing) for(let r=0;r<maxSets;r++){if(!roundDone(r)){round=r;break;}}
+  const complete=round<0;
+  const openCi=complete||editing?-1:indexes.find(ci=>{const x=setAt(ci,round);return x&&x.rpe==null;});
+  const live=!complete&&!editing;
+  const tag=grp.size===2?'BISERIE':grp.size===3?'TRISERIE':'CIRCUITO';
+  const restLbl=restSec<60?`${restSec}s`:(restSec%60?`${Math.floor(restSec/60)}:${String(restSec%60).padStart(2,'0')}`:`${restSec/60} min`);
+  let html=`<div class="wk-ex${live?' live':''}">
+    <div class="wk-grp-h"><span class="wk-tag">${tag}</span><span class="rl${editing?' edit':''}">${editing?`EDITANDO VUELTA ${round+1}`:complete?'COMPLETA':`VUELTA ${round+1} DE ${maxSets}`}</span>${editing?`<button class="wk-exit" onclick="exitGroupedEdit()">LISTO ✕</button>`:''}</div>
+    <div class="wk-data" style="margin:0 4px 12px" onclick="openTimeEdit(${indexes[0]})">
+      ${restSec?`<span><b style="color:var(--ac)">${restLbl}</b><i>DESC POR VUELTA</i></span>`:''}
+      <span><b style="color:var(--yw-bright)">1–3</b><i>RIR</i></span>
     </div>`;
-  };
-  // Renderizar cada vuelta
-  for(let si=0;si<maxSets;si++){
-    const isLastTurn=si===maxSets-1;
-    const vState = activeSi===-1 ? 'done' : si<activeSi ? 'done' : si===activeSi ? 'active' : 'pending';
-    if(vState==='done'){
-      // Vuelta DONE · colapsada a resumen, tappable para editar
-      html+=`<div class="grp-round grp-round-done" onclick="editGroupedRound(${si})" title="Tocá para editar">
-        <div class="grp-round-h">
-          <span class="grp-round-tag">VUELTA ${si+1}/${maxSets}</span>
-          <span class="grp-round-mark grp-round-mark-done">Cerrada · editar <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;margin-left:3px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
-        </div>
-        <div class="grp-round-body">${indexes.map((ci,gi)=>{
-          const sets=curSess.exercises[ci]?.sets||[];
-          const s=sets[si]; if(!s) return '';
-          return summaryRow(ci,gi,s);
-        }).join('')}</div>
-      </div>`;
-    } else if(vState==='active'){
-      // Vuelta ACTIVA · set cards completos
-      const isEditingDone=curWorkSetEdit===si;
-      html+=`<div class="grp-round grp-round-active">
-        <div class="grp-round-h">
-          <span class="grp-round-tag">VUELTA ${si+1}/${maxSets}</span>
-          ${isEditingDone?`<button class="grp-edit-exit" onclick="exitGroupedEdit()">Salir <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg></button>`:`<span class="grp-round-mark grp-round-mark-active">En curso</span>`}
+  if(!complete){
+    html+=`<div class="wk-bis">`;
+    indexes.forEach((ci,gi)=>{
+      const ex=compounds[ci],x=setAt(ci,round),mode=getTrackMode(ex),eid=eidOf(ex);
+      if(!x) return;
+      const done=x.rpe!=null&&!editing;
+      const cls=editing?'edit':done?'ok':ci===openCi?'cur':'';
+      const thumb=EX_IMGS.has(eid)
+        ?`<img class="f0" src="imgs/${eid}-0.png" alt="" onerror="this.parentNode.innerHTML='<span class=ini>${exInitials(ex)}</span>'"><img class="f1" src="imgs/${eid}-1.png" alt="" onerror="this.remove()">`
+        :`<span class="ini">${exInitials(ex)}</span>`;
+      const repsTxt=String(ex.reps||'').replace(/\s*segs?\b/i,'s').replace(/-/g,'–');
+      html+=`<div class="wk-bi ${cls}"><div class="wk-breathe"></div>
+        <div class="wk-bi-top">
+          <span class="wk-bi-lbl">A${gi+1}</span>
+          <div class="wk-thumb">${thumb}</div>
+          <div style="flex:1;min-width:0"><div class="wk-bi-name">${esc(getExName(ex))}</div><div class="wk-bi-meta">${esc(repsTxt)}${mode==='time'?'':' reps'}</div></div>
+          ${done?`<button class="wk-bi-done" onclick="editGroupedRound(${round})">${setShort(x,mode)}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--gn)" stroke-width="2.4" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`:''}
         </div>`;
-      indexes.forEach((ci,gi)=>{
-        const ex=compounds[ci];
-        const sets=curSess.exercises[ci]?.sets||[];
-        if(si>=sets.length) return;
-        const s=sets[si];
-        const mode=getTrackMode(ex);
-        const pr=prOf(eidOf(ex),mode);
-        const metaParts=[formatSetsReps(ex)];
-        if(pr>0) metaParts.push(`PR ${formatPR(pr,mode)}`);
-        const metaLine=metaParts.filter(Boolean).join('  ·  ');
-        html+=`<div class="grp-active-ex">
-          <div class="grp-active-ex-h">
-            <span class="grp-active-ex-num">${String(gi+1).padStart(2,'0')}</span>
-            ${exImgThumbHTML(eidOf(ex),30,true)}
-            <span class="grp-active-ex-name">${esc(getExName(ex))}</span>
-            <button class="grp-active-ex-info" onclick="openSwapPicker(${ci})" aria-label="Cambiar ejercicio"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4"/><path d="M7 4L3 8"/><path d="M7 4l4 4"/><path d="M17 8v12"/><path d="M17 20l4-4"/><path d="M17 20l-4-4"/></svg></button>
-            <button class="grp-active-ex-info" onclick="showExHistoryModal('${eidOf(ex)}')" aria-label="Ver historial"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg></button>
-          </div>
-          ${metaLine?`<div class="grp-active-ex-meta" onclick="openTimeEdit(${ci})" style="cursor:pointer">${metaLine}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:6px;vertical-align:-1px;color:var(--ac)"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>`:''}
-          ${renderSetCardHTML(s,si,sets,ex,mode,{ci,allowAddRemove:false,groupedBento:true})}
-        </div>`;
-      });
-      html+=`<div class="grp-round-controls">
-        ${isLastTurn&&maxSets>1?`<button class="grp-round-ctrl" onclick="removeWorkSet(${firstCi})">− Vuelta</button>`:''}
-        ${isLastTurn?`<button class="grp-round-ctrl" onclick="addWorkSet(${firstCi})">+ Vuelta</button>`:''}
-        <button class="grp-rest-btn" onclick="startTimer(${restSec})">Descansar</button>
-      </div>`;
+      if(!done){
+        const box=(field,unit,dn,up,typeLbl)=>`<div class="wk-mbox"><button class="wk-mbtn" onclick="event.stopPropagation();${dn}" aria-label="Menos">−</button><div class="wk-mval" onclick="typeVal(${round},'${field}',${typeLbl},${ci})"><span id="val-${field}-${ci}-${round}" class="wk-num">${field==='w'?x.w:x.r}</span><small>${unit}</small></div><button class="wk-mbtn" onclick="event.stopPropagation();${up}" aria-label="Más">+</button></div>`;
+        html+=`<div class="wk-mini">`;
+        if(mode==='weight') html+=box('w','KG',`adjW(${round},-2.5,${ci})`,`adjW(${round},2.5,${ci})`,'null');
+        html+=mode==='time'
+          ?box('r','SEGS',`adjR(${round},-5,${ci})`,`adjR(${round},5,${ci})`,"'Tiempo (segs)'")
+          :box('r','REPS',`adjR(${round},-1,${ci})`,`adjR(${round},1,${ci})`,"'Repeticiones'");
+        html+=`</div>${rirCellsHTML(x,round,ci,mode,true)}`;
+      }
       html+=`</div>`;
-    } else {
-      // Vuelta PENDIENTE · placeholder colapsado
-      html+=`<div class="grp-round grp-round-pending">
-        <div class="grp-round-h">
-          <span class="grp-round-tag">VUELTA ${si+1}/${maxSets}</span>
-          <span class="grp-round-mark grp-round-mark-pending">Pendiente</span>
-        </div>
-      </div>`;
-    }
+    });
+    html+=`</div>`;
+    if(!editing) html+=`<div class="wk-note">Sin descanso entre ${indexes.map((_,i)=>'A'+(i+1)).join(' y ')}. El descanso arranca cuando ${grp.size===2?'los dos tienen':'todos tienen'} RIR.</div>`;
   }
-  // Rec global por ejercicio y notas (al final)
-  html+=`<div class="grp-footer">`;
-  indexes.forEach(ci=>{
-    const ex=compounds[ci];
-    const sets=curSess.exercises[ci]?.sets||[];
-    const mode=getTrackMode(ex);
-    const allEval=sets.length&&sets.every(s=>s.rpe);
-    if(allEval){
-      const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps,null,mode);
-      if(gr) html+=`<div class="grp-rec"><div class="grp-rec-label">${esc(getExName(ex))}</div><div class="grp-rec-text">${gr}</div></div>`;
-    }
-    const sessNote=curSess.exercises[ci]?.note||'';
-    html+=`<textarea class="note-input" placeholder="Nota de ${esc(getExName(ex))}..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${sessNote}</textarea>`;
-  });
+  const past=[];
+  for(let r=0;r<maxSets;r++){
+    if(r===round||!roundDone(r)) continue;
+    const v=indexes.map((ci,gi)=>{const x=setAt(ci,r);return x?`A${gi+1} ${setShort(x,getTrackMode(compounds[ci]))}`:'';}).filter(Boolean).join('   ');
+    past.push(`<button class="wk-prow" onclick="editGroupedRound(${r})"><span class="n">V${r+1}</span><span class="v">${v}</span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--mt2)" stroke-width="2.2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`);
+  }
+  if(past.length) html+=`<div class="wk-past">${past.join('')}</div>`;
+  if(complete){
+    html+=`<button class="wk-extra" style="margin-top:4px" onclick="addWorkSet(${indexes[0]})">+ VUELTA EXTRA</button>`;
+    html+=wkNextCTA(indexes[0],compounds);
+  }
   html+=`</div>`;
   return html;
 }
-
-// opts.flush: solo redibuja paneles pendientes (_wkDirty), no el activo.
-// Con un dedo apoyado en el carrusel el render se posterga al soltar: reemplazar el nodo bajo el
-// dedo hace que iOS deje de entregar touchmove/touchend al viewport y el swipe queda congelado.
+// CTA al final de un stop completo: siguiente stop del carrusel o terminar.
+function wkNextCTA(curExIVal,compounds){
+  const k=_wkStops.findIndex(x=>x.curExIVal===curExIVal),nx=_wkStops[k+1];
+  return nx
+    ?`<button class="wk-cta" onclick="goWorkStop(${k+1})">SIGUIENTE · ${esc(wkStopName(nx,compounds).toUpperCase())} →</button>`
+    :`<button class="wk-cta" onclick="confirmFinishWorkout()">TERMINAR ENTRENO</button>`;
+}
 function renderWork(opts){
   if(_wkDrag&&$("work-track")){
     if(performance.now()-_wkDrag.tLast>1500) _wkDrag=null; // touchend perdido: no trabar la app
@@ -4432,35 +4305,24 @@ function renderWork(opts){
   const buildPanel=(st)=>{
   let html=`<div class="sec">`;
   if(st.kind==='mov'){
-    // ── Mobility + Core view · Sport v3 editorial ──
-    // Reusamos el pre-cálculo de arriba: _looseMov + _coreCircuits.
     const looseMov=_looseMov;
     const circuits=_coreCircuits;
-    html+=`<div style="font-size:26px;font-weight:700;letter-spacing:-0.6px;color:var(--tx);line-height:1.05;margin-bottom:10px">Entrada en calor</div>`;
-    html+=`<div style="font-size:13px;color:var(--mt);font-weight:500;margin-bottom:22px;line-height:1.45">Marcá cada ejercicio cuando lo completes. Una vez hecho, andá al primer bloque.</div>`;
-    const renderMovItem=(m)=>{
-      const done=curSess.mobility&&curSess.mobility[m.id];
-      const lib=m.exerciseId?getExercise(m.exerciseId):null;
-      const cues=(lib&&lib.cues)||m.notes||'';
-      const restSec=restAsSeconds(m.rest);
-      const repsLbl=m.reps||'';
-      const setsLbl=m.sets&&m.sets>1?`${m.sets}× `:'';
-      return `<div class="acc-group${done?' done':''}" style="cursor:pointer">
-        <div class="flex gap-12" style="align-items:flex-start">
-          <div class="acc-check${done?' done':''}" onclick="toggleMobility('${m.id}',${restSec})">${done?'✓':''}</div>
-          <div style="flex:1" onclick="toggleMobility('${m.id}',${restSec})">
-            <div class="row mb-4"><span class="fw-700">${esc(getExName(m))}</span></div>
-            ${repsLbl?`<div class="text-sm text-mt">${setsLbl}${repsLbl}${m.rest?` · ${fmtTime(restSec)} desc.`:''}</div>`:''}
-            ${cues?`<button class="tips-btn mt-4" style="font-size:11px;padding:4px 8px" onclick="event.stopPropagation();const tip=this.nextElementSibling;tip.style.display=tip.style.display==='none'?'block':'none';this.textContent=tip.style.display==='none'?'Ver tips ▼':'Ocultar tips ▲'">Ver tips ▼</button><div class="tips-box" style="display:none;font-size:13px">${esc(cues)}</div>`:''}
-          </div>
-          ${m.rest?`<button class="icon-btn" onclick="event.stopPropagation();startTimer(${restSec})" style="width:32px;height:32px;font-size:14px;flex-shrink:0">⏱</button>`:''}
-        </div>
-      </div>`;
-    };
+    const movColor=BLOCK_TYPES.movilidad.color;
+    html+=`<div class="wk-ex"><div style="margin:6px 4px 0"><span class="wk-tag" style="background:${movColor};color:var(--bg)">MOVILIDAD${circuits.length?' + CORE':''}</span></div>
+      <div class="wk-h1">Entrada en calor</div><div class="wk-h1s">Tocá cada uno al terminarlo.</div>`;
     if(looseMov.length){
-      html+=`<div class="sec-h" style="padding:0;margin-bottom:14px"><span class="sec-h-idx">M</span><span class="sec-h-title">Movilidad</span><span class="sec-h-rule"></span></div>`;
-      html+=looseMov.map(renderMovItem).join('');
+      html+=`<div class="wk-mvs">${looseMov.map(m=>{
+        const done=!!(curSess.mobility&&curSess.mobility[m.id]);
+        const eid=eidOf(m),restSec=restAsSeconds(m.rest);
+        const dose=[m.sets&&m.sets>1?`${m.sets} ×`:'',m.reps||'',m.rest?`· ${fmtTime(restSec)} desc`:''].filter(Boolean).join(' ');
+        const thumb=EX_IMGS.has(eid)?`<img src="imgs/${eid}-0.png" alt="" onerror="this.remove()">`:`<span class="ini">${exInitials(m)}</span>`;
+        return `<button class="wk-mv${done?' ok':''}" onclick="toggleMobility('${m.id}',${restSec})" style="${done?`background:${movColor}12;border-color:${movColor}5A`:''}">
+          <div class="wk-thumb">${thumb}</div>
+          <div style="flex:1;min-width:0"><div class="nm">${esc(getExName(m))}</div>${dose?`<div class="ds">${esc(dose)}</div>`:''}</div>
+          <span class="ck" style="${done?`background:${movColor};border-color:${movColor}`:''}">${done?'✓':''}</span>
+        </button>`;}).join('')}</div>`;
     }
+    html+=`</div>`;
     circuits.forEach((circuit,ci)=>{
       const total=circuit.totalRounds;
       const activeRi=getActiveCoreRoundIdx(circuit);
@@ -4545,6 +4407,8 @@ function renderWork(opts){
       });
       html+=`</div>`;
     });
+    const movDone=looseMov.every(m=>curSess.mobility&&curSess.mobility[m.id])&&circuits.every(isCoreCircuitDone);
+    if(movDone) html+=wkNextCTA(-1,compounds);
   } else if(st.kind==='unit'){
     // Compound exercise view (single o grupo unificado)
     const grp=groupOfCompoundIdx(compounds,st.curExIVal);
@@ -4559,32 +4423,29 @@ function renderWork(opts){
     }
 
   } else {
-    // Accessories view · editorial Sport v3
-    html+=`<div class="sec-h" style="padding:0;margin-bottom:14px"><span class="sec-h-idx">A</span><span class="sec-h-title">Accesorios</span><span class="sec-h-rule"></span></div>`;
-    html+=`<div style="font-size:22px;font-weight:600;letter-spacing:-0.4px;color:var(--tx);line-height:1.1;margin-bottom:8px">Bloque final</div>`;
-    html+=`<div style="font-size:13px;color:var(--mt);font-weight:500;margin-bottom:22px;line-height:1.45">Marcá cada accesorio cuando lo completes. Tocá el ⏱ para arrancar descanso.</div>`;
-    accessories.forEach(a=>{
-      const done=curSess.accessories[a.id];
-      const tagLabel=a.type==='triserie'?'TRISERIE':'BISERIE';
+    const firstOpen=accessories.findIndex(a=>!accDone(a));
+    html+=`<div class="wk-ex${firstOpen>=0?' live':''}"><div style="margin:6px 4px 0"><span class="wk-tag" style="background:var(--mt)">ACCESORIOS</span></div>
+      <div class="wk-h1">Para cerrar</div><div class="wk-h1s">Marcá cada ronda al terminarla.</div><div class="wk-accs">`;
+    accessories.forEach((a,ai)=>{
+      const rounds=accRounds(a),c=accCount(a),done=c>=rounds,cur=ai===firstOpen;
       const aRestSec=restAsSeconds(a.rest);
-      html+=`<div class="acc-group${done?' done':''}" style="cursor:pointer">
-        <div class="flex gap-12" style="align-items:flex-start">
-          <div class="acc-check${done?' done':''}" onclick="toggleAcc('${a.id}',${aRestSec})">${done?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
-          <div style="flex:1" onclick="toggleAcc('${a.id}',${aRestSec})">
-            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px">
-              <span style="font-size:15px;font-weight:600;color:var(--tx);letter-spacing:-0.2px">${a.name}</span>
-              <span style="font-family:var(--fm);font-size:9px;font-weight:700;letter-spacing:1.2px;color:var(--mt);text-transform:uppercase">${tagLabel}</span>
-            </div>
-            ${(a.items||[]).map(it=>`<div style="font-size:12.5px;color:var(--tx);font-weight:500;line-height:1.5">${it.name} <span style="font-family:var(--fm);color:var(--mt);font-weight:500;margin-left:4px">${it.reps}</span></div>`).join('')}
-            <div style="font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:0.5px;text-transform:uppercase;color:var(--mt2);margin-top:8px">${a.sets} RONDAS · ${fmtTime(aRestSec)} DESC</div>
-            ${a.notes?`<div style="font-size:12px;color:var(--mt);margin-top:6px;font-weight:500;line-height:1.4">${a.notes}</div>`:''}
-          </div>
-          <button class="icon-btn" onclick="event.stopPropagation();startTimer(${aRestSec})" style="width:32px;height:32px;font-size:14px;flex-shrink:0;border-radius:8px" aria-label="Iniciar descanso">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M9 2h6"/></svg>
-          </button>
-        </div>
+      const items=a.items||[];
+      const thumbs=items.map(it=>{
+        const id=findExerciseByName(it.name);
+        return `<div class="wk-thumb">${id&&EX_IMGS.has(id)?`<img class="f0" src="imgs/${id}-0.png" alt="" onerror="this.remove()"><img class="f1" src="imgs/${id}-1.png" alt="" onerror="this.remove()">`:`<span class="ini">${exInitials({name:it.name})}</span>`}</div>`;
+      }).join('');
+      const tag=a.type==='triserie'?'TRISERIE':items.length>1?'BISERIE':'SIMPLE';
+      html+=`<div class="wk-acc${done?' ok':''}${cur?' cur':''}"><div class="wk-breathe"></div>
+        <div class="wk-acc-top">${thumbs}<div style="flex:1"></div>${done?'<span class="wk-acc-ok">✓</span>':`<span class="wk-acc-tag">${tag}</span>`}</div>
+        <div class="wk-acc-nm">${esc(a.name)}</div>
+        <div class="wk-acc-lns">${items.map(it=>`<div class="wk-acc-ln"><b>${esc(it.reps)}</b><span>${esc(it.name)}</span></div>`).join('')}</div>
+        <div class="wk-dots">${Array.from({length:rounds},(_,i)=>`<i class="${i<c?'on':''}"></i>`).join('')}</div>
+        <div class="wk-acc-meta"><span>${done?'COMPLETO':`RONDA ${c+1} DE ${rounds}${aRestSec?`  ·  ${fmtTime(aRestSec)} DESC`:''}`}</span>${c>0?`<button class="wk-undo" onclick="accUndo('${a.id}')">DESHACER</button>`:''}</div>
+        ${done?'':`<button class="wk-rbtn" onclick="accRoundDone('${a.id}',${aRestSec})">RONDA ${c+1} HECHA</button>`}
       </div>`;
     });
+    const allAcc=firstOpen<0;
+    html+=`</div><button class="wk-cta${allAcc?'':' off'}" onclick="confirmFinishWorkout()">TERMINAR ENTRENO</button></div>`;
   }
   
   html+=`</div>`;
@@ -4850,7 +4711,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
+const _HAPTIC_WRAP_SEL='.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
@@ -5069,10 +4930,22 @@ function gotoNextExercise(){
     confirmExit();
   }
 }
-function toggleAcc(accId,rest){
-  curSess.accessories[accId]=!curSess.accessories[accId];
-  if(curSess.accessories[accId]&&rest&&!timerRef) startTimer(rest);
-  renderWork();
+// Accesorios: curSess.accessories[id] = rondas hechas (número). Sesiones viejas guardaban true = completo.
+function accRounds(a){return Math.max(1,parseInt(a.sets)||1);}
+function accCount(a){
+  const v=curSess&&curSess.accessories?curSess.accessories[a.id]:0;
+  return v===true?accRounds(a):(parseInt(v)||0);
+}
+function accRoundDone(accId,rest){
+  const a=getAccessories(dayById(curDayId)).find(x=>x.id===accId);if(!a) return;
+  curSess.accessories[accId]=Math.min(accRounds(a),accCount(a)+1);
+  if(rest) startTimer(rest);
+  saveDraft();renderWork();
+}
+function accUndo(accId){
+  const a=getAccessories(dayById(curDayId)).find(x=>x.id===accId);if(!a) return;
+  curSess.accessories[accId]=Math.max(0,accCount(a)-1);
+  saveDraft();renderWork();
 }
 function toggleMobility(exId,restSec){
   if(!curSess.mobility) curSess.mobility={};
@@ -5236,7 +5109,6 @@ function finishWorkout(){
 function showWorkoutSummary(sess,day,prevPRs,prevSession){
   // Stats top
   const exDone=(sess.exercises||[]).filter(ex=>(ex.sets||[]).some(s=>s.rpe!=null));
-  const exCount=exDone.length;
   const setCount=(sess.exercises||[]).reduce((t,ex)=>t+(ex.sets||[]).filter(s=>s.rpe!=null).length,0);
   // PRs ganados: peak de cada ejercicio en la sesión vs PR previo
   const prsList=[];
@@ -5251,7 +5123,6 @@ function showWorkoutSummary(sess,day,prevPRs,prevSession){
     const prev=prevPRs[ex.eid]||0;
     if(peak>prev) prsList.push({name:getExName(compound),value:peak,mode,delta:peak-prev});
   });
-  const prCount=prsList.length;
   // Volumen total (solo modo weight)
   let totalVolume=0;
   (sess.exercises||[]).forEach(ex=>{
@@ -5259,14 +5130,17 @@ function showWorkoutSummary(sess,day,prevPRs,prevSession){
     if(!compound||getTrackMode(compound)!=='weight') return;
     (ex.sets||[]).forEach(s=>{if(s.rpe!=null) totalVolume+=(s.w||0)*(s.r||0);});
   });
-  // Tiempo del entreno · diff entre sess.time (hora inicio en BsAs) y ahora
+  // Tiempo del entreno · startedAt (nuevo) o diff entre sess.time (hora inicio en BsAs) y ahora
   let durationLbl='';
-  if(sess.time){
+  if(sess.startedAt){
+    const diffMin=Math.floor((Date.now()-sess.startedAt)/60000);
+    if(diffMin>0&&diffMin<600) durationLbl=`${diffMin}m`;
+  } else if(sess.time){
     const [h,m]=sess.time.split(':').map(n=>parseInt(n,10));
     // sess.time es UTC-3. Reconstruir el momento de inicio en ms.
     const start=new Date(sess.date+'T00:00:00Z').getTime()+((h+3)*60+m)*60000;
     const diffMin=Math.floor((Date.now()-start)/60000);
-    if(diffMin>0&&diffMin<240) durationLbl=`${diffMin} min`;
+    if(diffMin>0&&diffMin<240) durationLbl=`${diffMin}m`;
   }
   // Deltas vs sesión previa del mismo día
   let deltasHtml='';
@@ -5285,35 +5159,28 @@ function showWorkoutSummary(sess,day,prevPRs,prevSession){
     if(Math.abs(volDelta)>=5) parts.push(`<strong${volDelta<0?' class="dn"':''}>${volDelta>0?'+':''}${Math.round(volDelta)}</strong> kg volumen`);
     if(parts.length) deltasHtml=`<div class="summary-deltas">vs última vez · ${parts.join(' · ')}</div>`;
   }
-  // Subtítulo del hero
-  const dayName=day?(esc(day.name)+(day.sub?` · ${esc(day.sub)}`:'')):'Entrenamiento';
-  const subtitle=durationLbl?`${dayName} · ${durationLbl}`:dayName;
-  // Formato del delta de PR (con 1 decimal solo si es weight)
+  const title=sess.plaza?'Plaza':(day?day.name:'Entreno');
+  const titleSize=title.length>14?38:title.length>9?46:58;
+  const volLbl=totalVolume>=1000?(Math.round(totalVolume/100)/10)+'t':String(Math.round(totalVolume));
   const fmtDelta=(d,mode)=>mode==='weight'?(d.toFixed(1).replace(/\.0$/,'')+' kg'):`+${d}`;
-  // Render
+  const rows=exDone.map(ex=>{
+    const compound=allCompounds().find(e=>eidOf(e)===ex.eid);
+    const mode=compound?getTrackMode(compound):'weight';
+    const name=compound?getExName(compound):(getExercise(ex.eid)?.name||ex.eid);
+    const sets=(ex.sets||[]).filter(x=>x.rpe!=null).map(x=>setShort(x,mode)).join(' · ');
+    return `<div class="sm-row"><span class="n">${esc(name)}</span><span class="s">${sets}</span></div>`;
+  }).join('');
   const html=`
-    <div class="summary-top">
-      <span><span class="tag-rule"></span>SESIÓN · COMPLETADA</span>
-      <span>${prCount>0?`+${prCount} PR${prCount===1?'':'S'}`:'OK'}<span class="tag-rule"></span></span>
+    <div class="sm-hero"><div class="sm-ghost">✓</div>
+      <div class="sm-k">ENTRENO COMPLETO</div>
+      <div class="sm-t" style="font-size:${titleSize}px">${esc(title)}</div>
     </div>
-    <div class="summary-hero">
-      <div class="summary-title">Bien hecho</div>
-      <div class="summary-meta">${subtitle}</div>
+    <div class="sm-stats">
+      <div class="sm-st"><div class="l">TIEMPO</div><div class="v">${durationLbl||'—'}</div></div>
+      <div class="sm-st"><div class="l">SERIES</div><div class="v">${setCount}</div></div>
+      <div class="sm-st"><div class="l">VOLUMEN</div><div class="v" style="color:var(--yw)">${totalVolume>0?volLbl:'—'}</div></div>
     </div>
-    <div class="summary-stats">
-      <div class="summary-stat">
-        <span class="summary-stat-num">${exCount}</span>
-        <span class="summary-stat-lbl">Ejercicios</span>
-      </div>
-      <div class="summary-stat">
-        <span class="summary-stat-num">${setCount}</span>
-        <span class="summary-stat-lbl">Sets</span>
-      </div>
-      <div class="summary-stat">
-        <span class="summary-stat-num" style="color:${prCount>0?'var(--gn)':'var(--tx)'}">${prCount}</span>
-        <span class="summary-stat-lbl">PRs nuevos</span>
-      </div>
-    </div>
+    <div class="sm-note">Solo cuentan las series con RIR. Las demás no se guardan.</div>
     ${deltasHtml?deltasHtml.replace('<div class="summary-deltas">','<div class="summary-deltas"><div class="summary-deltas-label">VS ÚLTIMA VEZ</div>').replace('vs última vez · ',''):''}
     ${prsList.length?`
       <div class="summary-section summary-section-pr">
@@ -5326,10 +5193,8 @@ function showWorkoutSummary(sess,day,prevPRs,prevSession){
         `).join('')}
       </div>
     `:''}
-    <button class="btn summary-cta" onclick="closeSummaryAndGoHome()">
-      Volver al inicio
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-    </button>
+    ${rows?`<div class="sm-list">${rows}</div>`:''}
+    <button class="sm-cta" onclick="closeSummaryAndGoHome()">LISTO</button>
   `;
   $("summary-modal").querySelector('.summary-content').innerHTML=html;
   $("summary-modal").classList.add('show');
