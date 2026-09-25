@@ -446,10 +446,6 @@ label.haptic-switch.rpe-btn-min{
 .hero-cta-label{position:relative;z-index:1;}
 .hero-cta-hint{position:relative;z-index:1;font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:1.5px;opacity:0.6;margin-left:6px;}
 .hero-cta.holding .hero-cta-hint{opacity:0;transition:opacity 250ms ease;}
-.hero-plaza{display:block;margin:10px auto 0;background:none;border:none;color:var(--mt);font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;padding:6px 10px;position:relative;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
-.hero-plaza::after{content:'';position:absolute;left:10px;right:10px;bottom:2px;height:1px;background:var(--ac);transform:scaleX(0);transform-origin:left;}
-.hero-plaza.holding{color:var(--ac);}
-.hero-plaza.holding::after{transform:scaleX(1);transition:transform 1000ms linear;}
 
 /* Section heading editorial */
 .sec-h{padding:0 22px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
@@ -497,11 +493,6 @@ label.haptic-switch.rpe-btn-min{
 .day-name{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--tx);letter-spacing:-0.6px;line-height:1;font-variation-settings:"wdth" 88;margin-bottom:6px;}
 .day-preview{font-size:12px;color:var(--mt);font-weight:500;line-height:1.4;}
 .day-arrow{color:var(--ac);flex-shrink:0;}
-.day-plaza{overflow:hidden;flex-shrink:0;background:none;border:1px solid var(--bd);border-radius:999px;color:var(--mt);font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;padding:6px 10px;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
-.day-plaza::before{content:'';position:absolute;inset:0;background:var(--ac);transform:translateX(-101%);pointer-events:none;}
-.day-plaza.holding::before{transform:translateX(0);transition:transform 1000ms linear;}
-.day-plaza.holding{color:var(--tx);border-color:var(--ac);}
-.day-plaza span{position:relative;z-index:1;}
 
 /* Calendar */
 .cal-wrap{padding:0 22px 28px;}
@@ -885,6 +876,36 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 .sm-row .n{flex:1;font-size:13.5px;font-weight:600;min-width:0;}
 .sm-row .s{font-family:var(--fm);font-size:11px;color:var(--mt);text-align:right;}
 .sm-cta{display:flex;align-items:center;justify-content:center;width:100%;margin-top:18px;height:60px;border-radius:18px;background:var(--yw-dark);border:1px solid var(--bd-hi);color:var(--yw-bright);font-family:var(--fs);font-size:15px;font-weight:800;cursor:pointer;}
+/* ── Fase 3 · Ejercicios de hoy + hint del inicio ── */
+.hero-hint{position:relative;height:18px;margin-top:6px;text-align:center;font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.2px;color:var(--yw-dark);opacity:0;transition:opacity .2s;pointer-events:none;}
+.hero-hint.show{opacity:1;}
+.td{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;padding:14px 18px 0;padding-top:calc(14px + env(safe-area-inset-top));animation:rise .4s cubic-bezier(.2,.7,.2,1) both;}
+.td-top{display:flex;align-items:center;gap:12px;padding:0 4px;}
+.td-k{font-family:var(--fm);font-size:10.5px;font-weight:700;letter-spacing:1.6px;color:var(--yw);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.td-h{font-family:var(--fd);font-size:40px;font-weight:800;letter-spacing:-1.8px;line-height:.95;font-variation-settings:'wdth' 82;padding:20px 4px 4px;}
+.td-cnt{display:flex;gap:18px;margin:8px 4px 0;font-size:12px;font-weight:600;color:var(--mt);}
+.td-cnt b{font-family:var(--fd);font-size:18px;font-weight:800;color:var(--tx);margin-right:4px;}
+.td-seg{display:flex;padding:4px;border-radius:14px;background:var(--cd);border:1px solid var(--bd);margin:18px 0 14px;}
+.td-seg>*{flex:1;height:40px;display:flex;align-items:center;justify-content:center;border-radius:10px;border:none;background:none;color:var(--mt);font-family:var(--fs);font-size:13px;font-weight:700;cursor:pointer;}
+.td-seg>.on{background:var(--cd-hi);color:var(--tx);font-weight:800;}
+.td-seg>.on.pz{background:var(--ac);color:var(--action-tx);}
+.td-list{display:flex;flex-direction:column;gap:8px;}
+.td-row{display:flex;align-items:center;gap:14px;padding:10px 14px 10px 10px;border-radius:16px;text-align:left;background:var(--cd);border:1px solid var(--bd);color:inherit;width:100%;cursor:pointer;transition:background .2s,border-color .2s;animation:rise .45s both;}
+.td-row.on{background:var(--cd-hi);border-color:var(--yw);}
+.td-row .wk-thumb{border-radius:12px;border:1px solid var(--bd);}
+.td-row .wk-thumb img{width:48px;height:48px;opacity:.85;}
+.td-row .nm{font-family:var(--fd);font-size:18px;font-weight:700;letter-spacing:-.4px;font-variation-settings:'wdth' 88;}
+.td-row .mt{font-family:var(--fm);font-size:11px;color:var(--mt);margin-top:4px;}
+.td-row .sb{font-family:var(--fm);font-size:10.5px;color:var(--ac);margin-top:3px;}
+.td-row .n{font-family:var(--fd);font-size:24px;font-weight:800;letter-spacing:-1px;color:var(--bd-hi);flex:none;}
+.td-row.on .n{color:var(--yw);}
+.td-skip{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;border:1px dashed var(--bd-hi);opacity:.55;}
+.td-skip .nm{font-size:14px;font-weight:600;text-decoration:line-through;}
+.td-skip .mt{font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:3px;}
+.td-hint{text-align:center;font-size:12px;color:var(--mt2);margin:12px 0;}
+.td-foot{position:sticky;bottom:0;margin:0 -18px;padding:0 18px calc(18px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 70%,transparent);}
+.td-cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:66px;border-radius:18px;border:none;background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);color:var(--yw-dark);font-family:var(--fs);font-size:15px;font-weight:800;letter-spacing:.3px;cursor:pointer;}
+#today{padding-bottom:0;}
 </style>
 </head>
 <body>
@@ -1045,6 +1066,8 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 </div>
 
 <!-- ══ WORKOUT ══ -->
+<div id="today" class="page"></div>
+
 <div id="work" class="page">
   <div class="work-header-new wk-head">
     <button class="wk-hbtn" onclick="confirmExit()" aria-label="Salir"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
@@ -2178,14 +2201,14 @@ function mbBeep(freq,durMs,vol){
   }catch(e){}
 }
 function mbVibrate(pattern){try{if(navigator.vibrate) navigator.vibrate(pattern);}catch(e){}}
-// Arranque del entreno: arpegio C5-E5-C6 con envelope (sin click) + 3 pulsos alineados a las notas.
+// Arranque del entreno: arpegio C5-E5-G5-C6 con envelope (sin click) + pulsos alineados a las notas.
 // El AudioContext ya quedó desbloqueado en el pointerdown del hold (requisito iOS).
 function cueWorkoutStart(){
   const ctx=_mbEnsureAudio();
   if(ctx){
     try{
       const t0=ctx.currentTime;
-      [[523,0,0.09],[659,0.09,0.09],[1047,0.18,0.24]].forEach(([f,at,d])=>{
+      [[523,0,0.08],[659,0.07,0.08],[784,0.14,0.08],[1046,0.21,0.26]].forEach(([f,at,d])=>{
         const o=ctx.createOscillator(),g=ctx.createGain();
         o.type='triangle';o.frequency.value=f;
         g.gain.setValueAtTime(0.0001,t0+at);
@@ -2196,7 +2219,7 @@ function cueWorkoutStart(){
       });
     }catch(e){}
   }
-  const pattern=[30,60,30,60,140];
+  const pattern=[25,45,25,45,25,45,120];
   if(navigator.vibrate) mbVibrate(pattern);
   else try{ if(window.webHaptics) window.webHaptics.trigger(pattern).catch(()=>{}); }catch(e){}
 }
@@ -2532,9 +2555,14 @@ function plazaDayOf(day){
   _plazaCache={id:day.id,day:clone};
   return clone;
 }
+let _heroHintT=null;
 function dayTap(btn){
   if(btn._holdFired){btn._holdFired=false;return;}
-  toast('Mantené para empezar','info');
+  const hint=$("hero-hint");
+  if(hint&&btn.classList.contains('hero-cta')){
+    hint.classList.add('show');clearTimeout(_heroHintT);
+    _heroHintT=setTimeout(()=>hint.classList.remove('show'),1600);
+  } else toast('Mantené para empezar','info');
 }
 function dayById(dayId){
   const d=routine.days.find(x=>x.id===dayId)||EXTRA_DAYS.find(x=>x.id===dayId);
@@ -2912,7 +2940,7 @@ function startHoldCTA(btn,ev){
     cueWorkoutStart();
     btn._holdFired=true;
     const dayId=parseInt(btn.dataset.day);
-    if(!isNaN(dayId)) startWorkout(dayId,null,btn.dataset.plaza==='1');
+    if(!isNaN(dayId)) openToday(dayId);
   },1000);
 }
 function cancelHoldCTA(btn){
@@ -2988,12 +3016,7 @@ function renderHome(){
       <span class="hero-cta-label">EMPEZAR ENTRENO</span>
       <span class="hero-cta-hint">MANTENÉ</span>
     </button>
-    <button class="hero-plaza" data-day="${sg}" data-plaza="1"
-      onclick="dayTap(this)"
-      onpointerdown="startHoldCTA(this,event)"
-      onpointerup="cancelHoldCTA(this)"
-      onpointerleave="cancelHoldCTA(this)"
-      onpointercancel="cancelHoldCTA(this)">Versión plaza · sin equipo</button>
+    <div class="hero-hint" id="hero-hint">MANTENÉ PARA EMPEZAR</div>
   `;
 
   // STATS asimétrico — Racha (1.7fr con bars) + Sesiones (1fr mini)
@@ -3041,12 +3064,6 @@ function renderHome(){
             <div class="day-name">${d.name}</div>
             ${d.sub?`<div class="day-preview">${d.sub}</div>`:''}
           </div>
-          <button class="day-plaza" data-day="${d.id}" data-plaza="1" aria-label="Versión plaza"
-            onclick="event.stopPropagation();dayTap(this)"
-            onpointerdown="event.stopPropagation();startHoldCTA(this,event)"
-            onpointerup="event.stopPropagation();cancelHoldCTA(this)"
-            onpointerleave="cancelHoldCTA(this)"
-            onpointercancel="cancelHoldCTA(this)"><span>Plaza</span></button>
           <svg class="day-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>`;
     }).join('');
@@ -3824,7 +3841,7 @@ function renderRoutine(){
 }
 
 // ══ WORKOUT ══
-function startWorkout(dayId,customDate,plaza){
+function startWorkout(dayId,customDate,plaza,startAt){
   // Unlock AudioContext en el gesto de tap/hold del usuario — habilita beeps del timer end.
   try{ if(typeof _mbEnsureAudio==='function') _mbEnsureAudio(); }catch(e){}
   // Reset state UI por-día — evita bleed entre días/sesiones
@@ -3837,6 +3854,7 @@ function startWorkout(dayId,customDate,plaza){
   const compounds=getCompounds(day);const accessories=getAccessories(day);
   // Si hay movilidad, arrancar en el tab MOV (curExI=-1); si no, primer compound
   curExI=getMobilityExs(day).length?-1:0;
+  if(startAt!==undefined&&startAt!==null) curExI=startAt;
   const mobility=getMobilityExs(day);
   // time=null solo si la sesión es retroactiva (fecha pasada). Si es hoy, registrar la hora.
   const sessDate=customDate||td();
@@ -3995,6 +4013,86 @@ function wkStopName(st,compounds){
   if(u.isMetabolic) return u.format==='amrap'?'Intervalos':'EMOM';
   if(u.type==='group') return u.size===2?'Biserie':u.size===3?'Triserie':'Circuito';
   return getExName(compounds[u.firstIdx]);
+}
+// ══ Ejercicios de hoy (tras el hold): lista del día, selector Gimnasio/Plaza y arranque desde un stop ══
+let _tdDay=null,_tdPlaza=false,_tdPick=null;
+function openToday(dayId){_tdDay=dayId;_tdPlaza=false;_tdPick=null;showPage('today');renderToday();}
+function setTodayPlaza(on){_tdPlaza=!!on;_tdPick=null;renderToday();}
+function pickToday(i){_tdPick=_tdPick===i?null:i;renderToday();}
+function startToday(){
+  const st=_tdPick!=null?todayStops(todayDay())[_tdPick]:null;
+  startWorkout(_tdDay,null,_tdPlaza,st?st.curExIVal:undefined);
+}
+function todayDay(){
+  const real=routine.days.find(x=>x.id===_tdDay)||EXTRA_DAYS.find(x=>x.id===_tdDay);
+  return real&&_tdPlaza?plazaDayOf(real):real;
+}
+// Mismos stops y orden que el carrusel (curExIVal compatible con startWorkout).
+function todayStops(day){
+  const compounds=getCompounds(day),accessories=getAccessories(day),mob=getMobilityExs(day);
+  const out=[],seen=new Set();
+  if(mob.length) out.push({curExIVal:-1,name:'Movilidad',meta:`${mob.length} ejercicio${mob.length===1?'':'s'} · entrada en calor`,tag:'MOV',tagColor:BLOCK_TYPES.movilidad.color});
+  compounds.forEach((ex,i)=>{
+    if(seen.has(i)) return;
+    const grp=groupOfCompoundIdx(compounds,i);
+    if(grp){
+      grp.indexes.forEach(x=>seen.add(x));
+      const names=grp.indexes.map(x=>getExName(compounds[x]));
+      if(grp.isMetabolic){
+        const lbl=grp.format==='amrap'?'Intervalos':'EMOM';
+        out.push({curExIVal:grp.indexes[0],name:lbl,meta:`${lbl.toUpperCase()} · ${names.join(' + ')}`,tag:grp.format==='amrap'?'INT':'EMOM',tagColor:grp.format==='amrap'?'var(--yw)':'var(--ac)'});
+      } else {
+        const lbl=grp.size===2?'Biserie':grp.size===3?'Triserie':'Circuito';
+        const rounds=Math.max(...grp.indexes.map(x=>parseInt(compounds[x].sets)||1));
+        out.push({curExIVal:grp.indexes[0],name:lbl,meta:`${lbl.toUpperCase()} · ${names.join(' + ')} · ${rounds} vueltas`,eid:eidOf(compounds[grp.indexes[0]]),ex:compounds[grp.indexes[0]]});
+      }
+      return;
+    }
+    seen.add(i);
+    const eid=eidOf(ex),mode=getTrackMode(ex),w=mode==='weight'?lastW(eid):0;
+    let sub='';
+    if(String(ex.id).startsWith('pz-')){
+      const real=routine.days.find(x=>x.id===_tdDay);
+      const orig=real&&getDayExercises(real).find(x=>x.id===String(ex.id).slice(3));
+      if(orig) sub=`↔ en lugar de ${getExName(orig)}`;
+    }
+    out.push({curExIVal:i,name:getExName(ex),meta:`${ex.sets||1} × ${String(ex.reps||'').replace(/-/g,'–')}${w?` · ${w} kg`:''}`,sub,eid,ex});
+  });
+  if(accessories.length) out.push({curExIVal:compounds.length,name:'Accesorios',meta:`${accessories.length} accesorio${accessories.length===1?'':'s'}`,tag:'ACC'});
+  return out;
+}
+function renderToday(){
+  const real=routine.days.find(x=>x.id===_tdDay)||EXTRA_DAYS.find(x=>x.id===_tdDay);
+  if(!real){showPage('home');return;}
+  const day=todayDay();
+  const stops=todayStops(day);
+  const idx=routine.days.findIndex(d=>d.id===_tdDay);
+  const kicker=`${real.name.toUpperCase()} · ${idx<0?'DÍA EXTRA':`DÍA ${idx+1}`}${_tdPlaza?' · PLAZA':''}`;
+  const nEx=getDayExercises(day).length;
+  const nSets=getCompounds(day).concat(getAccessories(day)).reduce((t,e)=>t+(parseInt(e.sets)||0),0);
+  const kept=new Set(getNonMobilityExs(day).map(e=>String(e.id).replace(/^pz-/,'')));
+  const skipped=_tdPlaza?getNonMobilityExs(real).filter(e=>!kept.has(String(e.id))):[];
+  const thumb=st=>st.eid&&EX_IMGS.has(st.eid)
+    ?`<img src="imgs/${st.eid}-0.png" alt="" onerror="this.remove()">`
+    :`<span class="ini"${st.tagColor?` style="color:${st.tagColor}"`:''}>${st.tag||exInitials(st.ex||{name:st.name})}</span>`;
+  const pick=_tdPick!=null?stops[_tdPick]:null;
+  const cta=pick?`ARRANCAR CON ${pick.name.toUpperCase()}`:_tdPlaza?'ARRANCAR EN LA PLAZA':'ARRANCAR';
+  $("today").innerHTML=`<div class="td">
+    <div class="td-top"><button class="wk-hbtn" onclick="showPage('home')" aria-label="Volver"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="td-k">${esc(kicker)}</div></div>
+    <div class="td-h">Ejercicios<br>de hoy</div>
+    <div class="td-cnt"><span><b>${nEx}</b>ejercicios</span><span><b>${nSets}</b>series</span></div>
+    <div class="td-seg"><button class="${_tdPlaza?'':'on'}" onclick="setTodayPlaza(false)">Gimnasio</button><button class="${_tdPlaza?'on pz':''}" onclick="setTodayPlaza(true)">Plaza · sin equipo</button></div>
+    <div class="td-list">
+      ${stops.map((st,i)=>`<button class="td-row${_tdPick===i?' on':''}" style="animation-delay:${i*0.05}s" onclick="pickToday(${i})">
+        <div class="wk-thumb">${thumb(st)}</div>
+        <div style="flex:1;min-width:0"><div class="nm">${esc(st.name)}</div><div class="mt">${esc(st.meta)}</div>${st.sub?`<div class="sb">${esc(st.sub)}</div>`:''}</div>
+        <div class="n">${String(i+1).padStart(2,'0')}</div>
+      </button>`).join('')}
+      ${skipped.map(e=>`<div class="td-skip"><div class="wk-thumb"></div><div style="flex:1;min-width:0"><div class="nm">${esc(getExName(e))}</div><div class="mt">sin versión plaza · se saltea</div></div></div>`).join('')}
+    </div>
+    <div class="td-hint">${stops.length?'Tocá uno para empezar por ahí':'Este día no tiene ejercicios para esta versión.'}</div>
+    <div class="td-foot"><button class="td-cta" onclick="startToday()"${stops.length?'':' disabled style="opacity:.4"'}><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>${esc(cta)}</button></div>
+  </div>`;
 }
 // Tira: tap = ir al stop; toque largo SIN mover el dedo = cambiar ejercicio (si se mueve, gana el scroll).
 let _wkTbT=null,_wkTbFired=false,_wkTbXY=null;
@@ -4711,7 +4809,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
+const _HAPTIC_WRAP_SEL='.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
