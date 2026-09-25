@@ -308,17 +308,6 @@ body.modal-open .page{overflow:hidden;}
 .bsheet-content{padding:4px 0 8px;font-size:14px;line-height:1.55;color:var(--tx);min-height:80px;}
 .bsheet-content .empty{color:var(--mt2);font-size:13px;text-align:center;padding:24px 0;font-weight:500;}
 
-/* ─── Countdown card post-felt (estado C) · Sport v3 editorial ─── */
-.cdown-card{background:var(--cd);border:1px solid var(--bd);border-radius:16px;padding:20px;box-shadow:0 12px 32px -16px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,255,255,0.025);}
-.cdown-top{display:flex;justify-content:space-between;align-items:center;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--gn);margin-bottom:14px;}
-.cdown-top span{display:flex;align-items:center;gap:7px;}
-.cdown-top .tag-rule{width:14px;height:1px;background:currentColor;opacity:0.4;}
-.cdown-saved{font-size:20px;font-weight:600;color:var(--tx);letter-spacing:-0.4px;line-height:1.1;}
-.cdown-rec{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;margin:14px 0;font-size:13px;line-height:1.5;color:var(--tx);font-weight:500;}
-.cdown-rec::before{content:"PRÓXIMA";display:block;font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:var(--ac);margin-bottom:6px;}
-.cdown-label{font-family:var(--fm);font-size:10px;font-weight:600;color:var(--mt);letter-spacing:1.5px;text-transform:uppercase;margin-top:14px;text-align:center;}
-.cdown-num{font-family:var(--fm);font-size:64px;font-weight:700;color:var(--yw);letter-spacing:-2px;line-height:1;margin:4px 0 18px;text-align:center;font-variant-numeric:tabular-nums;}
-.cdown-btns{display:flex;flex-direction:column;gap:10px;}
 
 /* ─── Tip del set anterior (colapsable arriba del set siguiente) ─── */
 .prev-tip{background:rgba(96,165,250,0.04);border:1px dashed rgba(96,165,250,0.30);border-radius:12px;padding:10px 14px;margin-bottom:14px;cursor:pointer;transition:background 110ms ease;}
@@ -368,6 +357,23 @@ label.haptic-switch.rpe-btn-min{
 }
 
 /* ─── RPE segmented control minimalista (Fase 4.2 set card sin caja) ─── */
+.rir-q{display:flex;align-items:center;justify-content:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--tx);letter-spacing:0.1px;margin-bottom:10px}
+.rir-help{width:22px;height:22px;border-radius:50%;border:1px solid var(--bd);background:none;color:var(--mt);font-family:var(--fm);font-size:11px;font-weight:700;cursor:pointer;padding:0;line-height:20px}
+.rir-bar{display:flex;height:46px;border-radius:10px;overflow:hidden;background:linear-gradient(90deg,var(--gn),var(--yw),var(--dn))}
+.rir-seg{flex:1;position:relative;display:flex;align-items:center;justify-content:center;border:none;background:none;padding:0;cursor:pointer;font-family:var(--fm);font-size:15px;font-weight:700;color:var(--bg);border-left:1px solid var(--bg)}
+.rir-seg:first-child{border-left:none}
+.rir-seg .rir-dim{position:absolute;inset:0;background:var(--bg);opacity:0;transition:opacity 150ms ease;pointer-events:none}
+.rir-bar.has-val .rir-seg .rir-dim{opacity:0.62}
+.rir-bar.has-val .rir-seg.on .rir-dim{opacity:0}
+.rir-seg.on{box-shadow:inset 0 0 0 2px var(--tx)}
+.rir-seg span.rir-n{position:relative}
+.rir-bar.has-val .rir-seg:not(.on) span.rir-n{color:var(--mt)}
+.rir-ends{display:flex;justify-content:space-between;font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--mt);margin-top:6px}
+.rir-cap{font-size:12.5px;text-align:center;color:var(--mt);margin-top:10px;line-height:1.4;min-height:18px}
+.rir-cap.set{color:var(--tx);font-weight:600}
+.rir-hold{height:2px;background:var(--bd);border-radius:1px;margin-top:10px;overflow:hidden}
+.rir-hold i{display:block;height:100%;width:0;background:var(--ac);animation:rirHold 2s linear forwards}
+@keyframes rirHold{to{width:100%}}
 .rpe-btn-min{flex:1;padding:13px 0;border-radius:10px;background:var(--cd);border:1px solid var(--bd);color:var(--mt);font-family:var(--fs);font-size:13.5px;font-weight:600;letter-spacing:-0.1px;cursor:pointer;transition:transform 110ms cubic-bezier(0.2,0.7,0.2,1),background 110ms ease,border-color 120ms ease,filter 110ms ease,color 120ms ease;}
 .rpe-btn-min:hover{background:var(--sf);}
 .rpe-btn-min:active,.rpe-btn-min.is-pressing{transform:scale(0.94);filter:brightness(0.84);}
@@ -454,6 +460,10 @@ label.haptic-switch.rpe-btn-min{
 .hero-cta-label{position:relative;z-index:1;}
 .hero-cta-hint{position:relative;z-index:1;font-family:var(--fm);font-size:9px;font-weight:600;letter-spacing:1.5px;opacity:0.6;margin-left:6px;}
 .hero-cta.holding .hero-cta-hint{opacity:0;transition:opacity 250ms ease;}
+.hero-plaza{display:block;margin:10px auto 0;background:none;border:none;color:var(--mt);font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;padding:6px 10px;position:relative;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+.hero-plaza::after{content:'';position:absolute;left:10px;right:10px;bottom:2px;height:1px;background:var(--ac);transform:scaleX(0);transform-origin:left;}
+.hero-plaza.holding{color:var(--ac);}
+.hero-plaza.holding::after{transform:scaleX(1);transition:transform 1000ms linear;}
 
 /* Section heading editorial */
 .sec-h{padding:0 22px;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
@@ -501,6 +511,11 @@ label.haptic-switch.rpe-btn-min{
 .day-name{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--tx);letter-spacing:-0.6px;line-height:1;font-variation-settings:"wdth" 88;margin-bottom:6px;}
 .day-preview{font-size:12px;color:var(--mt);font-weight:500;line-height:1.4;}
 .day-arrow{color:var(--ac);flex-shrink:0;}
+.day-plaza{overflow:hidden;flex-shrink:0;background:none;border:1px solid var(--bd);border-radius:999px;color:var(--mt);font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;padding:6px 10px;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+.day-plaza::before{content:'';position:absolute;inset:0;background:var(--ac);transform:translateX(-101%);pointer-events:none;}
+.day-plaza.holding::before{transform:translateX(0);transition:transform 1000ms linear;}
+.day-plaza.holding{color:var(--tx);border-color:var(--ac);}
+.day-plaza span{position:relative;z-index:1;}
 
 /* Calendar */
 .cal-wrap{padding:0 22px 28px;}
@@ -742,14 +757,6 @@ label.haptic-switch.rpe-btn-min{
     <div class="greet-d" id="home-date"></div>
   </div>
   <div id="home-welcome" style="display:none">
-    <!-- Brand header (mismo que home logueado) -->
-    <div class="header reveal r1" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
-      <div class="brand">
-        <div class="brand-name"><span class="brand-dot"></span>Tracker</div>
-        <div class="brand-meta">VOL. 00</div>
-      </div>
-    </div>
-
     <!-- Hero editorial Bricolage display (consistente con home) -->
     <div class="reveal r2" style="padding:32px 22px 8px;text-align:center">
       <div style="font-family:var(--fm);font-size:9.5px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--mt);margin-bottom:14px;display:inline-flex;align-items:center;gap:8px"><span style="width:18px;height:1px;background:currentColor;opacity:0.5"></span>BIENVENIDO<span style="width:18px;height:1px;background:currentColor;opacity:0.5"></span></div>
@@ -1664,10 +1671,10 @@ function migrateLibV2(){
 // ══ STATE ══
 let routine,routineStore,sessions,config,curSess,curDayId,curExI,timerRef,timerTotal,timerLeft,editDayId,editExId;
 // Bento Tri · workout focused mode: si está set, sobreescribe el "primer sin RPE" como currentSi.
-// Se reseteea en setFelt/addWorkSet/removeWorkSet y al cambiar de ejercicio (ver renderWork).
+// Se reseteea en setRpe/addWorkSet/removeWorkSet y al cambiar de ejercicio (ver renderWork).
 let curWorkSetEdit=null,_lastCurExI=null;
-// Fase 4 · auto-paso post-felt + bottom sheet info ejercicio
-let _workCountdown=null;        // {ci, si, secondsLeft, intervalRef, rec}
+// Fase 4 · auto-paso post-RIR + bottom sheet info ejercicio
+let _workCountdown=null;        // {ci, si, rec, t} · ventana de 2s post-RIR para corregir
 let _lastSetTip=null;            // {ci, si, rec} para el "Tip del set anterior" colapsable
 let _infoSheetTab='coach';       // tab activa del bottom sheet
 let _infoSheetCi=null;           // ci del ejercicio cuyo sheet está abierto
@@ -1994,6 +2001,28 @@ function mbBeep(freq,durMs,vol){
   }catch(e){}
 }
 function mbVibrate(pattern){try{if(navigator.vibrate) navigator.vibrate(pattern);}catch(e){}}
+// Arranque del entreno: arpegio C5-E5-C6 con envelope (sin click) + 3 pulsos alineados a las notas.
+// El AudioContext ya quedó desbloqueado en el pointerdown del hold (requisito iOS).
+function cueWorkoutStart(){
+  const ctx=_mbEnsureAudio();
+  if(ctx){
+    try{
+      const t0=ctx.currentTime;
+      [[523,0,0.09],[659,0.09,0.09],[1047,0.18,0.24]].forEach(([f,at,d])=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.type='triangle';o.frequency.value=f;
+        g.gain.setValueAtTime(0.0001,t0+at);
+        g.gain.exponentialRampToValueAtTime(0.3,t0+at+0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001,t0+at+d);
+        o.connect(g).connect(ctx.destination);
+        o.start(t0+at);o.stop(t0+at+d+0.02);
+      });
+    }catch(e){}
+  }
+  const pattern=[30,60,30,60,140];
+  if(navigator.vibrate) mbVibrate(pattern);
+  else try{ if(window.webHaptics) window.webHaptics.trigger(pattern).catch(()=>{}); }catch(e){}
+}
 function mbCueWorkStart(){mbBeep(880,180,0.3); mbVibrate(180);}
 function mbCueRestStart(){mbBeep(440,250,0.25); mbVibrate(120);}
 function mbCueRoundStart(){mbBeep(880,140,0.3); setTimeout(()=>mbBeep(880,140,0.3),200); mbVibrate([150,80,150]);}
@@ -2325,19 +2354,9 @@ function plazaDayOf(day){
   _plazaCache={id:day.id,day:clone};
   return clone;
 }
-function showDayStartSheet(dayId){
-  const day=routine.days.find(d=>d.id===dayId);if(!day)return;
-  let html=`<div style="font-size:18px;font-weight:800;margin-bottom:4px">${esc(day.name)}</div>`;
-  html+=`<div class="text-sm text-mt mb-16">${day.sub?esc(day.sub):'¿Cómo lo hacés hoy?'}</div>`;
-  html+=`<button class="btn mb-8" onclick="closeModal();startWorkout(${JSON.stringify(dayId)})">Empezar entrenamiento</button>`;
-  html+=`<button class="btn-out mb-8" onclick="closeModal();startWorkout(${JSON.stringify(dayId)},null,true)">Versión plaza · sin equipo</button>`;
-  html+=`<button class="btn-out" onclick="closeModal()">Cancelar</button>`;
-  $("modal-content").innerHTML=html;$("modal").classList.add('show');
-}
 function dayTap(btn){
   if(btn._holdFired){btn._holdFired=false;return;}
-  const dayId=parseInt(btn.dataset.day);
-  if(!isNaN(dayId)) showDayStartSheet(dayId);
+  toast('Mantené para empezar','info');
 }
 function dayById(dayId){
   const d=routine.days.find(x=>x.id===dayId)||EXTRA_DAYS.find(x=>x.id===dayId);
@@ -2369,7 +2388,9 @@ function streak(){
 }
 function thisWeekSessions(){const now=new Date();const day=now.getDay();const start=new Date(now);start.setDate(start.getDate()-day);start.setHours(0,0,0,0);return sessions.filter(s=>new Date(s.date+"T12:00:00")>=start).length;}
 function eidOf(ex){return ex.exerciseId||ex.id;}
-function lastW(eid){for(let i=sessions.length-1;i>=0;i--){const e=sessions[i].exercises?.find(x=>x.eid===eid);if(e?.sets?.length){for(let j=e.sets.length-1;j>=0;j--){if(e.sets[j].w>0)return e.sets[j].w;}}}return 0;}
+// Sets registrados = con RIR/RPE. Los demás son precargas que nunca se hicieron.
+function doneSets(e){return (e&&e.sets||[]).filter(st=>st.rpe!=null);}
+function lastW(eid){for(let i=sessions.length-1;i>=0;i--){const ds=doneSets(sessions[i].exercises?.find(x=>x.eid===eid));for(let j=ds.length-1;j>=0;j--){if(ds[j].w>0)return ds[j].w;}}return 0;}
 function prW(eid){let m=0;sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid)e.sets?.forEach(st=>{if(st.w>m)m=st.w;});}));return m;}
 // ── TRACK MODE helpers (track_mode: 'weight'|'reps'|'time') ──
 // Devuelve el modo aplicable a un ejercicio del bloque/sesión, con fallback robusto.
@@ -2388,7 +2409,7 @@ function prOf(eid,mode){
   let m=0;
   sessions.forEach(s=>s.exercises?.forEach(e=>{
     if(e.eid!==eid) return;
-    e.sets?.forEach(st=>{
+    doneSets(e).forEach(st=>{
       const v=mode==='weight'?(st.w||0):(st.r||0);
       if(v>m) m=v;
     });
@@ -2398,9 +2419,8 @@ function prOf(eid,mode){
 // Último valor cargado (peso para weight, reps para reps, segs para time)
 function lastValueOf(eid,mode){
   for(let i=sessions.length-1;i>=0;i--){
-    const e=sessions[i].exercises?.find(x=>x.eid===eid);
-    if(!e?.sets?.length) continue;
-    const f=e.sets.find(st=>(mode==='weight'?st.w:st.r)>0);
+    const ds=doneSets(sessions[i].exercises?.find(x=>x.eid===eid));
+    const f=ds.find(st=>(mode==='weight'?st.w:st.r)>0);
     if(f) return mode==='weight'?f.w:f.r;
   }
   return 0;
@@ -2412,7 +2432,7 @@ function formatPR(value,mode){
   if(mode==='reps'){return value+' reps';}
   return value+'kg';
 }
-function hist(eid){const d=[];sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid===eid&&e.sets?.length){const peso=Math.max(...e.sets.map(x=>x.w||0));const peakR=Math.max(...e.sets.map(x=>x.r||0));d.push({date:fd(s.date),time:s.time||'',peso,peakR,sets:e.sets,note:e.note||''});}}));return d;}
+function hist(eid){const d=[];sessions.forEach(s=>s.exercises?.forEach(e=>{if(e.eid!==eid) return;const ds=doneSets(e);if(ds.length){const peso=Math.max(...ds.map(x=>x.w||0));const peakR=Math.max(...ds.map(x=>x.r||0));d.push({date:fd(s.date),time:s.time||'',peso,peakR,sets:ds,note:e.note||''});}}));return d;}
 // Resuelve el modo de un eid buscándolo en la biblioteca o las rutinas activas
 function modeOfEid(eid){
   const lib=getExercise(eid);
@@ -2436,11 +2456,15 @@ function allCompounds(){return routine.days.concat(EXTRA_DAYS).flatMap(d=>getCom
 // Score-based: cada set aporta -2..+2 según rango × completed × RPE.
 // Global = promedio + memoria (streak entre sesiones al mismo peso).
 // Acepta reps numérico o string ("8-10", "AMRAP", "30 segs"). Coerciona a número con parseRepsValue.
+// Target en su unidad real: reps, o segundos si dice seg/min. (parseRepsValue convierte
+// segs a reps-equivalentes para volumen muscular — no sirve para targets.)
 function repsAsNumber(reps){
   if(typeof reps==='number') return reps;
   if(reps==null||reps==='') return null;
-  const v=parseRepsValue(reps);
-  return v>0?Math.round(v):null;
+  const str=reps.toString().toLowerCase();
+  const n=parseFloat(str);
+  if(isNaN(n)||n<=0) return null;
+  return Math.round(/min/.test(str)?n*60:n);
 }
 function restAsSeconds(rest){
   if(typeof rest==='number') return rest;
@@ -2454,6 +2478,55 @@ function restAsSeconds(rest){
 function getRange(t){
   const n=repsAsNumber(t);
   if(!n||n<=6) return 'bajo'; if(n<=10) return 'medio'; return 'alto';
+}
+// RIR (reps en reserva) 0..5, 5 = "5 o más". En modo time cada paso son 5 segundos.
+// El rpe viejo se deriva del RIR para que historial, progreso, rec engine y Coach sigan
+// funcionando sin migrar. Zona 1-3 = justo (objetivo acordado con el profe).
+const RIR_MAX=5;
+function rpeFromRir(rir){return rir>=4?'liviano':rir>=1?'justo':'limite';}
+function rirShort(rir,mode){
+  const n=mode==='time'?rir*5:rir;
+  const plus=rir>=RIR_MAX?'+':'';
+  return mode==='time'?`+${n}s${plus}`:`RIR ${n}${plus}`;
+}
+function rirCaption(rir,mode){
+  if(mode==='time'){
+    if(rir===0) return 'No aguantabas ni un segundo más';
+    if(rir>=RIR_MAX) return `Aguantabas ${rir*5} segundos o más`;
+    return `Aguantabas ~${rir*5} segundos más`;
+  }
+  if(rir===0) return 'No salía ni una más';
+  if(rir===1) return 'Te quedaba 1 rep';
+  if(rir>=RIR_MAX) return 'Te quedaban 5 reps o más';
+  return `Te quedaban ${rir} reps`;
+}
+function rirBarHTML(s,si,ci,mode){
+  const q=mode==='time'?'¿Cuánto más aguantabas?':'¿Cuántas reps más podías hacer?';
+  const has=s.rir!=null;
+  const hold=_workCountdown&&_workCountdown.ci===ci&&_workCountdown.si===si;
+  let segs='';
+  for(let v=RIR_MAX;v>=0;v--){
+    const lbl=mode==='time'?`${v*5}${v===RIR_MAX?'+':''}`:`${v}${v===RIR_MAX?'+':''}`;
+    segs+=`<button class="rir-seg${s.rir===v?' on':''}" onclick="setRir(${si},${v},${ci})" aria-label="${rirCaption(v,mode)}"><span class="rir-dim"></span><span class="rir-n">${lbl}</span></button>`;
+  }
+  return `<div class="rir-q">${q}<button class="rir-help" onclick="event.stopPropagation();openRirHelp()" aria-label="Qué es RIR">?</button></div>
+    <div class="rir-bar${has?' has-val':''}">${segs}</div>
+    <div class="rir-ends"><span>Sobraba</span><span>Fallo</span></div>
+    <div class="rir-cap${has?' set':''}">${has?rirCaption(s.rir,mode):'Marcalo al terminar la serie · arranca el descanso'}</div>
+    ${hold?`<div class="rir-hold"><i></i></div><div class="rir-cap" style="margin-top:6px;font-size:11.5px">Tocá otro número si te equivocaste</div>`:''}`;
+}
+function openRirHelp(){
+  save('gym-rir-seen',true);
+  let html=`<div style="font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.8px;color:var(--mt);text-transform:uppercase;margin-bottom:6px">Cómo marcar el esfuerzo</div>`;
+  html+=`<div style="font-size:20px;font-weight:800;margin-bottom:10px">RIR · reps en reserva</div>`;
+  html+=`<div class="text-sm" style="line-height:1.5;margin-bottom:14px">Al terminar cada serie, pensá: <b>¿cuántas repeticiones más podría haber hecho con buena técnica?</b> Eso es el RIR.</div>`;
+  html+=`<div class="rir-bar" style="pointer-events:none;margin-bottom:6px">${[5,4,3,2,1,0].map(v=>`<div class="rir-seg"><span class="rir-n">${v}${v===5?'+':''}</span></div>`).join('')}</div>`;
+  html+=`<div class="rir-ends" style="margin-bottom:14px"><span>Sobraba</span><span>Fallo</span></div>`;
+  html+=`<div class="text-sm text-mt" style="line-height:1.6;margin-bottom:14px"><b style="color:var(--tx)">0</b> · no salía ni una más<br><b style="color:var(--tx)">2</b> · te quedaban un par<br><b style="color:var(--tx)">5+</b> · te sobraba mucho</div>`;
+  html+=`<div class="text-sm" style="line-height:1.5;margin-bottom:6px">No hay respuesta correcta: marcá lo que pasó de verdad. Con ese dato se ajusta el peso de la próxima sesión.</div>`;
+  html+=`<div class="text-sm text-mt" style="line-height:1.5;margin-bottom:16px">Al marcarlo arranca el descanso.</div>`;
+  html+=`<button class="btn" onclick="closeModal()">Entendido</button>`;
+  $("modal-content").innerHTML=html;$("modal").classList.add('show');
 }
 // Score numérico de un set (-2 a +2). null si falta data o el set quedó sin completar.
 function setScore(rpe,r,target,felt){
@@ -2565,7 +2638,8 @@ function priorSession(eid,beforeKey){
     const key=s.date+(s.time||'');
     if(beforeKey&&key>=beforeKey) continue;
     const ex=s.exercises?.find(e=>e.eid===eid);
-    if(ex&&ex.sets?.length) return {sess:s,ex,key};
+    const ds=doneSets(ex);
+    if(ds.length) return {sess:s,ex:{...ex,sets:ds},key};
   }
   return null;
 }
@@ -2672,10 +2746,10 @@ function startHoldCTA(btn,ev){
   btn._holdTimer=setTimeout(()=>{
     btn._holding=false;
     btn.classList.remove('holding');
-    if(navigator.vibrate) navigator.vibrate([35,40,70]);
+    cueWorkoutStart();
     btn._holdFired=true;
     const dayId=parseInt(btn.dataset.day);
-    if(!isNaN(dayId)) startWorkout(dayId);
+    if(!isNaN(dayId)) startWorkout(dayId,null,btn.dataset.plaza==='1');
   },1000);
 }
 function cancelHoldCTA(btn){
@@ -2751,6 +2825,12 @@ function renderHome(){
       <span class="hero-cta-label">EMPEZAR ENTRENO</span>
       <span class="hero-cta-hint">MANTENÉ</span>
     </button>
+    <button class="hero-plaza" data-day="${sg}" data-plaza="1"
+      onclick="dayTap(this)"
+      onpointerdown="startHoldCTA(this,event)"
+      onpointerup="cancelHoldCTA(this)"
+      onpointerleave="cancelHoldCTA(this)"
+      onpointercancel="cancelHoldCTA(this)">Versión plaza · sin equipo</button>
   `;
 
   // STATS asimétrico — Racha (1.7fr con bars) + Sesiones (1fr mini)
@@ -2798,6 +2878,12 @@ function renderHome(){
             <div class="day-name">${d.name}</div>
             ${d.sub?`<div class="day-preview">${d.sub}</div>`:''}
           </div>
+          <button class="day-plaza" data-day="${d.id}" data-plaza="1" aria-label="Versión plaza"
+            onclick="event.stopPropagation();dayTap(this)"
+            onpointerdown="event.stopPropagation();startHoldCTA(this,event)"
+            onpointerup="event.stopPropagation();cancelHoldCTA(this)"
+            onpointerleave="cancelHoldCTA(this)"
+            onpointercancel="cancelHoldCTA(this)"><span>Plaza</span></button>
           <svg class="day-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>`;
     }).join('');
@@ -3602,7 +3688,7 @@ function startWorkout(dayId,customDate,plaza){
       return {eid,sets:Array.from({length:parseInt(e.sets)||1},()=>({
         w:mode==='weight'?(lastW(eid)||0):0,
         r:mode==='weight'?targetReps:(lastVal||targetReps),
-        rpe:null,felt:null
+        rpe:null,rir:null
       })),note:''};
     }),
     accessories:accessories.reduce((o,a)=>{o[a.id]=false;return o;},{}),
@@ -3618,6 +3704,7 @@ function startWorkout(dayId,customDate,plaza){
   // Cualquier timer metabólico colgado de una sesión anterior se descarta al abrir una nueva
   clearMbState();
   saveDraft();showPage('work');renderWork();
+  if(!load('gym-rir-seen',false)) setTimeout(openRirHelp,400);
 }
 
 // HTML de un set-card (un set de un ejercicio del workout) — reutilizable single y grupo.
@@ -3696,25 +3783,7 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
 
     // Divider horizontal sutil + RPE segmented control SIN emojis
     html+=`<div style="height:1px;background:var(--bd);margin:0 4px 18px"></div>`;
-    html+=`<div style="display:flex;gap:6px;padding:0 4px">
-      <button class="rpe-btn-min ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano',${ci})">Liviano</button>
-      <button class="rpe-btn-min ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo',${ci})">Justo</button>
-      <button class="rpe-btn-min ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite',${ci})">Al límite</button>
-    </div>`;
-
-    // ¿Sentiste el músculo? Aparece SIEMPRE que haya RPE — tanto en flujo normal (felt null)
-    // como en edit mode (felt ya marcado, podés cambiar). Soluciona el "quedo trabado" cuando
-    // volvés a una serie completa: ahora el felt es visible y modificable.
-    if(s.rpe){
-      const feltSet = s.felt!==null;
-      html+=`<div style="margin-top:24px;padding-top:18px;border-top:1px dashed var(--bd)">
-        <div style="font-size:12px;font-weight:600;color:var(--mt);text-align:center;letter-spacing:0.3px;margin-bottom:12px">¿Sentiste el músculo?</div>
-        <div style="display:flex;gap:8px;padding:0 4px">
-          <button class="rpe-btn-min ${s.felt===true?'active-gn':''}" onclick="setFelt(${si},true,${ci})">✅ Sí</button>
-          <button class="rpe-btn-min ${s.felt===false?'active-dn':''}" onclick="setFelt(${si},false,${ci})">❌ No</button>
-        </div>
-      </div>`;
-    }
+    html+=`<div style="padding:0 4px">${rirBarHTML(s,si,ci,mode)}</div>`;
     // (Sin rec inline en focused — la rec va a la countdown card del estado C)
 
     return html;
@@ -3783,20 +3852,7 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
     let html=`<div style="background:var(--cd);border:1px solid ${bcGB};border-radius:var(--r-card);padding:14px;margin-bottom:10px;box-shadow:var(--lift-in);transition:border-color 180ms ease">`;
     html+=fieldsHtml;
     html+=`<div style="height:1px;background:var(--bd);margin:0 2px 12px"></div>`;
-    html+=`<div style="display:flex;gap:6px;padding:0 2px">
-      <button class="rpe-btn-min ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano',${ci})">Liviano</button>
-      <button class="rpe-btn-min ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo',${ci})">Justo</button>
-      <button class="rpe-btn-min ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite',${ci})">Al límite</button>
-    </div>`;
-    if(s.rpe){
-      html+=`<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--bd)">
-        <div style="font-size:11.5px;font-weight:600;color:var(--mt);text-align:center;letter-spacing:0.3px;margin-bottom:10px">¿Sentiste el músculo?</div>
-        <div style="display:flex;gap:8px;padding:0 2px">
-          <button class="rpe-btn-min ${s.felt===true?'active-gn':''}" onclick="setFelt(${si},true,${ci})">✅ Sí</button>
-          <button class="rpe-btn-min ${s.felt===false?'active-dn':''}" onclick="setFelt(${si},false,${ci})">❌ No</button>
-        </div>
-      </div>`;
-    }
+    html+=`<div style="padding:0 2px">${rirBarHTML(s,si,ci,mode)}</div>`;
     html+=`</div>`;
     return html;
   }
@@ -3819,14 +3875,10 @@ function renderSetCardHTML(s,si,sets,ex,mode,opts){
   }
   let html=`<div class="set-card" style="border-color:${bc}">${hdr}
     ${fieldsHtml}
-    <div class="flex gap-8"><button class="rpe-btn ${s.rpe==='liviano'?'active-gn':''}" onclick="setRpe(${si},'liviano',${ci})">🟢 Liviano</button><button class="rpe-btn ${s.rpe==='justo'?'active-yw':''}" onclick="setRpe(${si},'justo',${ci})">🟡 Justo</button><button class="rpe-btn ${s.rpe==='limite'?'active-dn':''}" onclick="setRpe(${si},'limite',${ci})">🔴 Al límite</button></div>`;
+    ${rirBarHTML(s,si,ci,mode)}`;
   if(s.rpe){
-    if(s.felt==null){
-      html+=`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="text-xs text-mt fw-600 mb-8" style="text-align:center">¿Sentiste el músculo?</div><div class="flex gap-8"><button class="rpe-btn" onclick="setFelt(${si},true,${ci})">✅ Sí</button><button class="rpe-btn" onclick="setFelt(${si},false,${ci})">❌ No</button></div></div>`;
-    } else {
-      const rd=setRecData(s.rpe,s.r,ex.reps,s.felt,mode);
-      if(rd) html+=`<div class="mt-12" style="padding-top:12px;border-top:1px dashed var(--bd)"><div class="row mb-8"><span class="text-xs text-mt fw-600">${s.felt?'✅ Sintió':'❌ No sintió'}</span><button onclick="setFelt(${si},null,${ci})" style="background:none;border:1px solid var(--bd);color:var(--mt);font-size:11px;cursor:pointer;padding:4px 10px;border-radius:8px">cambiar</button></div><div class="tips-box" style="margin-top:0">${rd.phrase}${rd.muscle?`<span style="display:block;margin-top:6px">${rd.muscle}</span>`:''}</div></div>`;
-    }
+    const rd=setRecData(s.rpe,s.r,ex.reps,null,mode);
+    if(rd) html+=`<div class="tips-box mt-12">${rd.phrase}</div>`;
   }
   html+=`</div>`;
   return html;
@@ -3859,9 +3911,8 @@ function renderCompoundHeaderHTML(ex,ci,day,opts){
 
 // Workout FOCUSED MODE (Bento Tri Fase 4): pantalla limpia, "una decisión por momento".
 // Estados:
-//   A · Ingresando (rpe=null): peso/reps + RPE
-//   B · RPE marcado, esperando felt: agrega "¿Sentiste?"
-//   C · Felt marcado + auto-paso activo: countdown card con rec
+//   A · Ingresando (rpe=null): peso/reps + barra RIR
+//   C · RIR marcado + auto-paso activo: countdown card con rec
 //   D · Todos sets completos: "Ejercicio completo" + Siguiente / Finalizar
 // La info no-crítica (tip coach, historial, última sesión) vive en el bottom sheet ⓘ.
 function renderSingleCompoundWorkoutHTML(ci,compounds,day){
@@ -3871,17 +3922,15 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   const mode=getTrackMode(ex);
   const eid=eidOf(ex);
   const pr=prOf(eid,mode);
-  // Identificar set "current": curWorkSetEdit si fue forzado, sino primer set INCOMPLETO
-  // (sin RPE o con RPE pero sin felt). Antes era solo s.rpe===null pero eso causaba que
-  // al marcar RPE el currentSi saltara al siguiente set sin esperar el felt (bug).
+  // Identificar set "current": curWorkSetEdit si fue forzado, sino primer set sin RIR.
   let currentSi=-1;
   if(curWorkSetEdit!==null&&curWorkSetEdit>=0&&curWorkSetEdit<sets.length){
     currentSi=curWorkSetEdit;
   } else {
-    currentSi=sets.findIndex(s=>s.rpe===null||s.felt===null);
+    currentSi=sets.findIndex(s=>s.rpe===null);
   }
-  // Si hay countdown activo para este ejercicio, mostramos estado C en lugar de set card
   const isCountdownActive = _workCountdown && _workCountdown.ci===ci;
+  if(isCountdownActive) currentSi=_workCountdown.si;
 
   // HEADER del ejercicio · 3 líneas:
   //   1. Nombre del ejercicio (17px)
@@ -3955,36 +4004,18 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     </div>`;
   }
 
-  // CUERPO: estado C (countdown) o focused-by-set (igual patron que biseries)
-  if(isCountdownActive){
-    const cd=_workCountdown;
-    const recHtml=cd.rec?cd.rec.replace(/\n/g,'<br>'):'';
-    html+=`<div class="cdown-card">
-      <div class="cdown-top">
-        <span><span class="tag-rule"></span>SET ${cd.si+1} · GUARDADO</span>
-        <span>${currentSi>=0?`SIGUE ${currentSi+1}`:'COMPLETO'}<span class="tag-rule"></span></span>
-      </div>
-      <div class="cdown-saved">${currentSi>=0?`Pasando a la serie ${currentSi+1}`:'Ejercicio completo'}</div>
-      ${recHtml?`<div class="cdown-rec">${recHtml}</div>`:''}
-      <div class="cdown-label">${currentSi>=0?'en':''}</div>
-      <div class="cdown-num">${cd.secondsLeft}</div>
-      <div class="cdown-btns">
-        <button class="btn" onclick="nextSetNow()" style="padding:14px 0;display:flex;align-items:center;justify-content:center;gap:8px">Siguiente ahora <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg></button>
-        <button class="btn-out" onclick="cancelSetCountdown()" style="padding:11px 0;font-size:13px">Mantener este set</button>
-      </div>
-    </div>`;
-  } else {
+  {
     // FOCUSED-BY-SET · cada set como una vuelta (done collapsed · active expanded · pending placeholder)
     sets.forEach((s,si)=>{
       const isLast=si===sets.length-1;
-      const setComplete = s.rpe!==null && s.felt!==null;
+      const setComplete = s.rpe!==null;
       let vState;
       if(si===currentSi) vState='active';
       else if(setComplete) vState='done';
       else vState='pending';
 
       if(vState==='done'){
-        const valLabel=mode==='weight'?`${s.w} <span class="grp-sum-unit">kg ×</span> ${s.r}`:mode==='reps'?`${s.r} <span class="grp-sum-unit">reps</span>`:`${s.r}<span class="grp-sum-unit">s</span>`;
+        const valLabel=(mode==='weight'?`${s.w} <span class="grp-sum-unit">kg ×</span> ${s.r}`:mode==='reps'?`${s.r} <span class="grp-sum-unit">reps</span>`:`${s.r}<span class="grp-sum-unit">s</span>`)+(s.rir!=null?`<span class="grp-sum-unit"> · ${rirShort(s.rir,mode)}</span>`:'');
         const rpeCls=s.rpe==='liviano'?'gn':s.rpe==='justo'?'yw':s.rpe==='limite'?'dn':'';
         html+=`<div class="grp-round grp-round-done" onclick="setForcedSetEdit(${si})" title="Tocá para editar">
           <div class="grp-round-h">
@@ -4053,8 +4084,8 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     }
   }
 
-  // Notas · colapsadas con "+ Agregar nota" si no hay, textarea normal si hay (no aparece durante countdown)
-  if(!isCountdownActive){
+  // Notas · colapsadas con "+ Agregar nota" si no hay, textarea normal si hay
+  {
     if(sessNote){
       html+=`<textarea class="note-input mt-16" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${sessNote}</textarea>`;
     } else {
@@ -4238,12 +4269,12 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
   if(curWorkSetEdit!=null && curWorkSetEdit>=0 && curWorkSetEdit<maxSets){
     activeSi=curWorkSetEdit;
   } else {
-    // 2. Detectar la primera vuelta incompleta · ahora chequea RPE Y felt (antes solo RPE)
+    // 2. Detectar la primera vuelta incompleta
     for(let si=0;si<maxSets;si++){
       let hasIncomplete=false;
       for(const ci of indexes){
         const sets=curSess.exercises[ci]?.sets||[];
-        if(si<sets.length && (sets[si].rpe===null || sets[si].felt===null)){hasIncomplete=true;break;}
+        if(si<sets.length && sets[si].rpe===null){hasIncomplete=true;break;}
       }
       if(hasIncomplete){activeSi=si;break;}
     }
@@ -4252,7 +4283,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
   const summaryRow=(ci,gi,s)=>{
     const ex=compounds[ci];
     const mode=getTrackMode(ex);
-    const valLabel=mode==='weight'?`${s.w} <span class="grp-sum-unit">kg ×</span> ${s.r}`:mode==='reps'?`${s.r} <span class="grp-sum-unit">reps</span>`:`${s.r}<span class="grp-sum-unit">s</span>`;
+    const valLabel=(mode==='weight'?`${s.w} <span class="grp-sum-unit">kg ×</span> ${s.r}`:mode==='reps'?`${s.r} <span class="grp-sum-unit">reps</span>`:`${s.r}<span class="grp-sum-unit">s</span>`)+(s.rir!=null?`<span class="grp-sum-unit"> · ${rirShort(s.rir,mode)}</span>`:'');
     const rpeCls=s.rpe==='liviano'?'gn':s.rpe==='justo'?'yw':s.rpe==='limite'?'dn':'';
     return `<div class="grp-sum-row">
       <span class="grp-sum-num">${String(gi+1).padStart(2,'0')}</span>
@@ -4330,7 +4361,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
     const ex=compounds[ci];
     const sets=curSess.exercises[ci]?.sets||[];
     const mode=getTrackMode(ex);
-    const allEval=sets.length&&sets.every(s=>s.rpe&&(s.felt===true||s.felt===false));
+    const allEval=sets.length&&sets.every(s=>s.rpe);
     if(allEval){
       const gr=exerciseRec({sets,eid:eidOf(ex)},ex.reps,null,mode);
       if(gr) html+=`<div class="grp-rec"><div class="grp-rec-label">${esc(getExName(ex))}</div><div class="grp-rec-text">${gr}</div></div>`;
@@ -4661,7 +4692,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
+const _HAPTIC_WRAP_SEL='.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
@@ -4741,51 +4772,19 @@ function addWorkSet(ci){
   targets.forEach(idx=>{
     const sets=curSess.exercises[idx].sets;
     const last=sets[sets.length-1];
-    sets.push({w:last.w,r:last.r,rpe:null,felt:null});
+    sets.push({w:last.w,r:last.r,rpe:null,rir:null});
   });
   curWorkSetEdit=null;saveDraft();renderWork();
 }
 // En biserie/triserie el descanso arranca solo al CERRAR la vuelta (todos los miembros con
-// RPE+felt), igual que el auto-descanso del ejercicio suelto. No corre entre A y B de la misma vuelta.
+// RIR), igual que el auto-descanso del ejercicio suelto. No corre entre A y B de la misma vuelta.
 function maybeStartGroupRest(grp,si,compounds){
   if(!grp||timerRef||curWorkSetEdit!==null) return;
-  const closed=grp.indexes.every(idx=>{const st=curSess.exercises[idx]?.sets?.[si];return st&&st.rpe!=null&&st.felt!=null;});
+  const closed=grp.indexes.every(idx=>{const st=curSess.exercises[idx]?.sets?.[si];return st&&st.rpe!=null;});
   if(!closed) return;
   const maxSets=Math.max(...grp.indexes.map(idx=>(curSess.exercises[idx]?.sets||[]).length));
   if(si>=maxSets-1) return; // última vuelta: no hay descanso después
   startTimer(restAsSeconds(compounds[grp.indexes[0]].rest));
-}
-function setFelt(si,val,ci){
-  haptic();
-  ci=(ci==null)?curExI:ci;
-  curSess.exercises[ci].sets[si].felt=val;
-  saveDraft();
-  // Auto-paso post-felt: solo en single compound (focused), no en grupo, no en edit mode,
-  // y solo si quedan sets sin completar todavía en este ejercicio.
-  const day=dayById(curDayId);
-  const compounds=getCompounds(day);
-  const grp=groupOfCompoundIdx(compounds,ci);
-  const isEditMode=curWorkSetEdit!==null;
-  if(!grp && !isEditMode){
-    const sets=curSess.exercises[ci].sets;
-    const stillIncomplete=sets.some((s,i)=>i!==si && s.rpe===null);
-    if(stillIncomplete){
-      const ex=compounds[ci];
-      const mode=getTrackMode(ex);
-      const rd=setRecData(sets[si].rpe,sets[si].r,ex.reps,val,mode);
-      let recText='';
-      if(rd){
-        recText=rd.phrase||'';
-        if(rd.muscle) recText+=(recText?'\n':'')+rd.muscle;
-      }
-      startSetCountdown(ci,si,recText);
-      return;
-    }
-  }
-  // Biserie: si esta felt cerró la vuelta, arrancar el descanso automáticamente.
-  if(grp && !isEditMode) maybeStartGroupRest(grp,si,compounds);
-  // Sin auto-paso: comportamiento normal (reset edit y render)
-  curWorkSetEdit=null;renderWork();
 }
 function removeWorkSet(ci){
   haptic();
@@ -4805,43 +4804,24 @@ function setForcedSetEdit(si){haptic();curWorkSetEdit=si;cancelSetCountdown(true
 function editGroupedRound(si){haptic();curWorkSetEdit=si;renderWork();window.scrollTo({top:0,behavior:'smooth'});}
 function exitGroupedEdit(){curWorkSetEdit=null;renderWork();}
 
-// ══ Fase 4 · Auto-paso post-felt + bottom sheet de info ══
+// ══ Fase 4 · Auto-paso post-RIR + bottom sheet de info ══
 function startSetCountdown(ci,si,rec){
   cancelSetCountdown(true);
-  _workCountdown={ci,si,secondsLeft:3,rec,intervalRef:null};
-  _workCountdown.intervalRef=setInterval(()=>{
-    if(!_workCountdown){return;}
-    _workCountdown.secondsLeft--;
-    if(_workCountdown.secondsLeft<=0){
-      // Guardar tip del set anterior para que aparezca colapsado arriba del siguiente
-      _lastSetTip={ci:_workCountdown.ci,si:_workCountdown.si,rec:_workCountdown.rec};
-      cancelSetCountdown(false);
-      // Scroll suave al set siguiente que acaba de renderearse
-      setTimeout(()=>{
-        const setCard=document.querySelector('.set-card');
-        if(setCard) setCard.scrollIntoView({behavior:'smooth',block:'start'});
-      },50);
-    } else {
-      // Update solo el número, sin re-render completo (más fluido)
-      const numEl=document.querySelector('.cdown-num');
-      if(numEl) numEl.textContent=_workCountdown.secondsLeft;
-    }
-  },1000);
+  _workCountdown={ci,si,rec,t:setTimeout(()=>{
+    if(!_workCountdown||!curSess) return;
+    _lastSetTip={ci,si,rec:_workCountdown.rec};
+    cancelSetCountdown(false);
+    setTimeout(()=>{
+      const setCard=document.querySelector('.grp-round-active');
+      if(setCard) setCard.scrollIntoView({behavior:'smooth',block:'start'});
+    },50);
+  },2000)};
   renderWork();
 }
 function cancelSetCountdown(silent){
-  if(_workCountdown&&_workCountdown.intervalRef) clearInterval(_workCountdown.intervalRef);
+  if(_workCountdown) clearTimeout(_workCountdown.t);
   _workCountdown=null;
   if(!silent) renderWork();
-}
-function nextSetNow(){
-  if(!_workCountdown) return;
-  _lastSetTip={ci:_workCountdown.ci,si:_workCountdown.si,rec:_workCountdown.rec};
-  cancelSetCountdown(false);
-  setTimeout(()=>{
-    const setCard=document.querySelector('.set-card');
-    if(setCard) setCard.scrollIntoView({behavior:'smooth',block:'start'});
-  },50);
 }
 
 // Bottom sheet · info del ejercicio (3 tabs: coach / historial / última sesión)
@@ -5034,9 +5014,31 @@ function setRpe(si,v,ci){
     }
   }
   const grp=groupOfCompoundIdx(compounds,ci);
-  if(!timerRef&&!grp) startTimer(restAsSeconds(ex.rest));
-  else if(grp) maybeStartGroupRest(grp,si,compounds); // descanso auto al cerrar la vuelta
-  renderWork();
+  const isEditMode=curWorkSetEdit!==null;
+  if(!grp){
+    if(!timerRef&&wasNullBefore) startTimer(restAsSeconds(ex.rest));
+    // 2s con el RIR visible para corregir; tocar otro valor dentro de la ventana la reinicia.
+    const holding=_workCountdown&&_workCountdown.ci===ci&&_workCountdown.si===si;
+    if(!isEditMode&&(wasNullBefore||holding)){
+      const st=curSess.exercises[ci].sets[si];
+      const rd=setRecData(st.rpe,st.r,ex.reps,null,getTrackMode(ex));
+      const cap=st.rir!=null?rirCaption(st.rir,getTrackMode(ex)):'';
+      saveDraft();
+      startSetCountdown(ci,si,[cap,rd&&rd.phrase].filter(Boolean).join('\n'));
+      return;
+    }
+  } else {
+    // En grupo no se sale del edit: la vuelta tiene más miembros por corregir.
+    if(!isEditMode) maybeStartGroupRest(grp,si,compounds);
+    saveDraft();renderWork();return;
+  }
+  curWorkSetEdit=null;saveDraft();renderWork();
+}
+function setRir(si,rir,ci){
+  ci=(ci==null)?curExI:ci;
+  const st=curSess.exercises[ci].sets[si];
+  st.rir=rir;
+  setRpe(si,rpeFromRir(rir),ci);
 }
 
 // Saltar al siguiente ejercicio del superset (sin disparar el descanso)
@@ -5065,6 +5067,7 @@ function finishWorkout(){
   const prevSession=[...sessions]
     .filter(s=>s.dayId===curSess.dayId&&!!s.plaza===!!curSess.plaza)
     .sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||'')))[0];
+  curSess.exercises=(curSess.exercises||[]).map(ex=>({...ex,sets:doneSets(ex)})).filter(ex=>ex.sets.length);
   // Snapshot inmutable de la sesión actual (vamos a pushear y luego limpiar curSess)
   const sessSnapshot=JSON.parse(JSON.stringify(curSess));
   // Guardar
@@ -5365,7 +5368,9 @@ function confirmFinishWorkout(){
   if(!curSess){return;}
   // Contar sets incompletos (sin RPE registrado). Si hay, warning antes de finalizar.
   let incomplete=0,registered=0;
-  (curSess.exercises||[]).forEach(ex=>{
+  const _cmp=getCompounds(dayById(curDayId));
+  (curSess.exercises||[]).forEach((ex,i)=>{
+    if(_cmp[i]&&isMetabolicFormat(_cmp[i].format)) return;
     (ex.sets||[]).forEach(st=>{if(st.rpe==null) incomplete++; else registered++;});
   });
   // Workout totalmente vacío (0 sets registrados, sin bloque metabólico corrido) →
@@ -5555,7 +5560,7 @@ function showHist(eid){
       <div class="flex gap-6" style="flex-wrap:wrap">${e.sets.map(s=>{
         const r=rpeMap[s.rpe]||{c:'var(--mt)',i:''};
         const cn=s.rpe==='liviano'?'var(--gn)':s.rpe==='justo'?'var(--yw)':s.rpe==='limite'?'var(--dn)':'var(--mt)';
-        return `<div style="display:inline-flex;align-items:center;gap:5px;font-family:var(--fm);font-size:11px;font-weight:600;color:${cn};border:1px solid ${cn};padding:3px 8px;border-radius:5px">${formatSetBadge(s,mode)}</div>`;
+        return `<div style="display:inline-flex;align-items:center;gap:5px;font-family:var(--fm);font-size:11px;font-weight:600;color:${cn};border:1px solid ${cn};padding:3px 8px;border-radius:5px">${formatSetBadge(s,mode)}${s.rir!=null?' · '+rirShort(s.rir,mode):''}</div>`;
       }).join('')}</div>
       ${e.note?`<div style="font-size:12px;color:var(--mt);margin-top:8px;line-height:1.4;font-weight:500">${e.note}</div>`:''}
     </div>`;
@@ -5936,7 +5941,7 @@ function swapExercise(ci,newExId){
   entry.sets=Array.from({length:parseInt(ex.sets)||1},()=>({
     w:mode==='weight'?(lastW(newExId)||0):0,
     r:mode==='weight'?targetReps:(lastVal||targetReps),
-    rpe:null,felt:null
+    rpe:null,rir:null
   }));
   saveDraft();closeModal();renderWork();
   toast(`Cambiado a ${lib.name}`,'success');
