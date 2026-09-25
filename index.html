@@ -2201,11 +2201,22 @@ function mbBeep(freq,durMs,vol){
   }catch(e){}
 }
 function mbVibrate(pattern){try{if(navigator.vibrate) navigator.vibrate(pattern);}catch(e){}}
-// Arranque del entreno: arpegio C5-E5-G5-C6 con envelope (sin click) + pulsos alineados a las notas.
-// El AudioContext ya quedó desbloqueado en el pointerdown del hold (requisito iOS).
+// Sonido de arranque: sounds/arranque.mp3 si existe (se precarga al empezar el hold); si no, arpegio
+// C5-E5-G5-C6 sintetizado. El AudioContext ya quedó desbloqueado en el pointerdown (requisito iOS).
+let _startBuf=null,_startBufTried=false;
+function loadStartSound(){
+  if(_startBufTried) return;
+  _startBufTried=true;
+  const ctx=_mbEnsureAudio();if(!ctx) return;
+  fetch('sounds/arranque.mp3').then(r=>r.ok?r.arrayBuffer():Promise.reject())
+    .then(b=>new Promise((res,rej)=>ctx.decodeAudioData(b,res,rej)))
+    .then(buf=>{_startBuf=buf;}).catch(()=>{});
+}
 function cueWorkoutStart(){
   const ctx=_mbEnsureAudio();
-  if(ctx){
+  if(ctx&&_startBuf){
+    try{const src=ctx.createBufferSource();src.buffer=_startBuf;src.connect(ctx.destination);src.start();}catch(e){}
+  } else if(ctx){
     try{
       const t0=ctx.currentTime;
       [[523,0,0.08],[659,0.07,0.08],[784,0.14,0.08],[1046,0.21,0.26]].forEach(([f,at,d])=>{
@@ -2925,7 +2936,7 @@ function startHoldCTA(btn,ev){
   if(btn._holding) return;
   if(ev&&ev.preventDefault) ev.preventDefault();
   // Unlock AudioContext aprovechando el gesto vivo · habilita beeps del timer end en iOS.
-  try{ if(typeof _mbEnsureAudio==='function') _mbEnsureAudio(); }catch(e){}
+  try{ if(typeof _mbEnsureAudio==='function') _mbEnsureAudio(); loadStartSound(); }catch(e){}
   btn._holding=true;
   btn.classList.add('holding');
   // Capture pointer so pointerup/cancel fire incluso si el dedo se desliza un poco
