@@ -2201,8 +2201,8 @@ function mbBeep(freq,durMs,vol){
   }catch(e){}
 }
 function mbVibrate(pattern){try{if(navigator.vibrate) navigator.vibrate(pattern);}catch(e){}}
-// Sonido de arranque: sounds/arranque.mp3 si existe (se precarga al empezar el hold); si no, arpegio
-// C5-E5-G5-C6 sintetizado. El AudioContext ya quedó desbloqueado en el pointerdown (requisito iOS).
+// Arranque: vibración + sounds/arranque.mp3 si existe (se precarga al empezar el hold; sin archivo
+// no suena nada). El AudioContext ya quedó desbloqueado en el pointerdown (requisito iOS).
 let _startBuf=null,_startBufTried=false;
 function loadStartSound(){
   if(_startBufTried) return;
@@ -2216,19 +2216,6 @@ function cueWorkoutStart(){
   const ctx=_mbEnsureAudio();
   if(ctx&&_startBuf){
     try{const src=ctx.createBufferSource();src.buffer=_startBuf;src.connect(ctx.destination);src.start();}catch(e){}
-  } else if(ctx){
-    try{
-      const t0=ctx.currentTime;
-      [[523,0,0.08],[659,0.07,0.08],[784,0.14,0.08],[1046,0.21,0.26]].forEach(([f,at,d])=>{
-        const o=ctx.createOscillator(),g=ctx.createGain();
-        o.type='triangle';o.frequency.value=f;
-        g.gain.setValueAtTime(0.0001,t0+at);
-        g.gain.exponentialRampToValueAtTime(0.3,t0+at+0.015);
-        g.gain.exponentialRampToValueAtTime(0.0001,t0+at+d);
-        o.connect(g).connect(ctx.destination);
-        o.start(t0+at);o.stop(t0+at+d+0.02);
-      });
-    }catch(e){}
   }
   const pattern=[25,45,25,45,25,45,120];
   if(navigator.vibrate) mbVibrate(pattern);
