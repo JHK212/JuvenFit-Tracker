@@ -975,6 +975,24 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 .sw-search{display:flex;align-items:center;gap:10px;width:100%;height:46px;padding:0 14px;border-radius:12px;border:1px solid var(--bd-hi);background:none;margin-top:12px;color:var(--mt2);font-family:var(--fs);font-size:13.5px;cursor:pointer;}
 .sw-go{display:flex;align-items:center;justify-content:center;width:100%;height:56px;border-radius:16px;border:none;background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);color:var(--yw-dark);font-family:var(--fs);font-size:14.5px;font-weight:800;margin-top:14px;cursor:pointer;}
 .sw-go:disabled{opacity:.4;cursor:default;}
+/* ── Fase 5 · Intervalos/EMOM activo (2c): el bloque entero cambia de color con la fase ── */
+.iv{display:flex;flex-direction:column;min-height:calc(100dvh - 230px);border-radius:24px;padding:22px 18px 16px;margin-top:4px;transition:background .5s;}
+.iv.work{background:linear-gradient(160deg,var(--yw-bright),var(--yw) 60%,var(--yw-deep));color:var(--yw-dark);}
+.iv.rest{background:linear-gradient(160deg,var(--ac),var(--ac-deep));color:var(--bg);}
+.iv-top{display:flex;justify-content:space-between;font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:1.6px;}
+.iv-ph{font-family:var(--fd);font-size:54px;font-weight:800;letter-spacing:-2.4px;line-height:.9;margin-top:34px;font-variation-settings:'wdth' 80;}
+.iv-num{font-family:var(--fd);font-size:150px;font-weight:800;letter-spacing:-5px;line-height:.85;font-variation-settings:'wdth' 76;font-variant-numeric:tabular-nums;margin-top:10px;}
+.iv.paused .iv-num{opacity:.5;}
+.iv-bar{display:flex;gap:3px;margin-top:24px;}
+.iv-bar i{height:8px;border-radius:2px;background:rgba(10,10,11,.25);min-width:2px;}
+.iv-bar i.d{background:rgba(10,10,11,.75);}
+.iv-bar i.c{background:var(--tx);}
+.iv-now{display:flex;align-items:center;gap:12px;padding:12px;border-radius:20px;background:rgba(10,10,11,.88);color:var(--tx);}
+.iv-now .wk-thumb{border-radius:12px;}
+.iv-now .l{font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--mt);}
+.iv-now .n{font-family:var(--fd);font-size:20px;font-weight:800;letter-spacing:-.6px;margin-top:2px;line-height:1.1;}
+.iv-now .r{font-family:var(--fm);font-size:11px;color:var(--yw-bright);margin-top:3px;}
+.iv-btn{width:44px;height:44px;border-radius:12px;border:1px solid var(--bd-hi);background:none;color:var(--tx);display:flex;align-items:center;justify-content:center;flex:none;cursor:pointer;padding:0;}
 #today{padding-bottom:0;}
 </style>
 </head>
@@ -2436,8 +2454,10 @@ function mbTick(){
   }
   // Update solo el contador para evitar full re-render cada 100ms
   const tEl=document.getElementById('mb-timer-display');
-  if(tEl) tEl.textContent=fmtMMSS(remaining/1000);
+  if(tEl) tEl.textContent=mbFmtLeft(remaining/1000);
 }
+// Número gigante del intervalo: segundos solos debajo del minuto (se lee de lejos), mm:ss arriba.
+function mbFmtLeft(sec){return sec>=60?fmtMMSS(sec):String(Math.max(0,Math.ceil(sec)));}
 function mbResyncOnVisible(){
   // Cuando la PWA vuelve de background el setInterval estaba throttled.
   // Si hay timer activo, recalcular phase actual desde timestamps absolutos.
@@ -4400,46 +4420,34 @@ function renderMetabolicUnitHTML(grp,compounds,day){
   }
 
   if(active){
-    // Estado ACTIVO · timer grande
+    // Estado ACTIVO (2c): todo el bloque del color de la fase, número gigante, barra de la sesión.
     const ph=_mbState.phases[_mbState.phaseIdx];
-    const exObj=compounds[ph.exIdx]||{};
-    const exName=getExName(exObj);
-    const reps=exObj.reps||'';
-    let phColor,phLabel,phVar;
-    if(ph.kind==='work'){phVar='var(--yw)';phLabel='TRABAJO';}
-    else if(ph.kind==='rest'){phVar='var(--ac)';phLabel='DESCANSO';}
-    else{phVar='var(--yw)';phLabel='INTERVALO';}
+    const work=ph.kind!=='rest';
     const refMs=paused?(_mbState.pausedAt-_mbState.phaseStartedAt-_mbState.totalPausedMs):(Date.now()-_mbState.phaseStartedAt-_mbState.totalPausedMs);
     const remainingSec=Math.max(0,(ph.durationMs-refMs)/1000);
-    html+=`<div class="mb-block">`;
-    html+=`<div class="mb-top"><span><span class="tag-rule"></span>${fmtLabel}</span><span>VUELTA ${ph.round+1}/${totalRounds}<span class="tag-rule"></span></span></div>`;
-    html+=`<div class="mb-phase" style="--ph:${phVar}">`;
-    html+=`<div class="mb-phase-label">${phLabel}${paused?' · PAUSADO':''}</div>`;
-    html+=`<div id="mb-timer-display" class="mb-phase-time">${fmtMMSS(remainingSec)}</div>`;
-    html+=`</div>`;
-    html+=`<div class="mb-ex-name">${esc(exName)}</div>`;
-    if(grp.size>1) html+=`<div class="mb-ex-meta">Ejercicio ${ph.ei+1} de ${grp.size}</div>`;
-    if(reps) html+=`<div class="mb-ex-target">Objetivo · <b>${esc(reps)}</b></div>`;
     const nextPh=_mbState.phases[_mbState.phaseIdx+1];
-    if(nextPh){
-      const nextEx=compounds[nextPh.exIdx]||{};
-      let nextLabel;
-      if(nextPh.kind==='rest') nextLabel=`Descanso ${fmtMMSS(nextPh.durationMs/1000)}`;
-      else if(nextPh.isFirstOfRound) nextLabel=`Vuelta ${nextPh.round+1} · ${esc(getExName(nextEx))}`;
-      else nextLabel=esc(getExName(nextEx));
-      html+=`<div class="mb-next">Próximo · ${nextLabel}</div>`;
-    } else {
-      html+=`<div class="mb-next">Próximo · Fin del bloque</div>`;
-    }
-    html+=`<div class="mb-controls">`;
-    if(paused){
-      html+=`<button class="mb-btn mb-btn-primary" onclick="mbResume()"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>Continuar</button>`;
-    } else {
-      html+=`<button class="mb-btn mb-btn-secondary" onclick="mbPause()"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>Pausar</button>`;
-    }
-    html+=`<button class="mb-btn-icon" onclick="mbReset()" aria-label="Reiniciar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>`;
-    html+=`</div>`;
-    html+=`</div>`;
+    const showPh=work?ph:(nextPh||ph);
+    const showEx=compounds[showPh.exIdx]||{};
+    const cfgLbl=fmt==='amrap'?`${cfg.workSecs}/${cfg.restSecs}`:`${cfg.interval}s`;
+    const total=_mbState.phases.reduce((t,p)=>t+p.durationMs,0)||1;
+    const blocks=_mbState.phases.map((p,i)=>`<i class="${i<_mbState.phaseIdx?'d':i===_mbState.phaseIdx?'c':''}" style="flex:${(p.durationMs/total*100).toFixed(2)}"></i>`).join('');
+    const eid=eidOf(showEx);
+    const reps=showEx.reps||'';
+    html+=`<div class="iv ${work?'work':'rest'}${paused?' paused':''}">
+      <div class="iv-top"><span>${fmtLabel.toUpperCase()} · ${cfgLbl}</span><span>RONDA ${ph.round+1}/${totalRounds}</span></div>
+      <div class="iv-ph">${paused?'PAUSA':work?'¡DALE!':'RESPIRÁ'}</div>
+      <div id="mb-timer-display" class="iv-num">${mbFmtLeft(remainingSec)}</div>
+      <div class="iv-bar">${blocks}</div>
+      <div style="flex:1;min-height:24px"></div>
+      <div class="iv-now">
+        <div class="wk-thumb">${eid&&EX_IMGS.has(eid)?`<img src="imgs/${eid}-0.png" alt="" onerror="this.remove()">`:`<span class="ini">${exInitials(showEx)}</span>`}</div>
+        <div style="flex:1;min-width:0"><div class="l">${work?'AHORA':nextPh?'SIGUE':'ÚLTIMO'}</div><div class="n">${esc(getExName(showEx))}</div>${reps?`<div class="r">${esc(reps)}</div>`:''}</div>
+        <button class="iv-btn" onclick="${paused?'mbResume()':'mbPause()'}" aria-label="${paused?'Continuar':'Pausa'}">${paused
+          ?'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>'
+          :'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>'}</button>
+        <button class="iv-btn" onclick="mbReset()" aria-label="Reiniciar"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg></button>
+      </div>
+    </div>`;
     return html;
   }
 
@@ -5061,7 +5069,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.sw-row,.sw-go,.sw-seg>button,.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
+const _HAPTIC_WRAP_SEL='.iv-btn,.sw-row,.sw-go,.sw-seg>button,.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
