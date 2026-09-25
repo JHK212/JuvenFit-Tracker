@@ -1678,6 +1678,10 @@ function migrateLibV2(){
 
 // ══ STATE ══
 let routine,routineStore,sessions,config,curSess,curDayId,curExI,timerRef,timerTotal,timerLeft,editDayId,editExId;
+// Solo la app publicada escribe en Supabase. Una preview/beta (otro origen, p.ej. Cloudflare Pages)
+// lee rutina y cuenta, pero nunca sube ni marca borradas sesiones: con el historial real importado,
+// un borrado en la beta borraría la sesión real en el coach (mismo id).
+const SYNC_WRITES=location.hostname==='jhk212.github.io';
 // Bento Tri · workout focused mode: si está set, sobreescribe el "primer sin RPE" como currentSi.
 // Se reseteea en setRpe/addWorkSet/removeWorkSet y al cambiar de ejercicio (ver renderWork).
 let curWorkSetEdit=null,_lastCurExI=null;
@@ -7172,6 +7176,7 @@ async function claimDevice(athleteId,token){
   }catch(e){console.warn('[pairing] excepción:',e);return {ok:false,error:String(e)};}
 }
 async function pushSession(sess){
+  if(!SYNC_WRITES) return true;
   const link=loadLink();if(!link||!sess||!sess.id)return false;
   const sb=getSupabase();if(!sb)return false;
   const active=getActiveRoutine();
@@ -7196,6 +7201,7 @@ function clearDeletedUnsynced(id){save("gym-deleted-unsynced",load("gym-deleted-
 // eliminada (no desaparecer). Sacamos el id de la cola de push (si nunca se subió
 // no hay nada que marcar) y pedimos el marcado remoto, con reintento offline.
 async function markSessionDeleted(id){
+  if(!SYNC_WRITES) return true;
   const link=loadLink();if(!link||!id)return false;
   const sb=getSupabase();if(!sb)return false;
   try{
@@ -7630,9 +7636,9 @@ function doImport(mode){
   const u=c.toDataURL('image/png');const l=document.createElement('link');l.rel='apple-touch-icon';l.href=u;document.head.appendChild(l);const f=document.createElement('link');f.rel='icon';f.type='image/png';f.href=u;document.head.appendChild(f);};img.src='./shield.png';}catch{}
   try{
     const m={
-      id:"juvenfit-tracker",
-      name:"JuvenFIT Tracker",
-      short_name:"JuvenFIT",
+      id:SYNC_WRITES?"juvenfit-tracker":"juvenfit-tracker-beta",
+      name:SYNC_WRITES?"JuvenFIT Tracker":"JuvenFIT Tracker β",
+      short_name:SYNC_WRITES?"JuvenFIT":"Tracker β",
       description:"Tracker de gym personal · rutinas, sets, RPE, Intervalos/EMOM",
       start_url:location.pathname,
       scope:location.pathname,
@@ -7712,6 +7718,16 @@ function doImport(mode){
 })();
 
 init();
+</script>
+<script>
+// Beta/preview: marca visible (no confundir con la app real) y otro nombre al instalar.
+if(!SYNC_WRITES){
+  const t=document.querySelector('meta[name="apple-mobile-web-app-title"]');if(t) t.content='Tracker β';
+  const b=document.createElement('div');
+  b.textContent='BETA · NO ENVÍA AL COACH';
+  b.style.cssText='position:fixed;top:calc(2px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:9998;pointer-events:none;font-family:var(--fm);font-size:8.5px;font-weight:700;letter-spacing:1.2px;color:var(--dn);border:1px solid var(--dn);background:var(--bg);border-radius:999px;padding:2px 8px;white-space:nowrap';
+  document.body.appendChild(b);
+}
 </script>
 </body>
 </html>
