@@ -706,6 +706,9 @@ body.wk-live .wk-glow{animation:wkBreathe 4s ease-in-out infinite;}
 .wk-tb.on .wk-tb-tile img{opacity:.95;}
 .wk-tb.done .wk-tb-tile img{opacity:.45;}
 .wk-tb-tag{font-family:var(--fm);font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--mt2);}
+.wk-tb-tag.nm{font-size:8px;letter-spacing:0;color:var(--mt);max-width:34px;overflow:hidden;text-overflow:clip;white-space:nowrap;}
+/* Sin dibujo, un recuadro con iniciales no dice nada: se oculta. Las etiquetas MOV/ACC/INT/EMOM (.tag) quedan. */
+.wk-thumb:has(> .ini:not(.tag)){display:none;}
 .wk-tb-bi{position:absolute;right:1px;bottom:1px;font-family:var(--fm);font-size:7.5px;font-weight:800;color:var(--yw-dark);background:var(--yw);padding:1px 3px;border-radius:3px;}
 .wk-tb-lbl{font-family:var(--fm);font-size:9.5px;font-weight:700;color:var(--mt2);}
 .wk-tb.on .wk-tb-lbl{color:var(--tx);}
@@ -3161,7 +3164,7 @@ function renderHome(){
       <div class="rs-k"><span class="b2-pulse-dot"></span>EN CURSO${ds.ago?` · HACE ${ds.ago.toUpperCase()}`:''}</div>
       <div class="rs-t">${esc(ds.title)}</div>
       <div class="rs-bar">${ds.segs.map(f=>`<i style="background:${f>=1?'var(--gn)':f>0?`linear-gradient(90deg,var(--yw) ${Math.round(f*100)}%,var(--bd-hi) ${Math.round(f*100)}%)`:'var(--bd-hi)'}"></i>`).join('')}</div>
-      ${ds.next?`<div class="rs-next"><div class="wk-thumb">${ds.next.eid&&EX_IMGS.has(ds.next.eid)?`<img src="imgs/${ds.next.eid}-0.png" alt="" onerror="this.remove()">`:`<span class="ini">${esc(ds.next.tag)}</span>`}</div><div><div class="l">SIGUE</div><div class="v">${esc(ds.next.label)}</div></div></div>`:''}
+      ${ds.next?`<div class="rs-next"><div class="wk-thumb">${ds.next.eid&&EX_IMGS.has(ds.next.eid)?`<img src="imgs/${ds.next.eid}-0.png" alt="" onerror="this.remove()">`:`<span class="ini${/^(MOV|ACC|INT|EMOM)$/.test(ds.next.tag)?' tag':''}">${esc(ds.next.tag)}</span>`}</div><div><div class="l">SIGUE</div><div class="v">${esc(ds.next.label)}</div></div></div>`:''}
       <button class="rs-go" onclick="resumeDraft()">RETOMAR</button>
       <div class="rs-row"><button class="rs-b" onclick="finishDraft()">Terminar y guardar</button><button class="rs-b dn" onclick="discardDraft()">Descartar</button></div>
     </div>`;
@@ -3178,7 +3181,7 @@ function renderHome(){
   const totalDays=routine.days.length;
   const comps=getCompounds(sgD),accs=getAccessories(sgD);
   const heroEx=comps.find(e=>EX_IMGS.has(eidOf(e)))||null;
-  const rest=comps.filter(e=>e!==heroEx),shown=rest.slice(0,5);
+  const rest=comps.filter(e=>e!==heroEx),withImg=rest.filter(e=>EX_IMGS.has(eidOf(e))),shown=withImg.slice(0,5);
   const tail=[rest.length>shown.length?`+${rest.length-shown.length}`:'',accs.length?'+ ACC':''].filter(Boolean).join(' · ');
   const tl=homeTitleLines(homeDayTitle(sgD.name));
   const heroEid=heroEx&&eidOf(heroEx);
@@ -4346,6 +4349,11 @@ function wkChipTap(ci,si){
   if(curWorkSetEdit===si){exitSetEdit();return;}
   setForcedSetEdit(si);
 }
+// Primera palabra con sentido del nombre, para la tira del entreno cuando no hay dibujo.
+function exShortName(ex){
+  const w=getExName(ex).split(/\s+/).find(x=>x.length>2||/\d/.test(x))||getExName(ex);
+  return w.slice(0,6).toUpperCase();
+}
 function exInitials(ex){
   return getExName(ex).split(/\s+/).filter(w=>w.length>2||/^\d/.test(w)).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'EJ';
 }
@@ -4418,7 +4426,7 @@ function renderToday(){
   const skipped=_tdPlaza?getNonMobilityExs(real).filter(e=>!kept.has(String(e.id))):[];
   const thumb=st=>st.eid&&EX_IMGS.has(st.eid)
     ?`<img src="imgs/${st.eid}-0.png" alt="" onerror="this.remove()">`
-    :`<span class="ini"${st.tagColor?` style="color:${st.tagColor}"`:''}>${st.tag||exInitials(st.ex||{name:st.name})}</span>`;
+    :`<span class="ini${st.tag?' tag':''}"${st.tagColor?` style="color:${st.tagColor}"`:''}>${st.tag||exInitials(st.ex||{name:st.name})}</span>`;
   // Al entrar al entreno se piden todas las imágenes juntas; con la 2da pose ya en caché la animación arranca completa.
   stops.forEach(st=>{if(st.eid&&EX_IMGS.has(st.eid)) new Image().src=`imgs/${st.eid}-1.png`;});
   const pick=_tdPick!=null?stops[_tdPick]:null;
@@ -4706,9 +4714,9 @@ function renderWork(opts){
   const stopK=v=>stops.findIndex(st=>st.curExIVal===v);
   const activeK=Math.max(0,stopK(curExI));
   // Tira: un item por stop, mismo orden que el carrusel (índice de tab = índice de panel).
-  const tbTile=(eid,tag,tagColor)=>eid&&EX_IMGS.has(eid)
+  const tbTile=(eid,tag,tagColor,nm)=>eid&&EX_IMGS.has(eid)
     ?`<img src="imgs/${eid}-0.png" alt="" loading="lazy" onerror="this.remove()">`
-    :`<span class="wk-tb-tag"${tagColor?` style="color:${tagColor}"`:''}>${tag}</span>`;
+    :`<span class="wk-tb-tag${nm?' nm':''}"${tagColor?` style="color:${tagColor}"`:''}>${esc(tag)}</span>`;
   const tabsHtml=stops.map((st,k)=>{
     let tile='',label='',done=false,badge='';
     if(st.kind==='mov'){
@@ -4726,13 +4734,13 @@ function renderWork(opts){
       let rounds=0;
       for(let r=0;r<total;r++){if(idx.every(i=>{const x=curSess.exercises[i]?.sets?.[r];return !x||x.rpe!=null;})) rounds++;else break;}
       done=rounds>=total;
-      tile=tbTile(eidOf(compounds[st.unit.firstIdx]),exInitials(compounds[st.unit.firstIdx]));
+      tile=tbTile(eidOf(compounds[st.unit.firstIdx]),exShortName(compounds[st.unit.firstIdx]),null,true);
       badge=`<span class="wk-tb-bi">${st.unit.size===2?'BI':st.unit.size===3?'TRI':'×'+st.unit.size}</span>`;
       label=`${rounds}/${total}`;
     } else {
       const sets=curSess.exercises[st.unit.firstIdx]?.sets||[],n=sets.filter(x=>x.rpe!=null).length;
       done=sets.length>0&&n>=sets.length;
-      tile=tbTile(eidOf(compounds[st.unit.firstIdx]),exInitials(compounds[st.unit.firstIdx]));
+      tile=tbTile(eidOf(compounds[st.unit.firstIdx]),exShortName(compounds[st.unit.firstIdx]),null,true);
       label=`${n}/${sets.length}`;
     }
     return `<button class="wk-tb${k===activeK?' on':''}${done?' done':''}" onclick="wkTbClick(${k})" onpointerdown="wkTbDown(event,${k})" onpointermove="wkTbMove(event)" onpointerup="wkTbUp()" onpointercancel="wkTbUp()" onpointerleave="wkTbUp()"><span class="wk-tb-tile">${tile}${badge}</span><span class="wk-tb-lbl">${done?'✓':label}</span></button>`;
@@ -6281,7 +6289,7 @@ function addExFromLib(dayId,exerciseId){
 }
 // ══ IMÁGENES DE EJERCICIOS · flipbook Everkinetic (2 poses, CC-BY-SA) ══
 // Archivos en imgs/<eid>-0.png (relajación) y <eid>-1.png (tensión).
-const EX_IMGS=new Set(['abdominales','abductores-maquina','aductores-maquina','aperturas-banco-plano','aperturas-inclinadas','banco-lumbares','bici-abdominal','buenos-dias','bulgaras','copa','cruce-de-poleas','crunch-declinado','crunch-polea','curl-barra','curl-con-barra-w','curl-concentrado','curl-inclinado','curl-mancuernas','curl-martillo','curl-polea','curl-predicador','dominadas','elevacion-posterior-con-mancuernas','elevaciones-frontales','elevaciones-laterales','encogimientos','espinales','estocadas-con-mancuernas','extension-triceps','flexiones','flexiones-declinadas','flexiones-diamante','fondos','fondos-en-banco','gemelos-de-pie','gemelos-sentado','glute-bridge-activacion','hip-thrust','inclinacion-lateral','jalon-agarre-v','jalon-supino','leg-raises','pajaros','patada-gluteo-polea','patada-tricep','peso-muerto','peso-muerto-mancuernas','peso-muerto-rumano','plancha-lateral','prensa','press-banca-declinado','press-banca-mancuernas','press-banca-plano','press-inclinado-barra','press-inclinado-mancuernas','press-militar','press-militar-sentado-con-mancuernas','press-pecho-maquina','remo-al-menton','remo-australiano','remo-barra','remo-con-mancuerna-unilateral-apoyado','remo-sentado-polea','rodillas-al-pecho','rompecraneo','rueda-abdominal','sentadilla-con-barra','sentadilla-frontal','sentadilla-hack','sentadilla-pausa','sentadilla-smith','sentadilla-sumo','step-up','triceps-polea-barra','triceps-polea-soga','zancada-atras','zancada-caminando']);
+const EX_IMGS=new Set(['abdominales','abductores-maquina','aductores-maquina','apertura-pecho-foam-roller','aperturas-banco-plano','aperturas-inclinadas','banco-lumbares','bicho-muerto','bici-abdominal','bird-dog','bisagra-de-cadera-con-barra-vacia','buenos-dias','bulgaras','burpees','cars-cadera','cars-hombro','cat-cow','colgado-pasivo','copa','cortitos-90','cossack-squat','cruce-de-poleas','crunch-declinado','crunch-polea','curl-barra','curl-con-barra-w','curl-concentrado','curl-inclinado','curl-mancuernas','curl-martillo','curl-polea','curl-predicador','deslizamientos-de-isquios-con-sliders','dominadas','dominadas-asistidas','dominadas-supinas','elevaciones-frontales','elevaciones-laterales','elevacion-posterior-con-mancuernas','encogimientos','escaladores','espinales','estocada-profunda','estocadas-con-mancuernas','extension-triceps','face-pull','farmer-carry','farmer-carry-unilateral','flexiones','flexiones-declinadas','flexiones-diamante','flexiones-en-pica','flexiones-escapulares','flexiones-inclinadas','fondos','fondos-en-banco','gemelos-de-pie','gemelos-sentado','giros-rusos','glute-bridge-activacion','hip-thrust','inchworm','inclinacion-lateral','jalon-agarre-v','jalon-supino','knee-to-wall','landmine-unilateral','leg-raises','movilidad-pecho-y-hombro-con-banda','pajaros','patada-gluteo-polea','patada-tricep','perro-cobra','peso-muerto','peso-muerto-mancuernas','peso-muerto-rumano','peso-muerto-unilateral-con-barra','plancha','plancha-alta-baja','plancha-alta-toque-de-hombros','plancha-barquito','plancha-en-v','plancha-lateral','prensa','press-banca-declinado','press-banca-mancuernas','press-banca-plano','press-inclinado-barra','press-inclinado-mancuernas','press-militar','press-militar-sentado-con-mancuernas','press-pecho-maquina','puente-de-gluteo-unilateral','remo-al-menton','remo-australiano','remo-barra','remo-con-mancuerna-unilateral-apoyado','remo-en-trx','remo-mancuerna','remo-pecho-apoyado','remo-sentado-polea','retraccion-escapular-en-barra','rodillas-al-pecho','rompecraneo','rueda-abdominal','sentadilla-con-barra','sentadilla-con-rotacion-de-cadera','sentadilla-copa','sentadilla-copa-con-pausa','sentadilla-en-pared','sentadilla-frontal','sentadilla-hack','sentadilla-pausa','sentadilla-profunda-asistida','sentadilla-smith','sentadilla-sumo','step-up','t-i-w','toco-arriba','triceps-polea-barra','triceps-polea-soga','t-spine-rotacion-cuadrupedia','worlds-greatest-stretch','zancada-atras','zancada-caminando']);
 function exImgThumbHTML(eid,size,clickable){
   if(!EX_IMGS.has(eid)) return '';
   const oc=clickable?` onclick="event.stopPropagation();showExImgModal('${eid}')" style="cursor:pointer;width:${size}px;height:${size}px"`:` style="width:${size}px;height:${size}px"`;
