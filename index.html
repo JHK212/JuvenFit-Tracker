@@ -1013,6 +1013,11 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 .cc-tm{font-family:var(--fm);font-size:10.5px;font-weight:700;color:var(--mt);background:none;border:1px solid var(--bd-hi);border-radius:8px;padding:5px 8px;cursor:pointer;flex:none;}
 .wk-cta:disabled{cursor:default;}
 #today{padding-bottom:0;}
+/* Dropset */
+.wk-card.drop{border-color:rgba(215,121,62,.55);}
+.wk-drop-sub{font-size:12px;color:var(--mt);padding:2px 16px 4px;}
+.wk-drop-go{display:flex;align-items:center;justify-content:center;width:calc(100% - 32px);margin:12px 16px 0;height:52px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);color:var(--yw-dark);font-family:var(--fs);font-size:15px;font-weight:800;letter-spacing:.3px;cursor:pointer;}
+.wk-drop-skip{display:block;margin:6px auto 12px;padding:8px 12px;background:none;border:none;font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.4px;color:var(--mt);cursor:pointer;text-align:center;}
 /* Panel: nombre con botones fantasma, datos monocromos, tip del profe, hoja de descanso, historial */
 .wk-nrow{display:flex;align-items:flex-end;gap:2px;margin-top:12px;}
 .wk-nrow .wk-name{flex:1;min-width:0;margin-top:0;}
@@ -4266,7 +4271,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   const holding=_workCountdown&&_workCountdown.ci===ci;
   if(holding) currentSi=_workCountdown.si;
   // "Vivo" = serie esperando input: anima dibujo/borde (el CSS además lo corta durante el descanso).
-  const live=currentSi>=0&&!editing&&!holding;
+  const live=(currentSi>=0||!!dropPending(ci,ex))&&!editing&&!holding;
   const restSec=sessRest(ex);
   const restLbl=restShortLbl(restSec);
   const repsTxt=String(ex.reps||'').replace(/\s*segs?\b/i,'s').replace(/-/g,'–');
@@ -4283,6 +4288,7 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
       <span${mode==='time'?` class="tap" onclick="openTimeEdit(${ci})"`:''}><b>${ex.sets||sets.length} × ${esc(repsTxt)}</b><i>${mode==='time'?'SEGS':'REPS'}</i></span>
       <span class="tap" onclick="openRestSheet(${ci})"><b class="ul">${restSec?restLbl:'—'}</b><i>DESC</i></span>
       <span><b>1–3</b><i>RIR</i></span>
+      ${dropCfg(ex)?`<span><b>↓${dropCfg(ex).drops}</b><i>DROP</i></span>`:''}
     </div>`;
   if(curSess.plaza&&String(ex.id).startsWith('pz-')){
     const realDay=routine.days.find(d=>d.id===curDayId);
@@ -4316,10 +4322,12 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     if(chips.length){
       html+=`<div class="wk-chips">${chips.map(({x,i})=>`<button class="wk-chip${editing&&i===currentSi?' on':''}" onclick="wkChipTap(${ci},${i})"><span class="d" style="background:${rirColorVar(rirOfSet(x))}"></span>${setShort(x,mode)}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`).join('')}</div>`;
     }
+  } else if(dropPending(ci,ex)){
+    html+=dropCardHTML(ci,ex);
   } else {
     html+=`<div class="wk-done-h"><span class="ck">✓</span><span class="t">COMPLETO · TOCÁ PARA EDITAR</span></div><div class="wk-list">`;
     sets.forEach((x,i)=>{
-      const v=mode==='weight'?`${x.w} kg × ${x.r}`:mode==='time'?`${x.r} s`:`${x.r} reps`;
+      const v=mode==='weight'?`${x.w} kg × ${x.r}${dropsTxt(x)}`:mode==='time'?`${x.r} s`:`${x.r} reps`;
       const r=rirOfSet(x);
       html+=`<button class="wk-li" onclick="setForcedSetEdit(${i})"><span class="n">S${i+1}</span><span class="v">${v}</span><span class="r"><i style="background:${rirColorVar(r)}"></i>${r==null?'':(x.rir==null?'≈':'')+rirShort(r,mode)}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mt2)" stroke-width="2.2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`;
     });
@@ -4351,7 +4359,8 @@ function rirOfSet(x){
   if(x.rir!=null) return x.rir;
   return x.rpe==='liviano'?4:x.rpe==='justo'?2:x.rpe==='limite'?0:null;
 }
-function setShort(x,mode){return mode==='weight'?`${x.w}×${x.r}`:mode==='time'?`${x.r}s`:`${x.r} reps`;}
+function setShort(x,mode){return mode==='weight'?`${x.w}×${x.r}${dropsTxt(x)}`:mode==='time'?`${x.r}s`:`${x.r} reps`;}
+function dropsTxt(x){return (x.drops||[]).map(d=>` ↓${d.w}×${d.r}`).join('');}
 function rirCellsHTML(s,si,ci,mode,sm){
   const has=s.rir!=null;
   const hold=_workCountdown&&_workCountdown.ci===ci&&_workCountdown.si===si;
@@ -5206,7 +5215,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.iv-btn,.sw-row,.sw-go,.sw-seg>button,.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check,.hm-cta,.hm-day,.hm-more,.rt-dh,.rt-edit,.rt-mv,.rt-add,.wk-gh,.rs-sh-c,.ih-all';
+const _HAPTIC_WRAP_SEL='.iv-btn,.sw-row,.sw-go,.sw-seg>button,.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check,.hm-cta,.hm-day,.hm-more,.rt-dh,.rt-edit,.rt-mv,.rt-add,.wk-gh,.rs-sh-c,.ih-all,.wk-drop-go,.wk-drop-skip';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
@@ -5558,7 +5567,9 @@ function setRpe(si,v,ci){
   const grp=groupOfCompoundIdx(compounds,ci);
   const isEditMode=curWorkSetEdit!==null;
   if(!grp){
-    if(!timerRef&&wasNullBefore) startTimer(sessRest(ex));
+    const sets=curSess.exercises[ci].sets;
+    const dropNext=si===sets.length-1&&dropCfg(ex)&&!sets.some(x=>x.dropDone);
+    if(!timerRef&&wasNullBefore&&!dropNext) startTimer(sessRest(ex));
     // 2s con el RIR visible para corregir; tocar otro valor dentro de la ventana la reinicia.
     const holding=_workCountdown&&_workCountdown.ci===ci&&_workCountdown.si===si;
     if(!isEditMode&&(wasNullBefore||holding)){
@@ -6476,6 +6487,62 @@ function pickSwap(id){
 function doSwap(){if(_swapPick) swapExercise(_swapCi,_swapPick,isExtraDay(curDayId)?'today':_swapMode);}
 // Edita descanso/duración desde el workout y lo persiste en la rutina. En plaza o
 // grupos el ex de la vista puede ser un clon: se escribe en ambos por id.
+// ══ Dropset (lo prescribe el coach: ex.dropset={drops,pct}) ══
+// Solo ejercicios sueltos con peso. Las bajadas se guardan dentro de la última serie
+// (set.drops=[{w,r}]) y no cuentan para PR ni volumen: la serie en sí no cambia.
+let _dropDraft=null;
+function dropCfg(ex){return ex&&ex.dropset&&ex.dropset.drops>0&&getTrackMode(ex)==='weight'?ex.dropset:null;}
+function dropPending(ci,ex){
+  const cfg=dropCfg(ex);if(!cfg||!curSess) return null;
+  const compounds=getCompounds(dayById(curDayId));
+  if(groupOfCompoundIdx(compounds,ci)) return null;
+  const sets=curSess.exercises[ci]?.sets||[],last=sets[sets.length-1];
+  if(!last||last.rpe==null||sets.some(x=>x.dropDone)) return null;
+  const k=(last.drops||[]).length;
+  return k<cfg.drops?{last,k,cfg}:null;
+}
+function dropCardHTML(ci,ex){
+  const {last,k,cfg}=dropPending(ci,ex);
+  if(!_dropDraft||_dropDraft.ci!==ci||_dropDraft.k!==k){
+    const prev=k?last.drops[k-1]:last;
+    _dropDraft={ci,k,w:Math.max(0,Math.round(prev.w*(1-(cfg.pct||20)/100)*2)/2),r:prev.r||1};
+  }
+  const d=_dropDraft;
+  const row=(f,unit,step)=>`<div class="wk-row">
+      <button class="wk-pm" onclick="event.stopPropagation();adjDrop('${f}',${-step})" aria-label="Menos">−</button>
+      <div class="wk-val"><span class="wk-num">${d[f]}</span><div class="wk-unit">${unit}</div></div>
+      <button class="wk-pm" onclick="event.stopPropagation();adjDrop('${f}',${step})" aria-label="Más">+</button>
+    </div>`;
+  return `<div class="wk-card drop"><div class="wk-card-breathe"></div>
+    <div class="wk-card-h"><span class="dot"></span><span class="lbl">DROP ${k+1} DE ${cfg.drops} · SIN DESCANSO</span></div>
+    <div class="wk-drop-sub">Bajá ${cfg.pct||20}% y seguí hasta el fallo</div>
+    ${row('w','KG',2.5)}<div class="wk-div"></div>${row('r','REPS',1)}
+    <button class="wk-drop-go" onclick="dropDone(${ci})">HECHO</button>
+    <button class="wk-drop-skip" onclick="dropSkip(${ci})">SALTEAR DROP</button>
+  </div>`;
+}
+function adjDrop(f,step){
+  if(!_dropDraft) return;
+  _dropDraft[f]=Math.max(f==='r'?1:0,Math.round((_dropDraft[f]+step)*10)/10);
+  renderWork();
+}
+function dropFinish(ci,ex,last){
+  last.dropDone=true;_dropDraft=null;
+  if(!timerRef) startTimer(sessRest(ex));
+}
+function dropDone(ci){
+  const ex=getCompounds(dayById(curDayId))[ci],p=dropPending(ci,ex);if(!p||!_dropDraft) return;
+  haptic();
+  (p.last.drops=p.last.drops||[]).push({w:_dropDraft.w,r:_dropDraft.r});
+  _dropDraft=null;
+  if(p.last.drops.length>=p.cfg.drops) dropFinish(ci,ex,p.last);
+  saveDraft();renderWork();
+}
+function dropSkip(ci){
+  const ex=getCompounds(dayById(curDayId))[ci],p=dropPending(ci,ex);if(!p) return;
+  dropFinish(ci,ex,p.last);
+  saveDraft();renderWork();
+}
 // Descanso de este entreno: override por sesión (hoja de descanso) o el de la rutina.
 function sessRest(ex){
   const ov=curSess&&curSess.restOv&&curSess.restOv[ex.id];
