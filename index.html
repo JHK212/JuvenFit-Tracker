@@ -4930,6 +4930,8 @@ function renderWork(opts){
     _wkSig=sig;_wkDirty.clear();_wkDrag=null;
     track=$("work-track");
     bindWorkSwipe($("work-vp"));
+    // El carrusel se mueve con transform: cualquier scroll interno (foco, scrollIntoView) lo desalinea.
+    $("work-vp").addEventListener('scroll',e=>{const v=e.currentTarget;if(v.scrollTop||v.scrollLeft){v.scrollTop=0;v.scrollLeft=0;}});
     fitWorkHead();
     if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitWorkHead);
     slideWorkTo(activeK,false);
@@ -5318,8 +5320,14 @@ function startSetCountdown(ci,si){
     if(!_workCountdown||!curSess) return;
     cancelSetCountdown(false);
     setTimeout(()=>{
+      // Solo la página: scrollIntoView también corría por dentro .wk-vp (overflow:hidden) y el
+      // panel quedaba subido, con el dibujo tapado y sin forma de bajarlo con el dedo.
       const setCard=document.querySelector('.wk-panel.on .wk-card');
-      if(setCard) setCard.scrollIntoView({behavior:'smooth',block:'start'});
+      if(setCard){
+        const tabs=$("work-tabs"),cover=tabs?tabs.getBoundingClientRect().bottom:0;
+        const y=setCard.getBoundingClientRect().top+window.scrollY-cover-8;
+        window.scrollTo({top:Math.max(0,y),behavior:'smooth'});
+      }
     },50);
   },2000)};
   renderWork();
