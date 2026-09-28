@@ -1,4 +1,4 @@
-const CACHE = 'app-v145';
+const CACHE = 'app-v146';
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -22,6 +22,22 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
+
+  // Dibujos de ejercicios: cache-first. Con network-first, cada re-render del entreno
+  // esperaba a la red (lento en el gimnasio) y si fallaba devolvía un 503 que el <img>
+  // tomaba como error y se borraba: quedaba una sola imagen o ninguna.
+  const url = new URL(req.url);
+  if (url.origin === location.origin && url.pathname.includes('/imgs/')) {
+    e.respondWith(
+      caches.open(CACHE).then(c =>
+        c.match(req, { ignoreSearch: true }).then(hit => hit || fetch(req).then(response => {
+          if (response.ok) c.put(req, response.clone());
+          return response;
+        }))
+      )
+    );
+    return;
+  }
 
   e.respondWith(
     fetch(req).then(response => {

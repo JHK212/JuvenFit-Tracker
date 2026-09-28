@@ -80,6 +80,10 @@ body::before{
   opacity:0.04;mix-blend-mode:overlay;
 }
 body > *{position:relative;z-index:1;}
+/* Tapa la franja de la barra de estado: el header sticky no la cubre al scrollear (iOS muestra el contenido por encima). Safari 26 además tiñe esa franja con el fondo de elementos fixed pegados arriba, no sticky. */
+body::after{content:'';position:fixed;top:0;left:0;right:0;height:max(1px,env(safe-area-inset-top));background:var(--bg);z-index:50;pointer-events:none;}
+/* Sin zoom por doble toque: los botones envueltos por el haptic son <label> y no heredan el touch-action de button. */
+html{touch-action:manipulation;}
 /* Entrance stagger */
 @keyframes rise{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
 .reveal{animation:rise 0.55s cubic-bezier(0.2,0.7,0.2,1) both;}
@@ -2540,6 +2544,8 @@ function migrateLibV3(){
 }
 
 // ══ INIT ══
+// iOS ignora user-scalable=no: sin esto, un pellizco accidental en el entreno agranda la pantalla.
+document.addEventListener('gesturestart',e=>e.preventDefault());
 function init(){
   migrateLibV1();
   migrateLibV2();
