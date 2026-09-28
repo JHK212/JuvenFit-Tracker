@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Tracker">
 <meta name="theme-color" content="#0A0A0B">
 <title>Tracker</title>
@@ -80,8 +80,6 @@ body::before{
   opacity:0.04;mix-blend-mode:overlay;
 }
 body > *{position:relative;z-index:1;}
-/* Safari (iOS 26) muestra el contenido scrolleado detrás de la hora/batería y tiñe esa franja con el fondo de un elemento FIXED pegado arriba (ignora sticky y theme-color). Esta tapa cae sobre el padding superior de los headers, así que no se ve. */
-body::after{content:'';position:fixed;top:0;left:0;right:0;height:calc(12px + env(safe-area-inset-top));background:var(--bg);z-index:50;pointer-events:none;}
 /* Sin zoom por doble toque: los botones envueltos por el haptic son <label> y no heredan el touch-action de button. */
 html{touch-action:manipulation;}
 /* Entrance stagger */
@@ -7983,9 +7981,10 @@ init();
 // Beta/preview: marca visible (no confundir con la app real) y otro nombre al instalar.
 if(!SYNC_WRITES){
   const t=document.querySelector('meta[name="apple-mobile-web-app-title"]');if(t) t.content='Tracker β';
+  // absolute, no fixed: un fixed angosto pegado arriba hace que iOS 26 difumine la franja del reloj.
   const b=document.createElement('div');
   b.textContent='BETA · NO ENVÍA AL COACH';
-  b.style.cssText='position:fixed;top:calc(2px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:9998;pointer-events:none;font-family:var(--fm);font-size:8.5px;font-weight:700;letter-spacing:1.2px;color:var(--dn);border:1px solid var(--dn);background:var(--bg);border-radius:999px;padding:2px 8px;white-space:nowrap';
+  b.style.cssText='position:absolute;top:calc(2px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:9998;pointer-events:none;font-family:var(--fm);font-size:8.5px;font-weight:700;letter-spacing:1.2px;color:var(--dn);border:1px solid var(--dn);background:var(--bg);border-radius:999px;padding:2px 8px;white-space:nowrap';
   document.body.appendChild(b);
   // Versión del cache activo: confirma en el teléfono qué build está corriendo.
   if(window.caches) caches.keys().then(k=>{const v=k.find(n=>/^app-v\d+/.test(n));if(v) b.textContent='BETA '+v.replace('app-','')+' · NO ENVÍA AL COACH';}).catch(()=>{});
