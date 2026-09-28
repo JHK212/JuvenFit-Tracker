@@ -717,8 +717,9 @@ body.wk-live .wk-glow{animation:wkBreathe 4s ease-in-out infinite;}
 .wk-pic{position:relative;height:112px;border-radius:18px;background:var(--sf);border:1px solid var(--bd);overflow:hidden;cursor:pointer;}
 .wk-pic img{position:absolute;inset:0;margin:auto;height:98px;max-width:88%;object-fit:contain;filter:invert(1);pointer-events:none;}
 .wk-pic .f0{opacity:.85;}.wk-pic .f1{opacity:0;}
-body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-pic .f0{animation:wkF0 3s ease-in-out infinite;}
-body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-pic .f1{animation:wkF1 3s ease-in-out infinite;}
+/* El dibujo sigue animado en el descanso (es cuando se mira la próxima serie); solo opacidad, barato. */
+.wk-panel.on .wk-ex.live .wk-pic .f0{animation:wkF0 3s ease-in-out infinite;}
+.wk-panel.on .wk-ex.live .wk-pic .f1{animation:wkF1 3s ease-in-out infinite;}
 @keyframes wkF0{0%,38%{opacity:1;}50%,88%{opacity:0;}100%{opacity:1;}}
 @keyframes wkF1{0%,38%{opacity:0;}50%,88%{opacity:1;}100%{opacity:0;}}
 .wk-name{font-family:var(--fd);font-size:28px;font-weight:800;letter-spacing:-1px;line-height:1;font-variation-settings:'wdth' 84;margin-top:12px;}
