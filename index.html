@@ -1475,39 +1475,38 @@ const BLOCK_TYPES={
 const MUSCLES=['pecho_sup','pecho_med','pecho_inf','dorsal','trapecio','lumbar','biceps','triceps','antebrazo','delt_ant','delt_lat','delt_post','cuadriceps','isquios','gluteo','gemelos','aductor','core'];
 const MUSCLE_LABELS={pecho_sup:'Pecho superior',pecho_med:'Pecho medio',pecho_inf:'Pecho inferior',dorsal:'Dorsal',trapecio:'Trapecio',lumbar:'Lumbar',biceps:'Bíceps',triceps:'Tríceps',antebrazo:'Antebrazo',delt_ant:'Delt. anterior',delt_lat:'Delt. lateral',delt_post:'Delt. posterior',cuadriceps:'Cuádriceps',isquios:'Isquios',gluteo:'Glúteo',gemelos:'Gemelos',aductor:'Aductor',core:'Core'};
 const EXERCISE_LIBRARY=[
-  {id:'sentadilla-barra',name:'Sentadilla con barra',aliases:['Squat','Sentadilla'],category:'compound',movement:'sentadilla',muscleActivation:{cuadriceps:60,gluteo:30,core:10},similar:['bulgaras','step-up'],cues:'Pies a la altura de hombros, rodillas hacia los pies, bajar controlado, espalda neutra'},
+  {id:'sentadilla-con-barra',name:'Sentadilla con barra',aliases:['Squat','Sentadilla'],category:'compound',movement:'sentadilla',muscleActivation:{cuadriceps:60,gluteo:30,core:10},similar:['bulgaras','step-up'],cues:'Pies a la altura de hombros, rodillas hacia los pies, bajar controlado, espalda neutra'},
   {id:'peso-muerto',name:'Peso muerto',aliases:['Deadlift','PM'],category:'compound',movement:'bisagra',muscleActivation:{isquios:40,gluteo:35,lumbar:25},similar:['peso-muerto-rumano','peso-muerto-mancuernas'],cues:'Espalda neutra, barra pegada al cuerpo, empujar el piso, no rebotar'},
   {id:'press-banca-plano',name:'Press banca plano',aliases:['Bench Press','Banca','Banco plano con barra'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho_med:36,pecho_sup:12,pecho_inf:12,triceps:25,delt_ant:15},similar:['press-banca-mancuernas','press-inclinado-barra','flexiones'],cues:'Escápulas juntas, arco lumbar natural, barra al esternón, no rebotar'},
   {id:'press-inclinado-mancuernas',name:'Press inclinado mancuernas',aliases:['Incline DB Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho_sup:32,pecho_med:15,pecho_inf:3,delt_ant:30,triceps:20},similar:['press-inclinado-barra','press-banca-mancuernas'],cues:'Banco a 30°, control excéntrico, no rebotar'},
-  {id:'press-militar',name:'Press militar',aliases:['Overhead Press','OHP','Press de hombros'],category:'compound',movement:'empuje_vertical',muscleActivation:{delt_ant:50,triceps:30,delt_lat:20},similar:['press-mancuernas-sentado'],cues:'Glúteos y core contraídos, no arquear lumbar, barra recta hacia arriba'},
+  {id:'press-militar',name:'Press militar',aliases:['Overhead Press','OHP','Press de hombros'],category:'compound',movement:'empuje_vertical',muscleActivation:{delt_ant:50,triceps:30,delt_lat:20},similar:['press-militar-sentado-con-mancuernas'],cues:'Glúteos y core contraídos, no arquear lumbar, barra recta hacia arriba'},
   {id:'remo-barra',name:'Remo con barra',aliases:['Barbell Row'],category:'compound',movement:'traccion_horizontal',muscleActivation:{dorsal:50,trapecio:25,biceps:25},similar:['remo-mancuerna','remo-australiano'],cues:'Tronco a 45°, retraer escápulas, no tirar con brazos'},
   {id:'remo-mancuerna',name:'Remo con mancuerna',aliases:['DB Row','Remo a 1 brazo'],category:'compound',movement:'traccion_horizontal',muscleActivation:{dorsal:60,trapecio:20,biceps:20},similar:['remo-barra','remo-australiano'],cues:'Sin girar el torso, llevar mancuerna a la cadera'},
   {id:'dominadas',name:'Dominadas',aliases:['Pull-ups'],category:'compound',movement:'traccion_vertical',muscleActivation:{dorsal:60,biceps:25,trapecio:15},similar:['remo-australiano'],cues:'Pecho al frente, retraer escápulas, no colgarse de los brazos'},
   {id:'fondos',name:'Fondos en paralelas',aliases:['Dips'],category:'compound',movement:'empuje_vertical',muscleActivation:{triceps:45,pecho_inf:19,pecho_med:12,pecho_sup:4,delt_ant:20},similar:['flexiones','press-banca-plano'],cues:'Tronco inclinado para enfatizar pecho, vertical para tríceps. Bajar a 90°'},
   {id:'hip-thrust',name:'Hip thrust',aliases:['Empuje de cadera'],category:'compound',movement:'bisagra',muscleActivation:{gluteo:70,isquios:25,cuadriceps:5},similar:['peso-muerto','peso-muerto-rumano'],cues:'Empujar con talones, retroversión pélvica al final, glúteos arriba'},
-  {id:'step-up',name:'Step up',aliases:['Subida al cajón'],category:'compound',movement:'zancada',muscleActivation:{cuadriceps:50,gluteo:40,isquios:10},similar:['bulgaras','sentadilla-barra'],cues:'Pie completo en el cajón, subir con la pierna de arriba, no impulsar con la otra'},
+  {id:'step-up',name:'Step up',aliases:['Subida al cajón'],category:'compound',movement:'zancada',muscleActivation:{cuadriceps:50,gluteo:40,isquios:10},similar:['bulgaras','sentadilla-con-barra'],cues:'Pie completo en el cajón, subir con la pierna de arriba, no impulsar con la otra'},
   {id:'peso-muerto-mancuernas',name:'Peso muerto mancuernas',aliases:['DB Deadlift','Peso muerto con mancuernas'],category:'compound',movement:'bisagra',muscleActivation:{isquios:45,gluteo:35,lumbar:20},similar:['peso-muerto','peso-muerto-rumano'],cues:'Cadera atrás, espalda neutra, mancuernas pegadas a las piernas'},
   {id:'elevaciones-laterales',name:'Elevaciones laterales',aliases:['Lateral Raises','Laterales'],category:'aislacion',movement:'aislacion',muscleActivation:{delt_lat:80,delt_ant:10,trapecio:10},similar:['elevaciones-frontales'],cues:'Brazos ligeramente flexionados, subir hasta la altura del hombro, no balancear'},
   {id:'face-pull',name:'Face pull (banda)',aliases:['Face Pull','Tirones a la cara'],category:'aislacion',movement:'traccion_horizontal',muscleActivation:{delt_post:55,trapecio:30,dorsal:15},similar:['pajaros'],cues:'Codos altos, abrir manos al final, retraer escápulas. Con banda elástica'},
   {id:'pajaros',name:'Pájaros',aliases:['Elevaciones posteriores','Reverse Flyes'],category:'aislacion',movement:'aislacion',muscleActivation:{delt_post:75,trapecio:25},similar:['face-pull'],cues:'Tronco a 45°, brazos ligeramente flexionados, abrir hacia los lados'},
   {id:'curl-barra',name:'Curl con barra',aliases:['Barbell Curl','Curl barra'],category:'aislacion',movement:'aislacion',muscleActivation:{biceps:90,antebrazo:10},similar:['curl-mancuernas','curl-martillo'],cues:'Codos pegados al cuerpo, no balancear, control en la bajada'},
   {id:'curl-martillo',name:'Curl martillo',aliases:['Hammer Curl'],category:'aislacion',movement:'aislacion',muscleActivation:{biceps:60,antebrazo:30,delt_ant:10},similar:['curl-mancuernas','curl-barra'],cues:'Pulgares arriba, codos pegados, sin balancear'},
-  {id:'extension-triceps',name:'Extensión de tríceps',aliases:['Triceps Extension','Extension de triceps'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:90,antebrazo:10},similar:['rompecraneo','press-frances','patada-tricep'],cues:'Codos fijos, solo se mueve el antebrazo. Con mancuerna por encima de la cabeza'},
-  {id:'rompecraneo',name:'Rompecráneo',aliases:['Skullcrusher','French Press'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:90,antebrazo:10},similar:['extension-triceps','press-frances'],cues:'Codos fijos hacia el techo, bajar a la frente, no abrir codos'},
+  {id:'extension-triceps',name:'Extensión de tríceps',aliases:['Triceps Extension','Extension de triceps'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:90,antebrazo:10},similar:['rompecraneo','patada-tricep'],cues:'Codos fijos, solo se mueve el antebrazo. Con mancuerna por encima de la cabeza'},
+  {id:'rompecraneo',name:'Rompecráneo',aliases:['Skullcrusher','French Press','Press francés'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:90,antebrazo:10},similar:['extension-triceps'],cues:'Codos fijos hacia el techo, bajar a la frente, no abrir codos'},
   {id:'aperturas-banco-plano',name:'Aperturas en banco plano',aliases:['Flyes','Aperturas','Aperturas banco plano'],category:'aislacion',movement:'aislacion',muscleActivation:{pecho_med:51,pecho_sup:21,pecho_inf:13,delt_ant:15},similar:['press-banca-mancuernas'],cues:'Codos ligeramente flexionados, abrir hasta la línea del hombro, no más'},
   {id:'plancha',name:'Plancha',aliases:['Plank'],category:'aislacion',movement:'core',muscleActivation:{core:100},similar:['plancha-lateral','abdominales'],cues:'Cuerpo en línea, glúteos contraídos, no hundir la cadera'},
   {id:'plancha-lateral',name:'Plancha lateral',aliases:['Side Plank'],category:'aislacion',movement:'core',muscleActivation:{core:100},similar:['plancha'],cues:'Cadera arriba, codo bajo el hombro, cuerpo recto'},
-  {id:'bulgaras',name:'Búlgaras',aliases:['Bulgarian Split Squat'],category:'compound',movement:'zancada',muscleActivation:{cuadriceps:50,gluteo:40,isquios:10},similar:['step-up','sentadilla-barra'],cues:'Pie de atrás en banco, bajar controlado, peso en el talón delantero'},
+  {id:'bulgaras',name:'Búlgaras',aliases:['Bulgarian Split Squat'],category:'compound',movement:'zancada',muscleActivation:{cuadriceps:50,gluteo:40,isquios:10},similar:['step-up','sentadilla-con-barra'],cues:'Pie de atrás en banco, bajar controlado, peso en el talón delantero'},
   {id:'gemelos-de-pie',name:'Gemelos de pie',aliases:['Calf Raise'],category:'aislacion',movement:'aislacion',muscleActivation:{gemelos:100},similar:[],cues:'Subir alto, bajar controlado, máximo rango'},
   {id:'peso-muerto-rumano',name:'Peso muerto rumano',aliases:['RDL','Romanian Deadlift'],category:'compound',movement:'bisagra',muscleActivation:{isquios:50,gluteo:35,lumbar:15},similar:['peso-muerto','peso-muerto-mancuernas'],cues:'Cadera atrás, rodillas semi-flexionadas, espalda neutra'},
   {id:'press-banca-mancuernas',name:'Press banca mancuernas',aliases:['DB Bench Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho_med:36,pecho_sup:12,pecho_inf:12,triceps:25,delt_ant:15},similar:['press-banca-plano','press-inclinado-mancuernas'],cues:'Mismo arco que con barra, mayor rango, control excéntrico'},
   {id:'press-inclinado-barra',name:'Press inclinado con barra',aliases:['Incline Bench Press'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho_sup:32,pecho_med:15,pecho_inf:3,delt_ant:30,triceps:20},similar:['press-inclinado-mancuernas','press-banca-plano'],cues:'Banco a 30°. Barra a la parte alta del pecho'},
-  {id:'press-mancuernas-sentado',name:'Press mancuernas sentado',aliases:['Seated DB Press'],category:'compound',movement:'empuje_vertical',muscleActivation:{delt_ant:50,delt_lat:25,triceps:25},similar:['press-militar'],cues:'Espalda apoyada, mancuernas paralelas, no chocar arriba'},
+  {id:'press-militar-sentado-con-mancuernas',name:'Press militar sentado con mancuernas',aliases:['Seated DB Press'],category:'compound',movement:'empuje_vertical',muscleActivation:{delt_ant:50,delt_lat:25,triceps:25},similar:['press-militar'],cues:'Espalda apoyada, mancuernas paralelas, no chocar arriba'},
   {id:'remo-australiano',name:'Remo australiano',aliases:['Inverted Row'],category:'compound',movement:'traccion_horizontal',muscleActivation:{dorsal:50,trapecio:25,biceps:25},similar:['remo-barra','dominadas'],cues:'Cuerpo recto, pecho a la barra, retraer escápulas'},
   {id:'flexiones',name:'Flexiones',aliases:['Push-ups','Lagartijas'],category:'compound',movement:'empuje_horizontal',muscleActivation:{pecho_med:33,pecho_sup:11,pecho_inf:11,triceps:30,delt_ant:15},similar:['press-banca-plano','fondos'],cues:'Cuerpo en línea, codos a 45°, bajar al pecho'},
   {id:'encogimientos',name:'Encogimientos',aliases:['Shrugs'],category:'aislacion',movement:'aislacion',muscleActivation:{trapecio:90,antebrazo:10},similar:[],cues:'Subir hombros derechos hacia arriba, no rotar, sostener arriba'},
   {id:'curl-mancuernas',name:'Curl alternado mancuernas',aliases:['DB Curl'],category:'aislacion',movement:'aislacion',muscleActivation:{biceps:85,antebrazo:15},similar:['curl-barra','curl-martillo'],cues:'Codos pegados, alternar, supinar al subir'},
-  {id:'press-frances',name:'Press francés',aliases:['French Press'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:90,antebrazo:10},similar:['rompecraneo','extension-triceps'],cues:'De pie o sentado, mancuerna detrás de la cabeza, codos quietos'},
   {id:'patada-tricep',name:'Patada de tríceps',aliases:['Kickback'],category:'aislacion',movement:'aislacion',muscleActivation:{triceps:85,delt_post:15},similar:['extension-triceps','rompecraneo'],cues:'Tronco a 45°, codo arriba pegado al torso, extender solo el antebrazo'},
   {id:'elevaciones-frontales',name:'Elevaciones frontales',aliases:['Front Raises'],category:'aislacion',movement:'aislacion',muscleActivation:{delt_ant:80,delt_lat:10,pecho_sup:10},similar:['elevaciones-laterales'],cues:'Brazos ligeramente flexionados, subir hasta la línea del hombro'},
   {id:'abdominales',name:'Abdominales',aliases:['Crunch','Crunches'],category:'aislacion',movement:'core',muscleActivation:{core:100},similar:['leg-raises','plancha'],cues:'Mentón al pecho, despegar solo los omóplatos, no estirar el cuello'},
@@ -1587,7 +1586,11 @@ async function manualSyncLibrary(btn){
   }
   if(btn) btn.disabled=false;
 }
-function getExercise(id){return getExerciseLib().find(e=>e.id===id);}
+// Ids fusionados o renombrados en la biblioteca (2026-09). Supabase ya está migrado; esto cubre
+// rutinas/historial guardados solo en cada teléfono y rutinas importadas antes de la migración.
+const EX_ID_ALIASES={'peso-muerto-convencional':'peso-muerto','press-frances':'rompecraneo','sentadilla-barra':'sentadilla-con-barra','press-mancuernas-sentado':'press-militar-sentado-con-mancuernas'};
+function canonicalExId(id){return EX_ID_ALIASES[id]||id;}
+function getExercise(id){id=canonicalExId(id);return getExerciseLib().find(e=>e.id===id);}
 function getExerciseName(id,fallback){const ex=getExercise(id);return ex?ex.name:(fallback||id||'?');}
 function findExerciseByName(name){
   if(!name) return null;
@@ -2516,10 +2519,31 @@ function loadMbStateForGroup(gid){
   return saved;
 }
 
+function migrateLibV3(){
+  if(load("gym-lib-v3-done",false)) return;
+  const fixEx=e=>{if(e&&e.exerciseId&&EX_ID_ALIASES[e.exerciseId]) e.exerciseId=EX_ID_ALIASES[e.exerciseId];};
+  const r=load("gym-r",null);
+  if(r&&r.list){
+    r.list.forEach(rt=>(rt.days||[]).forEach(d=>{(d.blocks||[]).forEach(b=>(b.exercises||[]).forEach(fixEx));(d.exercises||[]).forEach(fixEx);}));
+    save("gym-r",r);
+  }
+  const fixSess=x=>{(x&&x.exercises||[]).forEach(e=>{if(e&&EX_ID_ALIASES[e.eid]) e.eid=EX_ID_ALIASES[e.eid];});};
+  const ss=load("gym-s",null);
+  if(Array.isArray(ss)){ss.forEach(fixSess);save("gym-s",ss);}
+  const dr=load("gym-draft",null);
+  if(dr){
+    fixSess(dr);
+    if(dr.swaps) Object.keys(dr.swaps).forEach(k=>{dr.swaps[k]=canonicalExId(dr.swaps[k]);});
+    save("gym-draft",dr);
+  }
+  save("gym-lib-v3-done",true);
+}
+
 // ══ INIT ══
 function init(){
   migrateLibV1();
   migrateLibV2();
+  migrateLibV3();
   routineStore=load("gym-r",{active:'mi-rutina',list:[{id:'mi-rutina',name:'Mi Rutina',createdAt:td(),days:JSON.parse(JSON.stringify(DEFAULT_DAYS))}]});
   // Safety: if storage came back malformed, re-wrap
   if(!routineStore||!routineStore.list||!routineStore.list.length){
@@ -2573,7 +2597,7 @@ function closeModal(){$("modal").classList.remove('show');}
 // No mueven la rotación del día sugerido (sugDay ignora dayIds fuera de routine.days).
 const EXTRA_DAYS=[
   {id:'x-full',name:'Full body express',sub:'Día extra',exercises:[
-    {id:'xf-1',exerciseId:'sentadilla-barra',sets:3,reps:'8',rest:90},
+    {id:'xf-1',exerciseId:'sentadilla-con-barra',sets:3,reps:'8',rest:90},
     {id:'xf-2',exerciseId:'press-banca-plano',sets:3,reps:'8',rest:90},
     {id:'xf-3',exerciseId:'remo-barra',sets:3,reps:'10',rest:90},
     {id:'xf-4',exerciseId:'press-militar',sets:3,reps:'10',rest:75},
@@ -2602,15 +2626,22 @@ function isExtraDay(dayId){return EXTRA_DAYS.some(d=>d.id===dayId);}
 // cuenta para racha/rotación como el día que reemplaza. Determinístico: el
 // draft se reconstruye idéntico tras un reload (ids 'pz-<origId>').
 const PLAZA_SUBS={
-  'sentadilla-barra':'bulgaras',
+  'sentadilla-con-barra':'bulgaras',
   'peso-muerto':'hip-thrust','peso-muerto-mancuernas':'hip-thrust','peso-muerto-rumano':'hip-thrust',
   'press-banca-plano':'flexiones','press-banca-mancuernas':'flexiones','press-inclinado-mancuernas':'flexiones',
-  'press-inclinado-barra':'flexiones','aperturas-banco-plano':'flexiones','press-militar':'flexiones','press-mancuernas-sentado':'flexiones',
+  'press-inclinado-barra':'flexiones','aperturas-banco-plano':'flexiones','press-militar':'flexiones','press-militar-sentado-con-mancuernas':'flexiones',
   'remo-barra':'remo-australiano','remo-mancuerna':'remo-australiano','pajaros':'remo-australiano',
   'curl-barra':'dominadas','curl-mancuernas':'dominadas','curl-martillo':'dominadas',
-  'extension-triceps':'fondos','rompecraneo':'fondos','press-frances':'fondos','patada-tricep':'fondos'
+  'extension-triceps':'fondos','rompecraneo':'fondos','patada-tricep':'fondos',
+  'triceps-polea-barra':'fondos','triceps-polea-soga':'fondos','copa':'fondos',
+  'jalon-al-pecho':'dominadas','jalon-supino':'dominadas','jalon-agarre-v':'dominadas',
+  'remo-sentado-polea':'remo-australiano','remo-t':'remo-australiano','remo-con-mancuerna-unilateral-apoyado':'remo-australiano',
+  'press-pecho-maquina':'flexiones','press-banca-declinado':'flexiones','aperturas-inclinadas':'flexiones','cruce-de-poleas':'flexiones','pec-deck':'flexiones',
+  'press-arnold':'flexiones','press-hombros-maquina':'flexiones',
+  'prensa':'bulgaras','sentadilla-hack':'bulgaras','sentadilla-smith':'bulgaras','sentadilla-frontal':'bulgaras',
+  'crunch-polea':'abdominales','crunch-declinado':'abdominales'
 };
-const PLAZA_KEEP=new Set(['dominadas','flexiones','fondos','remo-australiano','bulgaras','step-up','hip-thrust','plancha','plancha-lateral','abdominales','leg-raises','gemelos-de-pie']);
+const PLAZA_KEEP=new Set(['dominadas','flexiones','fondos','remo-australiano','bulgaras','step-up','hip-thrust','plancha','plancha-lateral','abdominales','leg-raises','gemelos-de-pie','fondos-en-banco','flexiones-diamante','flexiones-declinadas','glute-bridge-activacion','espinales','rodillas-al-pecho','bici-abdominal']);
 let _plazaCache=null;
 function plazaDayOf(day){
   if(_plazaCache&&_plazaCache.id===day.id) return _plazaCache.day;
@@ -2697,7 +2728,7 @@ function streak(){
   let c=0;for(const[wk,n] of Object.entries(w).sort((a,b)=>b[0].localeCompare(a[0]))){if(wk===twk&&n<dpw) continue;if(n>=dpw)c++;else break;}return c;
 }
 function thisWeekSessions(){const now=new Date();const day=now.getDay();const start=new Date(now);start.setDate(start.getDate()-day);start.setHours(0,0,0,0);return sessions.filter(s=>new Date(s.date+"T12:00:00")>=start).length;}
-function eidOf(ex){return ex.exerciseId||ex.id;}
+function eidOf(ex){return ex.exerciseId?canonicalExId(ex.exerciseId):ex.id;}
 // Sets registrados = con RIR/RPE. Los demás son precargas que nunca se hicieron.
 function doneSets(e){return (e&&e.sets||[]).filter(st=>st.rpe!=null);}
 function lastW(eid){for(let i=sessions.length-1;i>=0;i--){const ds=doneSets(sessions[i].exercises?.find(x=>x.eid===eid));for(let j=ds.length-1;j>=0;j--){if(ds[j].w>0)return ds[j].w;}}return 0;}
@@ -6135,21 +6166,8 @@ function openExercisePicker(dayId,blockId){
   const usedIds=new Set(getDayExercises(day||{}).filter(e=>e.exerciseId).map(e=>e.exerciseId));
   window._pickerBlockId=blockId||null;
   const targetBlock=blockId&&day?(day.blocks||[]).find(b=>b.id===blockId):null;
-  const blockType=targetBlock?targetBlock.type:null;
   const lib=getExerciseLib();
-  // Ordenar: si el bloque destino es movilidad, movilidades primero; si es principal, compounds primero. Después por uso histórico, después por nombre.
-  const sorted=[...lib].sort((a,b)=>{
-    if(blockType==='movilidad'){
-      const am=a.category==='movilidad'?0:1, bm=b.category==='movilidad'?0:1;
-      if(am!==bm) return am-bm;
-    } else if(blockType==='principal'){
-      const ac=a.category==='compound'?0:1, bc=b.category==='compound'?0:1;
-      if(ac!==bc) return ac-bc;
-    }
-    const ca=sessionCountFor(a.id),cb=sessionCountFor(b.id);
-    if(ca!==cb) return cb-ca;
-    return a.name.localeCompare(b.name,'es');
-  });
+  const sorted=[...lib].sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'}));
   const items=sorted.map(ex=>{
     const muscles=Object.entries(ex.muscleActivation||{}).map(([m])=>MUSCLE_LABELS[m]||m).join(' · ');
     const count=sessionCountFor(ex.id);
@@ -6190,7 +6208,7 @@ function addExFromLib(dayId,exerciseId){
 }
 // ══ IMÁGENES DE EJERCICIOS · flipbook Everkinetic (2 poses, CC-BY-SA) ══
 // Archivos en imgs/<eid>-0.png (relajación) y <eid>-1.png (tensión).
-const EX_IMGS=new Set(['sentadilla-barra','peso-muerto','press-banca-plano','press-inclinado-mancuernas','press-militar','remo-barra','remo-mancuerna','dominadas','fondos','hip-thrust','step-up','peso-muerto-mancuernas','elevaciones-laterales','pajaros','curl-barra','curl-martillo','extension-triceps','rompecraneo','aperturas-banco-plano','plancha-lateral','bulgaras','gemelos-de-pie','peso-muerto-rumano','press-banca-mancuernas','press-inclinado-barra','press-mancuernas-sentado','flexiones','encogimientos','curl-mancuernas','press-frances','patada-tricep','elevaciones-frontales','abdominales','leg-raises']);
+const EX_IMGS=new Set(['abdominales','abductores-maquina','aductores-maquina','aperturas-banco-plano','aperturas-inclinadas','banco-lumbares','bici-abdominal','buenos-dias','bulgaras','camilla-femoral','copa','cruce-de-poleas','crunch-declinado','crunch-polea','curl-barra','curl-con-barra-w','curl-concentrado','curl-inclinado','curl-mancuernas','curl-martillo','curl-polea','curl-predicador','dominadas','elevacion-posterior-con-mancuernas','elevaciones-frontales','elevaciones-laterales','encogimientos','espinales','estocadas-con-mancuernas','extension-triceps','femoral-sentado','flexiones','flexiones-declinadas','flexiones-diamante','fondos','fondos-en-banco','gemelos-de-pie','gemelos-sentado','glute-bridge-activacion','hip-thrust','inclinacion-lateral','jalon-agarre-v','jalon-supino','leg-raises','pajaros','patada-gluteo-polea','patada-tricep','peso-muerto','peso-muerto-mancuernas','peso-muerto-rumano','plancha-lateral','prensa','press-banca-declinado','press-banca-mancuernas','press-banca-plano','press-inclinado-barra','press-inclinado-mancuernas','press-militar','press-militar-sentado-con-mancuernas','press-pecho-maquina','pullover-mancuerna','pullover-polea','remo-al-menton','remo-australiano','remo-barra','remo-con-mancuerna-unilateral-apoyado','remo-sentado-polea','remo-t','rodillas-al-pecho','rompecraneo','rueda-abdominal','sentadilla-con-barra','sentadilla-frontal','sentadilla-hack','sentadilla-pausa','sentadilla-smith','sentadilla-sumo','sillon-cuadriceps','step-up','triceps-polea-barra','triceps-polea-soga','zancada-atras','zancada-caminando']);
 function exImgThumbHTML(eid,size,clickable){
   if(!EX_IMGS.has(eid)) return '';
   const oc=clickable?` onclick="event.stopPropagation();showExImgModal('${eid}')" style="cursor:pointer;width:${size}px;height:${size}px"`:` style="width:${size}px;height:${size}px"`;
@@ -6257,7 +6275,7 @@ function renderSwapSheet(){
   if(similar.length) html+=`<div class="sw-h">PARECIDOS</div><div class="sw-list">${similar.map(e=>row(e)).join('')}</div>`;
   if(!_swapAll) html+=`<button class="sw-search" onclick="_swapAll=true;renderSwapSheet();setTimeout(()=>{const i=$('picker-search');if(i)i.focus();},50)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar en la biblioteca</button>`;
   else{
-    const all=getExerciseLib().filter(e=>e.category!=='movilidad'&&e.id!==curEid).sort((x,y)=>{const cx=sessionCountFor(x.id),cy=sessionCountFor(y.id);return cx!==cy?cy-cx:x.name.localeCompare(y.name,'es');});
+    const all=getExerciseLib().filter(e=>e.category!=='movilidad'&&e.id!==curEid).sort((x,y)=>x.name.localeCompare(y.name,'es',{sensitivity:'base'}));
     html+=`<input id="picker-search" class="input" placeholder="Buscar..." oninput="filterPicker(this.value)" style="width:100%;box-sizing:border-box;margin:12px 0 10px">${pickerZoneChipsHTML()}<div id="picker-list" class="sw-list" style="max-height:36dvh;overflow-y:auto;-webkit-overflow-scrolling:touch">${all.map(e=>row(e,' pick-item')).join('')}</div>`;
   }
   html+=`<button class="sw-go" ${_swapPick?'':'disabled'} onclick="doSwap()">CAMBIAR</button><button class="btn-out mt-8" onclick="closeModal()">Cancelar</button></div>`;
@@ -7010,20 +7028,8 @@ function openExPickerForBlock(bi,fillSlotIdx){
   _pickZone=null;
   // Si fillSlotIdx está definido, llena ese slot (top-down). Sino, pushea nuevo (bottom-up).
   const isFilling=fillSlotIdx!=null;
-  const blockType=editingDayState&&editingDayState.blocks[bi]?editingDayState.blocks[bi].type:null;
   const lib=getExerciseLib();
-  const sorted=[...lib].sort((a,b)=>{
-    if(blockType==='movilidad'){
-      const am=a.category==='movilidad'?0:1, bm=b.category==='movilidad'?0:1;
-      if(am!==bm) return am-bm;
-    } else if(blockType==='principal'){
-      const ac=a.category==='compound'?0:1, bc=b.category==='compound'?0:1;
-      if(ac!==bc) return ac-bc;
-    }
-    const ca=sessionCountFor(a.id),cb=sessionCountFor(b.id);
-    if(ca!==cb) return cb-ca;
-    return a.name.localeCompare(b.name,'es');
-  });
+  const sorted=[...lib].sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'}));
   const headerLabel=isFilling?'Elegí ejercicio para el slot':'Agregar ejercicio';
   const customAction=isFilling?`fillGroupSlotCustomBE(${bi},${fillSlotIdx})`:`addCustomExerciseToBlockBE(${bi})`;
   let html=`<div class="fw-800 mb-12" style="font-size:18px">${headerLabel}</div>`;
