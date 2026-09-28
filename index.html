@@ -1588,7 +1588,7 @@ async function manualSyncLibrary(btn){
 }
 // Ids fusionados o renombrados en la biblioteca (2026-09). Supabase ya está migrado; esto cubre
 // rutinas/historial guardados solo en cada teléfono y rutinas importadas antes de la migración.
-const EX_ID_ALIASES={'peso-muerto-convencional':'peso-muerto','press-frances':'rompecraneo','sentadilla-barra':'sentadilla-con-barra','press-mancuernas-sentado':'press-militar-sentado-con-mancuernas'};
+const EX_ID_ALIASES={'peso-muerto-convencional':'peso-muerto','press-frances':'rompecraneo','sentadilla-barra':'sentadilla-con-barra','press-mancuernas-sentado':'press-militar-sentado-con-mancuernas','isometrico-cuadriceps':'sentadilla-en-pared'};
 function canonicalExId(id){return EX_ID_ALIASES[id]||id;}
 function getExercise(id){id=canonicalExId(id);return getExerciseLib().find(e=>e.id===id);}
 function getExerciseName(id,fallback){const ex=getExercise(id);return ex?ex.name:(fallback||id||'?');}
@@ -2520,7 +2520,7 @@ function loadMbStateForGroup(gid){
 }
 
 function migrateLibV3(){
-  if(load("gym-lib-v3-done",false)) return;
+  if(load("gym-lib-v4-done",false)) return;
   const fixEx=e=>{if(e&&e.exerciseId&&EX_ID_ALIASES[e.exerciseId]) e.exerciseId=EX_ID_ALIASES[e.exerciseId];};
   const r=load("gym-r",null);
   if(r&&r.list){
@@ -2536,7 +2536,7 @@ function migrateLibV3(){
     if(dr.swaps) Object.keys(dr.swaps).forEach(k=>{dr.swaps[k]=canonicalExId(dr.swaps[k]);});
     save("gym-draft",dr);
   }
-  save("gym-lib-v3-done",true);
+  save("gym-lib-v4-done",true);
 }
 
 // ══ INIT ══
@@ -2635,8 +2635,8 @@ const PLAZA_SUBS={
   'extension-triceps':'fondos','rompecraneo':'fondos','patada-tricep':'fondos',
   'triceps-polea-barra':'fondos','triceps-polea-soga':'fondos','copa':'fondos',
   'jalon-al-pecho':'dominadas','jalon-supino':'dominadas','jalon-agarre-v':'dominadas',
-  'remo-sentado-polea':'remo-australiano','remo-t':'remo-australiano','remo-con-mancuerna-unilateral-apoyado':'remo-australiano',
-  'press-pecho-maquina':'flexiones','press-banca-declinado':'flexiones','aperturas-inclinadas':'flexiones','cruce-de-poleas':'flexiones','pec-deck':'flexiones',
+  'remo-sentado-polea':'remo-australiano','remo-con-mancuerna-unilateral-apoyado':'remo-australiano',
+  'press-pecho-maquina':'flexiones','press-banca-declinado':'flexiones','aperturas-inclinadas':'flexiones','cruce-de-poleas':'flexiones',
   'press-arnold':'flexiones','press-hombros-maquina':'flexiones',
   'prensa':'bulgaras','sentadilla-hack':'bulgaras','sentadilla-smith':'bulgaras','sentadilla-frontal':'bulgaras',
   'crunch-polea':'abdominales','crunch-declinado':'abdominales'
@@ -6208,7 +6208,7 @@ function addExFromLib(dayId,exerciseId){
 }
 // ══ IMÁGENES DE EJERCICIOS · flipbook Everkinetic (2 poses, CC-BY-SA) ══
 // Archivos en imgs/<eid>-0.png (relajación) y <eid>-1.png (tensión).
-const EX_IMGS=new Set(['abdominales','abductores-maquina','aductores-maquina','aperturas-banco-plano','aperturas-inclinadas','banco-lumbares','bici-abdominal','buenos-dias','bulgaras','camilla-femoral','copa','cruce-de-poleas','crunch-declinado','crunch-polea','curl-barra','curl-con-barra-w','curl-concentrado','curl-inclinado','curl-mancuernas','curl-martillo','curl-polea','curl-predicador','dominadas','elevacion-posterior-con-mancuernas','elevaciones-frontales','elevaciones-laterales','encogimientos','espinales','estocadas-con-mancuernas','extension-triceps','femoral-sentado','flexiones','flexiones-declinadas','flexiones-diamante','fondos','fondos-en-banco','gemelos-de-pie','gemelos-sentado','glute-bridge-activacion','hip-thrust','inclinacion-lateral','jalon-agarre-v','jalon-supino','leg-raises','pajaros','patada-gluteo-polea','patada-tricep','peso-muerto','peso-muerto-mancuernas','peso-muerto-rumano','plancha-lateral','prensa','press-banca-declinado','press-banca-mancuernas','press-banca-plano','press-inclinado-barra','press-inclinado-mancuernas','press-militar','press-militar-sentado-con-mancuernas','press-pecho-maquina','pullover-mancuerna','pullover-polea','remo-al-menton','remo-australiano','remo-barra','remo-con-mancuerna-unilateral-apoyado','remo-sentado-polea','remo-t','rodillas-al-pecho','rompecraneo','rueda-abdominal','sentadilla-con-barra','sentadilla-frontal','sentadilla-hack','sentadilla-pausa','sentadilla-smith','sentadilla-sumo','sillon-cuadriceps','step-up','triceps-polea-barra','triceps-polea-soga','zancada-atras','zancada-caminando']);
+const EX_IMGS=new Set(['abdominales','abductores-maquina','aductores-maquina','aperturas-banco-plano','aperturas-inclinadas','banco-lumbares','bici-abdominal','buenos-dias','bulgaras','copa','cruce-de-poleas','crunch-declinado','crunch-polea','curl-barra','curl-con-barra-w','curl-concentrado','curl-inclinado','curl-mancuernas','curl-martillo','curl-polea','curl-predicador','dominadas','elevacion-posterior-con-mancuernas','elevaciones-frontales','elevaciones-laterales','encogimientos','espinales','estocadas-con-mancuernas','extension-triceps','flexiones','flexiones-declinadas','flexiones-diamante','fondos','fondos-en-banco','gemelos-de-pie','gemelos-sentado','glute-bridge-activacion','hip-thrust','inclinacion-lateral','jalon-agarre-v','jalon-supino','leg-raises','pajaros','patada-gluteo-polea','patada-tricep','peso-muerto','peso-muerto-mancuernas','peso-muerto-rumano','plancha-lateral','prensa','press-banca-declinado','press-banca-mancuernas','press-banca-plano','press-inclinado-barra','press-inclinado-mancuernas','press-militar','press-militar-sentado-con-mancuernas','press-pecho-maquina','remo-al-menton','remo-australiano','remo-barra','remo-con-mancuerna-unilateral-apoyado','remo-sentado-polea','rodillas-al-pecho','rompecraneo','rueda-abdominal','sentadilla-con-barra','sentadilla-frontal','sentadilla-hack','sentadilla-pausa','sentadilla-smith','sentadilla-sumo','step-up','triceps-polea-barra','triceps-polea-soga','zancada-atras','zancada-caminando']);
 function exImgThumbHTML(eid,size,clickable){
   if(!EX_IMGS.has(eid)) return '';
   const oc=clickable?` onclick="event.stopPropagation();showExImgModal('${eid}')" style="cursor:pointer;width:${size}px;height:${size}px"`:` style="width:${size}px;height:${size}px"`;
