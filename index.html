@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Tracker">
 <meta name="theme-color" content="#0A0A0B">
 <title>Tracker</title>
@@ -704,7 +704,7 @@ body.wk-live .wk-glow{animation:wkBreathe 4s ease-in-out infinite;}
 .wk-tb{flex:none;width:58px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 0 6px;border-radius:13px;background:var(--sf);border:1.5px solid var(--bd);cursor:pointer;transition:background .2s,border-color .2s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;color:inherit;}
 .wk-tb.on{background:var(--cd-hi);border-color:var(--yw);}
 .wk-tb-tile{width:36px;height:36px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
-.wk-tb-tile img{width:32px;height:32px;object-fit:contain;filter:invert(1);mix-blend-mode:screen;opacity:.7;pointer-events:none;}
+.wk-tb-tile img{width:32px;height:32px;object-fit:contain;filter:invert(1);opacity:.7;pointer-events:none;}
 .wk-tb.on .wk-tb-tile img{opacity:.95;}
 .wk-tb.done .wk-tb-tile img{opacity:.45;}
 .wk-tb-tag{font-family:var(--fm);font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--mt2);}
@@ -714,7 +714,7 @@ body.wk-live .wk-glow{animation:wkBreathe 4s ease-in-out infinite;}
 .wk-tb.done .wk-tb-lbl{color:var(--gn);}
 /* Panel de ejercicio */
 .wk-pic{position:relative;height:112px;border-radius:18px;background:var(--sf);border:1px solid var(--bd);overflow:hidden;cursor:pointer;}
-.wk-pic img{position:absolute;inset:0;margin:auto;height:98px;max-width:88%;object-fit:contain;filter:invert(1);mix-blend-mode:screen;pointer-events:none;}
+.wk-pic img{position:absolute;inset:0;margin:auto;height:98px;max-width:88%;object-fit:contain;filter:invert(1);pointer-events:none;}
 .wk-pic .f0{opacity:.85;}.wk-pic .f1{opacity:0;}
 body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-pic .f0{animation:wkF0 3s ease-in-out infinite;}
 body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-pic .f1{animation:wkF1 3s ease-in-out infinite;}
@@ -833,7 +833,7 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-breathe{animation:wkBord
 .wk-bi.ok .wk-bi-lbl{color:var(--gn);}
 .wk-bi.edit .wk-bi-lbl{color:var(--ac);}
 .wk-thumb{position:relative;width:56px;height:56px;border-radius:11px;background:var(--bg);overflow:hidden;flex:none;display:flex;align-items:center;justify-content:center;}
-.wk-thumb img{position:absolute;inset:0;margin:auto;width:50px;height:50px;object-fit:contain;filter:invert(1);mix-blend-mode:screen;pointer-events:none;}
+.wk-thumb img{position:absolute;inset:0;margin:auto;width:50px;height:50px;object-fit:contain;filter:invert(1);pointer-events:none;}
 .wk-thumb .f0{opacity:.8;}.wk-thumb .f1{opacity:0;}
 body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f0{animation:wkF0 3s ease-in-out infinite;}
 body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1 3s ease-in-out infinite;}
@@ -2547,6 +2547,12 @@ function migrateLibV3(){
 // ══ INIT ══
 // iOS ignora user-scalable=no: sin esto, un pellizco accidental en el entreno agranda la pantalla.
 document.addEventListener('gesturestart',e=>e.preventDefault());
+// Deja en el caché del SW los dibujos de toda la rutina: en el gimnasio (mala señal) ya no dependen de la red.
+function warmRoutineImgs(){
+  const ids=new Set();
+  (routine&&routine.days||[]).forEach(d=>getDayExercises(d).forEach(ex=>{const id=eidOf(ex);if(id&&EX_IMGS.has(id)) ids.add(id);}));
+  ids.forEach(id=>[0,1].forEach(p=>{new Image().src=`imgs/${id}-${p}.png`;}));
+}
 function init(){
   migrateLibV1();
   migrateLibV2();
@@ -2558,6 +2564,7 @@ function init(){
   }
   routine=getActiveRoutine();
   if(!routine){routine=routineStore.list[0];routineStore.active=routine.id;}
+  setTimeout(warmRoutineImgs,2500);
   sessions=load("gym-s",[]);
   config=load("gym-cfg",{daysPerWeek:3});
   const n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();

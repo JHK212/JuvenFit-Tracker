@@ -1,4 +1,7 @@
-const CACHE = 'app-v148';
+const CACHE = 'app-v149';
+// Los dibujos viven en un caché propio que sobrevive a los bumps de versión (si no, cada
+// release los volvía a bajar). Si se cambia un dibujo existente, subir este número.
+const IMG_CACHE = 'jf-imgs-v2';
 
 self.addEventListener('install', e => {
   e.waitUntil(
@@ -14,7 +17,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k !== CACHE && k !== IMG_CACHE).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
@@ -23,13 +26,12 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
 
-  // Dibujos de ejercicios: cache-first. Con network-first, cada re-render del entreno
-  // esperaba a la red (lento en el gimnasio) y si fallaba devolvía un 503 que el <img>
-  // tomaba como error y se borraba: quedaba una sola imagen o ninguna.
+  // Dibujos: cache-first. Con network-first cada re-render del entreno esperaba a la red
+  // y si fallaba el 503 hacía que el <img> se borrara.
   const url = new URL(req.url);
   if (url.origin === location.origin && url.pathname.includes('/imgs/')) {
     e.respondWith(
-      caches.open(CACHE).then(c =>
+      caches.open(IMG_CACHE).then(c =>
         c.match(req, { ignoreSearch: true }).then(hit => hit || fetch(req).then(response => {
           if (response.ok) c.put(req, response.clone());
           return response;
