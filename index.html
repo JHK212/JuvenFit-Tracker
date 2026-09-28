@@ -7954,6 +7954,8 @@ if(!SYNC_WRITES){
   b.textContent='BETA · NO ENVÍA AL COACH';
   b.style.cssText='position:fixed;top:calc(2px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:9998;pointer-events:none;font-family:var(--fm);font-size:8.5px;font-weight:700;letter-spacing:1.2px;color:var(--dn);border:1px solid var(--dn);background:var(--bg);border-radius:999px;padding:2px 8px;white-space:nowrap';
   document.body.appendChild(b);
+  // Versión del cache activo: confirma en el teléfono qué build está corriendo.
+  if(window.caches) caches.keys().then(k=>{const v=k.find(n=>/^app-v\d+/.test(n));if(v) b.textContent='BETA '+v.replace('app-','')+' · NO ENVÍA AL COACH';}).catch(()=>{});
 }
 </script>
 </body>
