@@ -1008,6 +1008,37 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 .cc-tm{font-family:var(--fm);font-size:10.5px;font-weight:700;color:var(--mt);background:none;border:1px solid var(--bd-hi);border-radius:8px;padding:5px 8px;cursor:pointer;flex:none;}
 .wk-cta:disabled{cursor:default;}
 #today{padding-bottom:0;}
+/* Panel: nombre con botones fantasma, datos monocromos, tip del profe, hoja de descanso, historial */
+.wk-nrow{display:flex;align-items:flex-end;gap:2px;margin-top:12px;}
+.wk-nrow .wk-name{flex:1;min-width:0;margin-top:0;}
+.wk-gh{width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;background:none;border:none;border-radius:9px;color:var(--mt2);cursor:pointer;}
+.wk-gh:active{color:var(--mt);}
+.wk-data{cursor:default;}
+.wk-data .tap{cursor:pointer;}
+.wk-data b{color:var(--tx);}
+.wk-data i{color:var(--mt2);}
+.wk-data b.ul{text-decoration:underline dotted rgba(156,154,146,.45);text-decoration-thickness:1.5px;text-underline-offset:4px;}
+.wk-ex>.wk-cue{margin:14px 4px 0;color:var(--mt2);}
+.wk-tip{display:flex;align-items:flex-start;gap:10px;margin:12px 0 0;padding:11px 12px;border-radius:14px;background:var(--sf);border:1px solid var(--bd);cursor:pointer;}
+.wk-tip .ic{width:24px;height:24px;border-radius:50%;background:rgba(91,157,248,.15);color:var(--ac);display:flex;align-items:center;justify-content:center;flex:none;}
+.wk-tip .tx{flex:1;min-width:0;}
+.wk-tip .k{font-family:var(--fm);font-size:8.5px;font-weight:700;letter-spacing:1.4px;color:var(--mt);}
+.wk-tip .b{font-size:12.5px;color:var(--tx);line-height:1.4;margin-top:3px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap;}
+.wk-tip.open .b{display:block;}
+.wk-tip .ch{color:var(--mt2);flex:none;margin-top:5px;transition:transform .2s;}
+.wk-tip.open .ch{transform:rotate(180deg);}
+.rs-sh-t{font-family:var(--fd);font-size:19px;font-weight:800;letter-spacing:-.4px;margin-bottom:14px;}
+.rs-sh-chips{display:flex;gap:8px;}
+.rs-sh-c{flex:1;height:52px;border-radius:14px;background:var(--cd);border:1px solid var(--bd);color:var(--tx);font-family:var(--fd);font-size:17px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.rs-sh-c.on{border-color:var(--ac);color:var(--ac);background:rgba(91,157,248,.1);}
+.rs-sh-n{font-size:12px;color:var(--mt);text-align:center;margin-top:14px;line-height:1.45;}
+.ih-list{display:flex;flex-direction:column;}
+.ih-row{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--bd);}
+.ih-row .d{font-family:var(--fm);font-size:9.5px;letter-spacing:1px;color:var(--mt2);min-width:56px;}
+.ih-row .v{flex:1;font-family:var(--fm);font-size:12.5px;font-weight:700;color:var(--tx);}
+.ih-row .r{display:flex;align-items:center;gap:5px;font-family:var(--fm);font-size:10px;color:var(--mt);}
+.ih-row .r i{width:7px;height:7px;border-radius:50%;}
+.ih-all{width:100%;margin-top:16px;height:46px;border-radius:13px;border:1px solid var(--bd-hi);background:none;color:var(--ac);font-size:13px;font-weight:600;cursor:pointer;}
 /* ══ Mi Rutina (acordeón por día) ══ */
 .rt-head{gap:12px;padding:14px 18px 12px;padding-top:calc(14px + env(safe-area-inset-top));background:rgba(10,10,11,.92);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);justify-content:flex-start;}
 .rt-title{font-family:var(--fd);font-size:24px;font-weight:800;letter-spacing:-.6px;font-variation-settings:'wdth' 84;line-height:1;}
@@ -1496,7 +1527,7 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
     <div class="bsheet-handle"></div>
     <div id="bsheet-title" class="bsheet-title"></div>
     <div class="bsheet-tabs">
-      <button id="bsheet-tab-coach" class="bsheet-tab active" onclick="setExInfoTab('coach')">Tip del coach</button>
+      <button id="bsheet-tab-coach" class="bsheet-tab active" onclick="setExInfoTab('coach')">Tip del profe</button>
       <button id="bsheet-tab-hist" class="bsheet-tab" onclick="setExInfoTab('hist')">Mi historial</button>
       <button id="bsheet-tab-last" class="bsheet-tab" onclick="setExInfoTab('last')">Última sesión</button>
     </div>
@@ -4231,28 +4262,28 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   if(holding) currentSi=_workCountdown.si;
   // "Vivo" = serie esperando input: anima dibujo/borde (el CSS además lo corta durante el descanso).
   const live=currentSi>=0&&!editing&&!holding;
-  const restSec=restAsSeconds(ex.rest);
-  const restLbl=restSec<60?`${restSec}s`:(restSec%60?`${Math.floor(restSec/60)}:${String(restSec%60).padStart(2,'0')}`:`${restSec/60} min`);
+  const restSec=sessRest(ex);
+  const restLbl=restShortLbl(restSec);
   const repsTxt=String(ex.reps||'').replace(/\s*segs?\b/i,'s').replace(/-/g,'–');
   let html=`<div class="wk-ex${live?' live':''}">`;
   if(EX_IMGS.has(eid)){
     html+=`<div class="wk-pic" onclick="openExInfoSheet(${ci})" aria-label="Info del ejercicio"><img class="f0" src="imgs/${eid}-0.png" alt="" onerror="this.parentNode.style.display='none'"><img class="f1" src="imgs/${eid}-1.png" alt="" onerror="this.remove()"></div>`;
   }
   html+=`<div style="padding:0 4px">
-    <div class="wk-name">${esc(getExName(ex))}</div>
-    <div class="wk-data" onclick="openTimeEdit(${ci})">
-      <span><b>${ex.sets||sets.length} × ${esc(repsTxt)}</b><i>${mode==='time'?'SEGS':'REPS'}</i></span>
-      ${restSec?`<span><b style="color:var(--ac)">${restLbl}</b><i>DESC</i></span>`:''}
-      <span><b style="color:var(--yw-bright)">1–3</b><i>RIR</i></span>
+    <div class="wk-nrow"><div class="wk-name">${esc(getExName(ex))}</div>
+      ${curSess.plaza?'':`<button class="wk-gh" onclick="openSwapPicker(${ci})" aria-label="Cambiar ejercicio"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4 3 8M7 4l4 4M17 20V4m0 16-4-4m4 4 4-4"/></svg></button>`}
+      <button class="wk-gh" onclick="openExInfoSheet(${ci})" aria-label="Historial y tips"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></button>
+    </div>
+    <div class="wk-data">
+      <span${mode==='time'?` class="tap" onclick="openTimeEdit(${ci})"`:''}><b>${ex.sets||sets.length} × ${esc(repsTxt)}</b><i>${mode==='time'?'SEGS':'REPS'}</i></span>
+      <span class="tap" onclick="openRestSheet(${ci})"><b class="ul">${restSec?restLbl:'—'}</b><i>DESC</i></span>
+      <span><b>1–3</b><i>RIR</i></span>
     </div>`;
   if(curSess.plaza&&String(ex.id).startsWith('pz-')){
     const realDay=routine.days.find(d=>d.id===curDayId);
     const orig=realDay&&getDayExercises(realDay).find(x=>x.id===String(ex.id).slice(3));
     if(orig) html+=`<div class="wk-sub">↔ en lugar de ${esc(getExName(orig))}</div>`;
   }
-  const lib=ex.exerciseId?getExercise(ex.exerciseId):null;
-  const cue=ex.notes||(lib&&lib.cues)||'';
-  if(cue) html+=`<div class="wk-cue" onclick="this.classList.toggle('open')">${esc(cue)}</div>`;
   html+=`</div>`;
 
   const hoy=curSess.exercises[ci]?.hoy;
@@ -4290,6 +4321,9 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     html+=`<button class="wk-extra" onclick="addWorkSet(${ci})">+ SERIE EXTRA</button></div>`;
     html+=wkNextCTA(ci,compounds);
   }
+  const lib=ex.exerciseId?getExercise(ex.exerciseId):null;
+  if(lib&&lib.cues) html+=`<div class="wk-cue" onclick="this.classList.toggle('open')">${esc(lib.cues)}</div>`;
+  if(ex.notes) html+=profeTipHTML(ex.notes);
 
   if(sessNote){
     html+=`<textarea class="note-input mt-16" placeholder="Notas de hoy (opcional)..." oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${esc(sessNote)}</textarea>`;
@@ -4649,7 +4683,7 @@ function mbResetCompleted(gid){
 function renderGroupedWorkoutHTML(grp,compounds,day){
   const indexes=grp.indexes;
   const firstEx=compounds[indexes[0]];
-  const restSec=restAsSeconds(firstEx.rest);
+  const restSec=sessRest(firstEx);
   const maxSets=Math.max(...indexes.map(ci=>(curSess.exercises[ci]?.sets||[]).length));
   const setAt=(ci,r)=>curSess.exercises[ci]?.sets?.[r];
   // Un miembro con menos series que el resto no bloquea la vuelta (set inexistente = hecho).
@@ -4664,9 +4698,9 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
   const restLbl=restSec<60?`${restSec}s`:(restSec%60?`${Math.floor(restSec/60)}:${String(restSec%60).padStart(2,'0')}`:`${restSec/60} min`);
   let html=`<div class="wk-ex${live?' live':''}">
     <div class="wk-grp-h"><span class="wk-tag">${tag}</span><span class="rl${editing?' edit':''}">${editing?`EDITANDO VUELTA ${round+1}`:complete?'COMPLETA':`VUELTA ${round+1} DE ${maxSets}`}</span>${editing?`<button class="wk-exit" onclick="exitGroupedEdit()">LISTO ✕</button>`:''}</div>
-    <div class="wk-data" style="margin:0 4px 12px" onclick="openTimeEdit(${indexes[0]})">
-      ${restSec?`<span><b style="color:var(--ac)">${restLbl}</b><i>DESC POR VUELTA</i></span>`:''}
-      <span><b style="color:var(--yw-bright)">1–3</b><i>RIR</i></span>
+    <div class="wk-data" style="margin:0 4px 12px">
+      <span class="tap" onclick="openRestSheet(${indexes[0]})"><b class="ul">${restSec?restLbl:'—'}</b><i>DESC POR VUELTA</i></span>
+      <span><b>1–3</b><i>RIR</i></span>
     </div>`;
   if(!complete){
     html+=`<div class="wk-bis">`;
@@ -5165,7 +5199,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.iv-btn,.sw-row,.sw-go,.sw-seg>button,.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check,.hm-cta,.hm-day,.hm-more,.rt-dh,.rt-edit,.rt-mv,.rt-add';
+const _HAPTIC_WRAP_SEL='.iv-btn,.sw-row,.sw-go,.sw-seg>button,.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check,.hm-cta,.hm-day,.hm-more,.rt-dh,.rt-edit,.rt-mv,.rt-add,.wk-gh,.rs-sh-c,.ih-all';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
@@ -5257,7 +5291,7 @@ function maybeStartGroupRest(grp,si,compounds){
   if(!closed) return;
   const maxSets=Math.max(...grp.indexes.map(idx=>(curSess.exercises[idx]?.sets||[]).length));
   if(si>=maxSets-1) return; // última vuelta: no hay descanso después
-  startTimer(restAsSeconds(compounds[grp.indexes[0]].rest));
+  startTimer(sessRest(compounds[grp.indexes[0]]));
 }
 function removeWorkSet(ci){
   haptic();
@@ -5342,16 +5376,26 @@ function renderExInfoSheetContent(){
     if(tips){
       content+=`<div style="white-space:pre-wrap">${esc(tips)}</div>`;
     } else {
-      content+=`<div class="empty">El coach no agregó notas para este ejercicio.</div>`;
+      content+=`<div class="empty">El profe no agregó notas para este ejercicio.</div>`;
     }
   } else if(_infoSheetTab==='hist'){
-    const h=hist(eid);
-    const pr=prOf(eid,mode);
-    if(!h.length){
+    const rows=sessions.filter(x=>(x.exercises||[]).some(e=>e.eid===eid&&doneSets(e).length))
+      .sort((a,b)=>(b.date+(b.time||'')).localeCompare(a.date+(a.time||''))).slice(0,6);
+    if(!rows.length){
       content=`<div class="empty">Sin sesiones registradas todavía.</div>`;
     } else {
-      content=`<div style="margin-bottom:14px;font-size:13px">PR actual: <span style="color:var(--gn);font-weight:600">${formatPR(pr,mode)}</span> · ${h.length} sesion${h.length===1?'':'es'}</div>`;
-      content+=`<button class="btn-out" onclick="closeExInfoSheet();showHist('${eid}')" style="padding:12px 16px;font-size:13px">Ver historial completo →</button>`;
+      const today=new Date(td()+'T00:00:00');
+      content=`<div class="ih-list">${rows.map(x=>{
+        const ds=doneSets(x.exercises.find(e=>e.eid===eid));
+        const n=Math.round((today-new Date(x.date+'T00:00:00'))/864e5);
+        const ago=n<=0?'HOY':`HACE ${n}D`;
+        const w=Math.max(...ds.map(y=>y.w||0));
+        const val=mode==='weight'&&w?`${w} × ${ds.map(y=>y.r).join('·')}`:mode==='time'?ds.map(y=>y.r+'s').join('·'):ds.map(y=>y.r).join('·');
+        const rirs=ds.map(rirOfSet).filter(v=>v!=null);
+        const rv=rirs.length?Math.round(rirs.reduce((t,v)=>t+v,0)/rirs.length):null;
+        return `<div class="ih-row"><span class="d">${ago}</span><span class="v">${val}</span>${rv!=null?`<span class="r"><i style="background:${rirColorVar(rv)}"></i>RIR ${rv}</span>`:''}</div>`;
+      }).join('')}</div>`;
+      content+=`<button class="ih-all" onclick="closeExInfoSheet();showHist('${eid}')">Ver historial completo →</button>`;
     }
   } else if(_infoSheetTab==='last'){
     const prevRec=lastSessionRec(eid,mode);
@@ -5501,7 +5545,7 @@ function setRpe(si,v,ci){
   const grp=groupOfCompoundIdx(compounds,ci);
   const isEditMode=curWorkSetEdit!==null;
   if(!grp){
-    if(!timerRef&&wasNullBefore) startTimer(restAsSeconds(ex.rest));
+    if(!timerRef&&wasNullBefore) startTimer(sessRest(ex));
     // 2s con el RIR visible para corregir; tocar otro valor dentro de la ventana la reinicia.
     const holding=_workCountdown&&_workCountdown.ci===ci&&_workCountdown.si===si;
     if(!isEditMode&&(wasNullBefore||holding)){
@@ -6419,6 +6463,32 @@ function pickSwap(id){
 function doSwap(){if(_swapPick) swapExercise(_swapCi,_swapPick,isExtraDay(curDayId)?'today':_swapMode);}
 // Edita descanso/duración desde el workout y lo persiste en la rutina. En plaza o
 // grupos el ex de la vista puede ser un clon: se escribe en ambos por id.
+// Descanso de este entreno: override por sesión (hoja de descanso) o el de la rutina.
+function sessRest(ex){
+  const ov=curSess&&curSess.restOv&&curSess.restOv[ex.id];
+  return ov!=null?ov:restAsSeconds(ex.rest);
+}
+function restShortLbl(sec){return sec<60?`${sec}s`:(sec%60?`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`:`${sec/60} min`);}
+function profeTipHTML(notes){
+  return `<div class="wk-tip" onclick="this.classList.toggle('open')"><span class="ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><div class="tx"><div class="k">TIP DEL PROFE</div><div class="b">${esc(notes)}</div></div><svg class="ch" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg></div>`;
+}
+// Grupos: el descanso es del grupo y vive en el primer miembro (el que arranca el timer).
+function openRestSheet(ci){
+  const compounds=getCompounds(dayById(curDayId));
+  const grp=groupOfCompoundIdx(compounds,ci);
+  const ex=compounds[grp?grp.indexes[0]:ci];if(!ex||!curSess) return;
+  const cur=sessRest(ex);
+  const opts=[60,75,90,120];if(cur&&!opts.includes(cur)){opts.push(cur);opts.sort((a,b)=>a-b);}
+  $("modal-content").innerHTML=`<div class="rs-sh-t">Descanso · ${esc(grp?'vuelta':getExName(ex))}</div>
+    <div class="rs-sh-chips">${opts.map(v=>`<button class="rs-sh-c${v===cur?' on':''}" onclick="setSessRest('${ex.id}',${v})">${restShortLbl(v)}</button>`).join('')}</div>
+    <div class="rs-sh-n">Vale solo para esta sesión. Para cambiarlo siempre, editalo en Mi Rutina.</div>`;
+  $("modal").classList.add('show');
+}
+function setSessRest(exId,sec){
+  if(!curSess) return;
+  curSess.restOv=curSess.restOv||{};curSess.restOv[exId]=sec;
+  saveDraft();closeModal();renderWork();
+}
 function openTimeEdit(ci){
   const ex=getCompounds(dayById(curDayId))[ci];if(!ex||!curSess) return;
   const mode=getTrackMode(ex);
