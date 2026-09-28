@@ -4810,7 +4810,7 @@ function renderWork(opts){
     if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitWorkHead);
     slideWorkTo(activeK,false);
   } else {
-    $("work-tabs").innerHTML=tabsHtml;
+    patchWorkTabs(tabsHtml);
     _wkDirty.forEach(k=>{if(track.children[k]&&stops[k]) track.children[k].innerHTML=panelFor(stops[k],k);});
     const flushedActive=_wkDirty.has(activeK);
     _wkDirty.clear();
@@ -4828,6 +4828,29 @@ function renderWork(opts){
   if(curSess) saveDraft();
 }
 function workW(){const vp=$("work-vp");return (vp&&vp.clientWidth)||1;}
+// Actualiza la tira de arriba sin recrear las miniaturas: redibujarla entera al deslizar
+// volvía a decodificar cada <img> y titilaban. Las .wk-tb vienen envueltas por el haptic.
+function patchWorkTabs(html){
+  const el=$("work-tabs");if(!el) return;
+  const tpl=document.createElement('div');tpl.innerHTML=html;
+  const nw=[...tpl.children],old=[...el.children];
+  if(nw.length!==old.length){el.innerHTML=html;return;}
+  nw.forEach((n,i)=>{
+    const o=old[i];
+    const ot=o.querySelector('.wk-tb-tile'),nt=n.querySelector('.wk-tb-tile');
+    const ol=o.querySelector('.wk-tb-lbl'),nl=n.querySelector('.wk-tb-lbl');
+    if(!ot||!nt||!ol||!nl){o.replaceWith(n);return;}
+    const oi=ot.querySelector('img'),ni=nt.querySelector('img');
+    if(oi&&ni&&oi.getAttribute('src')===ni.getAttribute('src')){
+      // Misma miniatura: solo se cambia el badge que la acompaña.
+      [...ot.childNodes].forEach(c=>{if(c!==oi) c.remove();});
+      [...nt.childNodes].forEach(c=>{if(c!==ni) ot.appendChild(c);});
+    } else if(ot.innerHTML!==nt.innerHTML) ot.innerHTML=nt.innerHTML;
+    if(ol.innerHTML!==nl.innerHTML) ol.innerHTML=nl.innerHTML;
+    const cls=n.className+(o.classList.contains('haptic-switch')?' haptic-switch':'');
+    if(o.className!==cls) o.className=cls;
+  });
+}
 function fitWorkHead(){
   const h=document.querySelector('#work .work-header-new');
   if(h) document.documentElement.style.setProperty('--wk-head-h',h.offsetHeight+'px');
