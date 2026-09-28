@@ -1005,6 +1005,60 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 .cc-tm{font-family:var(--fm);font-size:10.5px;font-weight:700;color:var(--mt);background:none;border:1px solid var(--bd-hi);border-radius:8px;padding:5px 8px;cursor:pointer;flex:none;}
 .wk-cta:disabled{cursor:default;}
 #today{padding-bottom:0;}
+/* ══ Inicio (rediseño 3a) ══ */
+.hm-hero{padding:20px 0 0;}
+.hm-k{padding:0 22px;font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.8px;color:var(--yw-bright);}
+.hm-stage{display:flex;align-items:flex-end;gap:6px;padding:0 20px;margin-top:10px;}
+.hm-t{flex:1;min-width:0;font-family:var(--fd);font-weight:800;font-variation-settings:'wdth' 78;text-transform:uppercase;white-space:nowrap;background:linear-gradient(100deg,var(--tx) 40%,var(--yw-bright) 50%,var(--tx) 60%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:hmShimmer 7s linear infinite;}
+.hm-t.one{font-size:96px;letter-spacing:-5px;line-height:.85;}
+.hm-t.two{font-size:58px;letter-spacing:-2.6px;line-height:.88;}
+@keyframes hmShimmer{from{background-position:200% 0;}to{background-position:-200% 0;}}
+.hm-pic{position:relative;width:104px;height:104px;flex:none;margin-bottom:-4px;}
+.hm-pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:invert(1);pointer-events:none;}
+.hm-pic .f0{opacity:.9;animation:wkF0 3s ease-in-out infinite;}
+.hm-pic .f1{opacity:0;animation:wkF1 3s ease-in-out infinite;}
+.hm-tiles{display:flex;align-items:center;gap:6px;padding:14px 20px 0;}
+.hm-tile{width:44px;height:44px;border-radius:11px;background:var(--sf);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;flex:none;}
+.hm-tile img{width:36px;height:36px;object-fit:contain;filter:invert(1);opacity:.7;}
+.hm-tile .ini{font-family:var(--fm);font-size:10px;font-weight:800;color:var(--mt2);}
+.hm-tail{font-family:var(--fm);font-size:9.5px;color:var(--mt2);letter-spacing:.8px;padding-left:6px;white-space:nowrap;}
+.hm-cta-wrap{padding:16px 16px 0;}
+.hm-cta{position:relative;overflow:hidden;width:100%;height:62px;border-radius:16px;border:none;background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);color:var(--yw-dark);font-family:var(--fs);font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 18px 38px -14px rgba(168,88,56,.5);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;}
+.hm-cta::before{content:'';position:absolute;inset:0;background:rgba(22,11,4,.22);transform:scaleX(0);transform-origin:left;pointer-events:none;}
+.hm-cta.holding::before{transform:scaleX(1);transition:transform 1000ms linear;}
+.hm-cta>*{position:relative;z-index:1;}
+.hm-hint{height:18px;margin-top:8px;text-align:center;font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.4px;color:var(--mt);opacity:0;transition:opacity .2s;pointer-events:none;}
+.hm-hint.show{opacity:1;}
+.hm-streak{display:flex;align-items:center;gap:16px;padding:12px 26px 0;}
+.hm-sx{font-family:var(--fd);font-size:44px;font-weight:800;letter-spacing:-2px;color:var(--yw);line-height:.85;font-variation-settings:'wdth' 82;}
+.hm-sl{font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:var(--mt);}
+.hm-sb{display:flex;gap:4px;margin-top:7px;}
+.hm-sb i{flex:1;height:7px;border-radius:4px;background:var(--bd-hi);}
+.hm-sb i.on{background:var(--yw);}
+.hm-sb i.last{animation:hmPulse 2.4s ease-in-out infinite;}
+@keyframes hmPulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+.hm-heat{display:flex;gap:5px;padding:18px 26px 0;}
+.hm-hg{flex:1;display:grid;grid-template-columns:repeat(7,1fr);grid-template-rows:repeat(4,12px);gap:4px;}
+.hm-hg i{border-radius:3px;background:var(--bd);}
+.hm-hg i.on{background:var(--yw);opacity:.85;}
+.hm-hg i.fut{background:var(--sf);}
+.hm-hg i.today{background:var(--sf);border:1.5px solid var(--yw);}
+.hm-hg i.on.today{background:var(--yw);opacity:1;}
+.hm-hl{font-family:var(--fm);font-size:9px;color:var(--mt2);letter-spacing:.8px;writing-mode:vertical-rl;text-align:center;}
+.hm-days{padding:22px 22px 0;display:flex;flex-direction:column;}
+.hm-day{position:relative;overflow:hidden;display:flex;align-items:baseline;gap:12px;padding:12px 4px;border-bottom:1px solid var(--bd);cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;}
+.hm-day::before{content:'';position:absolute;inset:0;background:var(--ac);opacity:.2;transform:scaleX(0);transform-origin:left;pointer-events:none;}
+.hm-day.holding::before{transform:scaleX(1);transition:transform 1000ms linear;}
+.hm-dn{font-family:var(--fd);font-size:22px;font-weight:800;color:var(--mt2);font-variation-settings:'wdth' 82;}
+.hm-dt{flex:1;min-width:0;font-family:var(--fd);font-size:19px;font-weight:700;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hm-dm{font-family:var(--fm);font-size:9.5px;font-weight:700;letter-spacing:1.2px;color:var(--mt);white-space:nowrap;}
+.hm-extra{align-self:flex-start;background:none;border:none;cursor:pointer;padding:14px 4px 0;font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt2);}
+.hm-more{margin:20px 22px 0;width:calc(100% - 44px);display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:14px;border:1px dashed var(--bd-hi);background:none;font-family:var(--fm);font-size:10.5px;font-weight:700;letter-spacing:1.5px;color:var(--mt);cursor:pointer;}
+.hm-more svg{transition:transform .2s;}
+.hm-more.open svg{transform:rotate(180deg);}
+#home-more{padding-top:26px;}
+.hm-total{padding:0 22px 18px;font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.3px;color:var(--mt);}
+.hm-total b{color:var(--tx);}
 </style>
 </head>
 <body>
@@ -1014,7 +1068,7 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
   <div class="header reveal r1" style="padding:18px 22px 12px;padding-top:calc(18px + env(safe-area-inset-top))">
     <div class="brand">
       <div class="brand-name"><span class="brand-dot"></span>Tracker</div>
-      <div class="brand-meta">JuvenFit</div>
+      <div class="brand-meta" id="home-date"></div>
     </div>
     <div class="flex gap-8">
       <button id="install-btn" class="icon-btn" onclick="triggerInstallPrompt()" title="Instalar app" aria-label="Instalar app" style="width:38px;height:38px;border-radius:10px;display:none;color:var(--ac);border-color:var(--ac)">
@@ -1045,10 +1099,6 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
         </svg>
       </button>
     </div>
-  </div>
-  <div class="greet reveal r1">
-    <div class="greet-h" id="home-greeting"></div>
-    <div class="greet-d" id="home-date"></div>
   </div>
   <div id="home-welcome" style="display:none">
     <!-- Hero editorial Bricolage display (consistente con home) -->
@@ -1088,54 +1138,18 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
   <div id="home-main">
     <div id="home-notices"></div>
     <div id="draft-banner" style="display:none;padding:14px 20px 0"></div>
-
-    <!-- HERO: bloque naranja con número ghost detrás -->
-    <div class="hero-wrap reveal r2">
-      <div id="home-suggested" class="hero"></div>
-    </div>
-
-    <!-- SEC 02: Esta semana / Stats asimétrico -->
-    <div class="sec-h reveal r3">
-      <span class="sec-h-idx">02</span>
-      <span class="sec-h-title">Esta semana</span>
-      <span class="sec-h-rule"></span>
-    </div>
-    <div class="stats reveal r3">
-      <div class="stat-card">
-        <div class="stat-row">
-          <div id="home-streak" class="stat-num yw">0</div>
-          <div class="stat-info">
-            <div class="stat-lbl">Racha · semanas</div>
-            <div class="stat-det" id="home-streak-detail"></div>
-            <div id="home-streak-bars" style="margin-top:10px"></div>
-          </div>
-        </div>
+    <div id="home-hero" class="hm-hero reveal r2"></div>
+    <div id="home-streak" class="hm-streak reveal r3"></div>
+    <div id="home-heat" class="hm-heat reveal r3"></div>
+    <div id="home-others" class="hm-days reveal r4"></div>
+    <button id="home-more-btn" class="hm-more reveal r4" onclick="toggleHomeMore()"></button>
+    <div id="home-more" style="display:none">
+      <div class="sec-h">
+        <span class="sec-h-idx">01</span>
+        <span class="sec-h-title">Mes</span>
+        <span class="sec-h-rule"></span>
       </div>
-      <div class="stat-card stat-mini">
-        <div class="stat-lbl">Total</div>
-        <div id="home-sessions" class="stat-num-sm tx">0</div>
-        <div class="stat-mini-foot" id="home-sessions-detail"></div>
-      </div>
-    </div>
-
-    <!-- SEC 03: Próximos días -->
-    <div class="sec-h reveal r4">
-      <span class="sec-h-idx">03</span>
-      <span class="sec-h-title">Próximos días</span>
-      <span class="sec-h-rule"></span>
-    </div>
-    <div id="home-others" class="days reveal r4"></div>
-    <div style="padding:0 22px 26px">
-      <button class="btn-out" onclick="showPastWorkout()" style="font-size:13.5px;padding:13px 18px">📅 Registrar entreno anterior</button>
-    </div>
-
-    <!-- SEC 04: Mes / Calendario -->
-    <div class="sec-h reveal r5">
-      <span class="sec-h-idx">04</span>
-      <span class="sec-h-title">Mes</span>
-      <span class="sec-h-rule"></span>
-    </div>
-    <div class="cal-wrap reveal r5">
+    <div class="cal-wrap">
       <div class="cal-card">
         <div class="cal-card-h">
           <div style="display:flex;align-items:center;gap:8px">
@@ -1149,10 +1163,9 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
       </div>
     </div>
 
-    <!-- SEC 05: Última sesión -->
-    <div id="home-last-sec" class="reveal r6" style="display:none">
+    <div id="home-last-sec" style="display:none">
       <div class="sec-h">
-        <span class="sec-h-idx">05</span>
+        <span class="sec-h-idx">02</span>
         <span class="sec-h-title">Última sesión</span>
         <span class="sec-h-rule"></span>
       </div>
@@ -1161,7 +1174,11 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
       </div>
     </div>
 
-    <!-- Historial por ejercicio + Volumen muscular movidos a "Mi progreso" -->
+      <div id="home-total" class="hm-total"></div>
+      <div style="padding:0 22px 26px">
+        <button class="btn-out" onclick="showPastWorkout()" style="font-size:13.5px;padding:13px 18px">📅 Registrar entreno anterior</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2689,7 +2706,7 @@ let _heroHintT=null;
 function dayTap(btn){
   if(btn._holdFired){btn._holdFired=false;return;}
   const hint=$("hero-hint");
-  if(hint&&btn.classList.contains('hero-cta')){
+  if(hint&&btn.classList.contains('hm-cta')){
     hint.classList.add('show');clearTimeout(_heroHintT);
     _heroHintT=setTimeout(()=>hint.classList.remove('show'),1600);
   } else toast('Mantené para empezar','info');
@@ -3099,21 +3116,43 @@ function cancelHoldCTA(btn){
 }
 
 // ══ HOME · Sport v3 editorial ══
+// "Día 1 - Foco Piernas" → "Foco Piernas": el número de día ya va en el kicker.
+function homeDayTitle(name){
+  const n=String(name||'').trim();
+  return n.replace(/^d[ií]a\s*\d+\s*[-–—:·.]?\s*/i,'').trim()||n;
+}
+// Una palabra → una línea grande; varias → dos líneas con largo parejo.
+function homeTitleLines(t){
+  const w=t.split(/\s+/).filter(Boolean);
+  if(w.length<2) return [t];
+  let best=1,bestMax=Infinity;
+  for(let i=1;i<w.length;i++){
+    const m=Math.max(w.slice(0,i).join(' ').length,w.slice(i).join(' ').length);
+    if(m<bestMax){bestMax=m;best=i;}
+  }
+  return [w.slice(0,best).join(' '),w.slice(best).join(' ')];
+}
+// Achica el título si no entra al lado del dibujo (nombres largos o de una palabra).
+function fitHomeTitle(){
+  const el=document.querySelector('#home-hero .hm-t');if(!el) return;
+  el.style.fontSize='';
+  let fs=parseFloat(getComputedStyle(el).fontSize);
+  while(el.scrollWidth>el.clientWidth+1&&fs>34){fs-=3;el.style.fontSize=fs+'px';}
+}
+function toggleHomeMore(){save("gym-home-more",!load("gym-home-more",false));renderHome();}
 function renderHome(){
   const totalExercises=routine.days.reduce((s,d)=>s+getDayExercises(d).length,0);
   if(totalExercises===0){$("home-welcome").style.display="block";$("home-main").style.display="none";return;}
   $("home-welcome").style.display="none";$("home-main").style.display="block";
 
-  // Header: vol + greeting + fecha mono
-  $("home-greeting").innerHTML=`<b>${homeGreet()}</b>.`;
   const _dn=nowBsAs();
   const _diaShort=['DOM','LUN','MAR','MIE','JUE','VIE','SAB'][_dn.getUTCDay()];
-  $("home-date").textContent=`${_diaShort} · ${_dn.getUTCDate()}.${String(_dn.getUTCMonth()+1).padStart(2,'0')}.${String(_dn.getUTCFullYear()).slice(-2)}`;
+  $("home-date").textContent=`${_diaShort} · ${String(_dn.getUTCDate()).padStart(2,'0')}.${String(_dn.getUTCMonth()+1).padStart(2,'0')}`;
 
   renderHomeNotices();
   // Entreno en curso (3e): reemplaza al bloque del día mientras haya un borrador
   const draft=load("gym-draft",null);
-  const db=$("draft-banner"),heroWrap=document.querySelector('#home-main .hero-wrap');
+  const db=$("draft-banner"),heroWrap=$("home-hero");
   if(draft&&dayById(draft.dayId)){
     const ds=draftSummary(draft);
     db.style.display="block";
@@ -3132,92 +3171,89 @@ function renderHome(){
     }
   } else {db.style.display="none";db.innerHTML="";if(heroWrap) heroWrap.style.display='';}
 
-  // HERO — bloque naranja con ghost number, REF, D x/y
+  // HERO — kicker + título del día con estela + dibujo del primer ejercicio + tiles
   const sg=sugDay();
   const sgD=routine.days.find(d=>d.id===sg);
-  const meta=homeDayMeta(sgD);
   const sgIdx=routine.days.findIndex(d=>d.id===sg);
-  const sgNum=String(sgIdx+1).padStart(2,'0');
   const totalDays=routine.days.length;
-  const refSlug=slugRef(sgD.name);
-  $("home-suggested").innerHTML=`
-    <div class="hero-top">
-      <span><span class="tag-rule"></span>REF · ${refSlug}-${sgNum}</span>
-      <span>D${sgIdx+1}/${totalDays}<span class="tag-rule"></span></span>
+  const comps=getCompounds(sgD),accs=getAccessories(sgD);
+  const heroEx=comps.find(e=>EX_IMGS.has(eidOf(e)))||null;
+  const rest=comps.filter(e=>e!==heroEx),shown=rest.slice(0,5);
+  const tail=[rest.length>shown.length?`+${rest.length-shown.length}`:'',accs.length?'+ ACC':''].filter(Boolean).join(' · ');
+  const tl=homeTitleLines(homeDayTitle(sgD.name));
+  const heroEid=heroEx&&eidOf(heroEx);
+  $("home-hero").innerHTML=`
+    <div class="hm-k">HOY · DÍA ${sgIdx+1} DE ${totalDays} · ${comps.length+accs.length} EJERCICIO${comps.length+accs.length===1?'':'S'}</div>
+    <div class="hm-stage">
+      <div class="hm-t ${tl.length>1?'two':'one'}">${tl.map(esc).join('<br>')}</div>
+      ${heroEid?`<div class="hm-pic"><img class="f0" src="imgs/${heroEid}-0.png" alt="" onerror="this.parentNode.remove()"><img class="f1" src="imgs/${heroEid}-1.png" alt="" onerror="this.remove()"></div>`:''}
     </div>
-    <div class="hero-stage">
-      <div class="hero-ghost">${sgNum}</div>
-      <div class="hero-name">${sgD.name}</div>
-    </div>
-    ${sgD.sub?`<div class="hero-sub">${sgD.sub}</div>`:''}
-    <div class="hero-meta">
-      <span><b>${meta.ex}</b>ej</span>
-      ${meta.blocks>1?`<span><b>${meta.blocks}</b>bloques</span>`:''}
-      <span><b>${meta.sets}</b>sets</span>
-    </div>
-    <button class="hero-cta" data-day="${sg}"
+    ${shown.length||tail?`<div class="hm-tiles">${shown.map(e=>{const id=eidOf(e);return `<span class="hm-tile">${EX_IMGS.has(id)?`<img src="imgs/${id}-0.png" alt="" onerror="this.remove()">`:`<span class="ini">${exInitials(e)}</span>`}</span>`;}).join('')}${tail?`<span class="hm-tail">${tail}</span>`:''}</div>`:''}
+    <div class="hm-cta-wrap">
+      <button class="hm-cta" data-day="${sg}"
+        onclick="dayTap(this)"
+        onpointerdown="startHoldCTA(this,event)"
+        onpointerup="cancelHoldCTA(this)"
+        onpointerleave="cancelHoldCTA(this)"
+        onpointercancel="cancelHoldCTA(this)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>
+        <span>EMPEZAR ENTRENO</span>
+      </button>
+      <div class="hm-hint" id="hero-hint">MANTENÉ PARA EMPEZAR</div>
+    </div>`;
+  fitHomeTitle();
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitHomeTitle);
+
+  // RACHA — semanas seguidas + barras de esta semana
+  const st=streak();
+  const tw=thisWeekSessions();
+  const dpw=config.daysPerWeek||3;
+  const nOn=Math.min(tw,dpw);
+  $("home-streak").innerHTML=`
+    <span class="hm-sx">×${st}</span>
+    <div style="flex:1"><div class="hm-sl">RACHA · ${tw} / ${dpw} ESTA SEMANA</div>
+      <div class="hm-sb">${Array.from({length:dpw},(_,i)=>`<i class="${i<nOn?'on':''}${i===nOn-1?' last':''}"></i>`).join('')}</div>
+    </div>`;
+
+  // CALOR — últimas 4 semanas (filas) × L→D (columnas), la semana actual abajo
+  const trainedSet=new Set(sessions.map(s=>s.date));
+  const todayDs=td(),hdow=_dn.getUTCDay();
+  const monday=new Date(_dn.getTime()+(hdow===0?-6:1-hdow)*864e5);
+  const start=monday.getTime()-21*864e5;
+  let cells='';
+  for(let i=0;i<28;i++){
+    const ds=new Date(start+i*864e5).toISOString().slice(0,10);
+    const cls=[trainedSet.has(ds)?'on':'',ds===todayDs?'today':'',ds>todayDs?'fut':''].filter(Boolean).join(' ');
+    cells+=`<i${cls?` class="${cls}"`:''}></i>`;
+  }
+  $("home-heat").innerHTML=`<div class="hm-hg">${cells}</div><div class="hm-hl">4 SEMANAS</div>`;
+
+  // PRÓXIMOS DÍAS — filas simples, mantener 1 s para empezar
+  const others=routine.days.filter(d=>d.id!==sg);
+  $("home-others").innerHTML=others.map(d=>{
+    const idx=routine.days.findIndex(x=>x.id===d.id);
+    const lastS=sessions.filter(s=>s.dayId===d.id).map(s=>s.date).sort().pop();
+    return `<div class="hm-day" data-day="${d.id}"
       onclick="dayTap(this)"
       onpointerdown="startHoldCTA(this,event)"
       onpointerup="cancelHoldCTA(this)"
       onpointerleave="cancelHoldCTA(this)"
       onpointercancel="cancelHoldCTA(this)">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20"/></svg>
-      <span class="hero-cta-label">EMPEZAR ENTRENO</span>
-      <span class="hero-cta-hint">MANTENÉ</span>
-    </button>
-    <div class="hero-hint" id="hero-hint">MANTENÉ PARA EMPEZAR</div>
-  `;
-
-  // STATS asimétrico — Racha (1.7fr con bars) + Sesiones (1fr mini)
-  const st=streak();
-  const tw=thisWeekSessions();
-  const dpw=config.daysPerWeek||3;
-  $("home-streak").textContent=st;
-  $("home-sessions").textContent=sessions.length;
-  $("home-streak-detail").innerHTML=`<span class="lbl">${tw}/${dpw}</span> esta semana${tw>=dpw?' <span class="gn">✓</span>':''}`;
-
-  const week=homeLast7Trained();
-  const dowLabels=['L','M','M','J','V','S','D'];
-  $("home-streak-bars").innerHTML=`
-    <div class="stat-bars">
-      ${week.map(d=>`<div class="${d.trained?'on':(d.isToday?'today':'')}"></div>`).join('')}
-    </div>
-    <div class="stat-bars-row">
-      ${week.map((d,i)=>`<div class="stat-bars-d ${d.isToday?'today':''}">${dowLabels[i]}</div>`).join('')}
+      <span class="hm-dn">${String(idx+1).padStart(2,'0')}</span>
+      <span class="hm-dt">${esc(homeDayTitle(d.name))}</span>
+      ${lastS?`<span class="hm-dm">${relativeDate(lastS).toUpperCase()}</span>`:''}
     </div>`;
+  }).join('')+`<button class="hm-extra" onclick="showExtraDayPicker()">+ día extra</button>`;
 
-  // Sesiones detail
-  const sevenAgo=new Date(nowBsAs().getTime()-7*24*3600*1000).toISOString().slice(0,10);
+  // VER MÁS — mes, última sesión, total (colapsado por defecto)
+  const moreOpen=load("gym-home-more",false);
+  $("home-more").style.display=moreOpen?'block':'none';
+  const mb=$("home-more-btn");
+  mb.classList.toggle('open',moreOpen);
+  mb.innerHTML=`${moreOpen?'VER MENOS':'VER MÁS · ÚLTIMA SESIÓN · MES'}<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>`;
+  const sevenAgo=new Date(_dn.getTime()-7*864e5).toISOString().slice(0,10);
   const sessLast7=sessions.filter(s=>s.date>sevenAgo).length;
-  $("home-sessions-detail").innerHTML=sessLast7>0
-    ?`<b>+${sessLast7}</b> en 7d`
-    :`— en 7d`;
-
-  // OTROS DÍAS — lista con número grande
-  const others=routine.days.filter(d=>d.id!==sg);
-  if(others.length===0){
-    $("home-others").innerHTML='<div class="day-card" style="cursor:default;justify-content:center"><div class="day-info" style="text-align:center;color:var(--mt2);font-size:13px">No hay otros días configurados.</div></div>';
-  } else {
-    $("home-others").innerHTML=others.map(d=>{
-      const idx=routine.days.findIndex(x=>x.id===d.id);
-      const num=String(idx+1).padStart(2,'0');
-      return `
-        <div class="day-card" data-day="${d.id}"
-          onclick="dayTap(this)"
-          onpointerdown="startHoldCTA(this,event)"
-          onpointerup="cancelHoldCTA(this)"
-          onpointerleave="cancelHoldCTA(this)"
-          onpointercancel="cancelHoldCTA(this)">
-          <div class="day-num">${num}</div>
-          <div class="day-info">
-            <div class="day-name">${d.name}</div>
-            ${d.sub?`<div class="day-preview">${d.sub}</div>`:''}
-          </div>
-          <svg class="day-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </div>`;
-    }).join('');
-  }
-  $("home-others").innerHTML+=`<button onclick="showExtraDayPicker()" style="width:100%;background:none;border:none;cursor:pointer;padding:12px 4px 2px;text-align:center;font-family:var(--fm);font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--mt2)">+ día extra</button>`;
+  $("home-total").innerHTML=`<b>${sessions.length}</b> SESIONES EN TOTAL${sessLast7?` · <b>+${sessLast7}</b> EN 7 DÍAS`:''}`;
 
   // CALENDAR — mes/año + streak badge en header
   const meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -5073,7 +5109,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.iv-btn,.sw-row,.sw-go,.sw-seg>button,.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check';
+const _HAPTIC_WRAP_SEL='.iv-btn,.sw-row,.sw-go,.sw-seg>button,.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check,.hm-cta,.hm-day,.hm-more';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
