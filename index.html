@@ -80,8 +80,8 @@ body::before{
   opacity:0.04;mix-blend-mode:overlay;
 }
 body > *{position:relative;z-index:1;}
-/* Tapa la franja de la barra de estado: el header sticky no la cubre al scrollear (iOS muestra el contenido por encima). Safari 26 además tiñe esa franja con el fondo de elementos fixed pegados arriba, no sticky. */
-body::after{content:'';position:fixed;top:0;left:0;right:0;height:max(1px,env(safe-area-inset-top));background:var(--bg);z-index:50;pointer-events:none;}
+/* Safari (iOS 26) muestra el contenido scrolleado detrás de la hora/batería y tiñe esa franja con el fondo de un elemento FIXED pegado arriba (ignora sticky y theme-color). Esta tapa cae sobre el padding superior de los headers, así que no se ve. */
+body::after{content:'';position:fixed;top:0;left:0;right:0;height:calc(12px + env(safe-area-inset-top));background:var(--bg);z-index:50;pointer-events:none;}
 /* Sin zoom por doble toque: los botones envueltos por el haptic son <label> y no heredan el touch-action de button. */
 html{touch-action:manipulation;}
 /* Entrance stagger */
@@ -698,7 +698,8 @@ label.haptic-switch.rpe-btn-min{
 /* Resplandor que late detrás del panel activo · solo con serie en curso (body.wk-live, sin descanso) */
 .wk-glow{position:absolute;left:0;right:0;top:70px;height:460px;background:radial-gradient(ellipse 90% 55% at 50% 45%,rgba(215,121,62,.34),transparent 70%);pointer-events:none;opacity:0;transition:opacity .6s ease;z-index:0;}
 body.wk-live .wk-glow{animation:wkBreathe 4s ease-in-out infinite;}
-@keyframes wkBreathe{0%,100%{opacity:.3;transform:scale(1);}50%{opacity:.65;transform:scale(1.1);}}
+/* Solo opacidad: con scale(1.1) el glow (ancho completo) desbordaba la pantalla y Safari reajustaba el zoom cada 4s. */
+@keyframes wkBreathe{0%,100%{opacity:.3;}50%{opacity:.65;}}
 /* Tira de ejercicios */
 .wk-tb{flex:none;width:58px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:7px 0 6px;border-radius:13px;background:var(--sf);border:1.5px solid var(--bd);cursor:pointer;transition:background .2s,border-color .2s;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;color:inherit;}
 .wk-tb.on{background:var(--cd-hi);border-color:var(--yw);}
@@ -4377,6 +4378,8 @@ function renderToday(){
   const thumb=st=>st.eid&&EX_IMGS.has(st.eid)
     ?`<img src="imgs/${st.eid}-0.png" alt="" onerror="this.remove()">`
     :`<span class="ini"${st.tagColor?` style="color:${st.tagColor}"`:''}>${st.tag||exInitials(st.ex||{name:st.name})}</span>`;
+  // Al entrar al entreno se piden todas las imágenes juntas; con la 2da pose ya en caché la animación arranca completa.
+  stops.forEach(st=>{if(st.eid&&EX_IMGS.has(st.eid)) new Image().src=`imgs/${st.eid}-1.png`;});
   const pick=_tdPick!=null?stops[_tdPick]:null;
   const cta=pick?`ARRANCAR CON ${pick.name.toUpperCase()}`:_tdPlaza?'ARRANCAR EN LA PLAZA':'ARRANCAR';
   $("today").innerHTML=`<div class="td">
