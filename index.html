@@ -864,6 +864,10 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 .wk-mv{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;border-radius:16px;text-align:left;background:var(--cd);border:1.5px solid var(--bd);width:100%;color:inherit;cursor:pointer;transition:background .2s,border-color .2s;}
 .wk-mv .wk-thumb{width:50px;height:50px;border:1px solid var(--bd);}
 .wk-mv .wk-thumb img{width:44px;height:44px;opacity:.9;}
+.wk-mv .wk-thumb .f1{opacity:0;}
+/* Movilidad: los pendientes del panel activo alternan las dos poses, como el dibujo grande. */
+.wk-panel.on .wk-mv:not(.ok) .wk-thumb .f0{animation:wkF0 3s ease-in-out infinite;}
+.wk-panel.on .wk-mv:not(.ok) .wk-thumb .f1{animation:wkF1 3s ease-in-out infinite;}
 .wk-mv.ok .wk-thumb img{opacity:.45;}
 .wk-mv .nm{font-family:var(--fd);font-size:17px;font-weight:700;}
 .wk-mv .ds{font-family:var(--fm);font-size:11px;color:var(--mt);margin-top:3px;}
@@ -4842,7 +4846,7 @@ function renderWork(opts){
         const done=!!(curSess.mobility&&curSess.mobility[m.id]);
         const eid=eidOf(m),restSec=restAsSeconds(m.rest);
         const dose=[m.sets&&m.sets>1?`${m.sets} ×`:'',m.reps||'',m.rest?`· ${fmtTime(restSec)} desc`:''].filter(Boolean).join(' ');
-        const thumb=EX_IMGS.has(eid)?`<img src="imgs/${eid}-0.png" alt="" onerror="this.remove()">`:`<span class="ini">${exInitials(m)}</span>`;
+        const thumb=EX_IMGS.has(eid)?`<img class="f0" src="imgs/${eid}-0.png" alt="" onerror="this.remove()"><img class="f1" src="imgs/${eid}-1.png" alt="" onerror="this.remove()">`:`<span class="ini">${exInitials(m)}</span>`;
         return `<button class="wk-mv${done?' ok':''}" onclick="toggleMobility('${m.id}',${restSec})" style="${done?`background:${movColor}12;border-color:${movColor}5A`:''}">
           <div class="wk-thumb">${thumb}</div>
           <div style="flex:1;min-width:0"><div class="nm">${esc(getExName(m))}</div>${dose?`<div class="ds">${esc(dose)}</div>`:''}</div>
@@ -4862,7 +4866,7 @@ function renderWork(opts){
       html+=`<div class="wk-h1s" style="margin-top:6px">Hacelos de corrido. Tocá cada uno al terminarlo.</div><div class="wk-mvs">`;
       round.items.forEach(ex=>{
         const done=isCoreRoundExDone(ex.id,ri),eid=eidOf(ex),dur=parseCoreDuration(ex.reps);
-        const thumb=EX_IMGS.has(eid)?`<img src="imgs/${eid}-0.png" alt="" onerror="this.remove()">`:`<span class="ini">${exInitials(ex)}</span>`;
+        const thumb=EX_IMGS.has(eid)?`<img class="f0" src="imgs/${eid}-0.png" alt="" onerror="this.remove()"><img class="f1" src="imgs/${eid}-1.png" alt="" onerror="this.remove()">`:`<span class="ini">${exInitials(ex)}</span>`;
         html+=`<div class="wk-mv${done?' ok':''}" onclick="toggleCoreRoundEx('${ex.id}',${ri})" style="${done?`background:${movColor}12;border-color:${movColor}5A`:''}">
           <div class="wk-thumb">${thumb}</div>
           <div style="flex:1;min-width:0"><div class="nm">${esc(getExName(ex))}</div>${ex.reps?`<div class="ds">${esc(ex.reps)}</div>`:''}</div>
