@@ -1,4 +1,4 @@
-const CACHE = 'app-v160';
+const CACHE = 'app-v161';
 // Los dibujos viven en un caché propio que sobrevive a los bumps de versión (si no, cada
 // release los volvía a bajar). Si se cambia un dibujo existente, subir este número.
 const IMG_CACHE = 'jf-imgs-v2';

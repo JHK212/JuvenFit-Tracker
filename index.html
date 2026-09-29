@@ -140,6 +140,7 @@ html.in-work,html.in-work body{overscroll-behavior-y:none;}
 .tips-box{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-top:8px;font-size:13px;color:var(--tx);line-height:1.5;box-shadow:var(--lift-in);}
 .tips-btn{background:none;border:none;color:var(--ac);font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;padding:0;}
 .qchip{display:inline-block;padding:4px 10px;background:var(--sf);border:1px solid var(--bd);border-radius:14px;font-size:12px;font-weight:600;color:var(--mt);cursor:pointer;font-family:var(--fm);}
+.qchip.on{background:rgba(91,157,248,.14);border-color:var(--ac);color:var(--ac);}
 .qchip:hover,.qchip:active{border-color:var(--ac);color:var(--ac);}
 .qchip-row{display:flex;flex-wrap:wrap;gap:5px;}
 /* ── Block editor (A3) ── */
@@ -4061,7 +4062,7 @@ function renderRoutine(){
     }
     const inGrp=gi&&gi.groupId;
     const restSec=restAsSeconds(ex.rest);
-    const detail=mob?[/^\d+$/.test(String(ex.reps||'').trim())?ex.reps+' reps':ex.reps,ex.objective].filter(Boolean).join(' · '):[ex.rest?`${fmtTime(restSec)} desc`:'',ex.objective].filter(Boolean).join(' · ');
+    const detail=mob?[/^\d+$/.test(String(ex.reps||'').trim())?ex.reps+' reps':ex.reps,ex.objective].filter(Boolean).join(' · '):[ex.rest?`${fmtTime(restSec)} desc`:'',ex.objective,dropCfg(ex)?`↓${ex.dropset.drops} drop`:''].filter(Boolean).join(' · ');
     const badge=inGrp?`<span class="rt-bi">${gi.groupSize===3?'TRI':gi.groupSize===2?'BI':'CIR'} ${grpLetter}${gi.groupIndex+1}</span>`:'';
     const big=mob?`<b>${ex.sets||1}</b><small>RONDA${(parseInt(ex.sets)||1)===1?'':'S'}</small>`:`<b>${esc(formatSetsReps(ex))}</b><small>S × REPS</small>`;
     return `<div class="rt-ex${inGrp?' grp':''}">${pic(ex,'t')}<div class="rt-en"><div class="rt-enm">${esc(getExName(ex))}${badge}</div>${detail?`<div class="rt-ed">${esc(detail)}</div>`:''}${ex.notes?`<div class="rt-no">${esc(ex.notes)}</div>`:''}</div><div class="rt-er">${big}</div></div>`;
@@ -7046,6 +7047,7 @@ function renderBexRowHTML(ex,bi,ei,gi){
     else if(ex.reps) metaParts.push(ex.reps);
   }
   if(ex.rest) metaParts.push(`${ex.rest} desc`);
+  if(ex.dropset) metaParts.push(`drop ×${ex.dropset.drops}`);
   const meta=metaParts.join(' · ');
   const exs=editingDayState.blocks[bi].exercises;
   const s=v=>(v!=null&&v!==undefined)?esc(v):'';
@@ -7091,6 +7093,13 @@ function renderBexRowHTML(ex,bi,ei,gi){
           </div>
         </div>
       </div>
+      ${inGroup?'':`<div class="xfl" style="align-items:flex-start">
+        <span class="xfl-lbl" style="padding-top:4px">Dropset</span>
+        <div style="flex:1">
+          <div class="qchip-row" style="margin-top:0">${[0,1,2,3].map(n=>`<span class="qchip${(ex.dropset?ex.dropset.drops:0)===n?' on':''}" onclick="setDropsetBE(${bi},${ei},${n})">${n===0?'No':n===1?'1 bajada':n+' bajadas'}</span>`).join('')}</div>
+          ${ex.dropset?`<div class="text-xs text-mt" style="margin-top:6px">En la última serie · −${ex.dropset.pct||20}% por bajada, sin descanso. Solo en este teléfono: si el coach actualiza la rutina, se pisa.</div>`:''}
+        </div>
+      </div>`}
       <div class="xfl">
         <span class="xfl-lbl">Objetivo</span>
         <input type="text" class="xfl-inp" value="${s(ex.objective)}" placeholder="hipertrofia, fuerza..." oninput="upExBE(${bi},${ei},'objective',this.value)">
@@ -7202,6 +7211,11 @@ function toggleExExpand(bi,ei){
   renderDayBlocksContainer();
 }
 
+function setDropsetBE(bi,ei,n){
+  const ex=editingDayState.blocks[bi].exercises[ei];
+  if(n>0) ex.dropset={drops:n,pct:20}; else delete ex.dropset;
+  renderDayBlocksContainer();
+}
 function upExBE(bi,ei,field,val){
   const ex=editingDayState.blocks[bi].exercises[ei];
   ex[field]=field==='sets'?(parseInt(val)||null):val;
