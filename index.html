@@ -5234,6 +5234,8 @@ function applyHapticWrapping(root){
   const els=root.querySelectorAll(_HAPTIC_WRAP_SEL);
   els.forEach(el=>{
     if(el.dataset.hWrapped==='1') return;
+    // Con un <input type=file> adentro, el switch agregado se llevaría el tap y el selector no abre.
+    if(el.querySelector('input[type="file"]')) return;
     // Si ya es label, solo asegurar input switch dentro (no replace)
     if(el.tagName==='LABEL'){
       let input=el.querySelector('input[type="checkbox"][switch]');
