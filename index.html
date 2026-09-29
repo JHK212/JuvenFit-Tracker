@@ -4733,6 +4733,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
           <span class="wk-bi-lbl">A${gi+1}</span>
           <div class="wk-thumb" onpointerdown="wkLpDown(event,${ci})" onpointermove="wkTbMove(event)" onpointerup="wkTbUp()" onpointercancel="wkTbUp()" onpointerleave="wkTbUp()">${thumb}</div>
           <div style="flex:1;min-width:0"><div class="wk-bi-name">${esc(getExName(ex))}</div><div class="wk-bi-meta">${esc(repsTxt)}${mode==='time'?'':' reps'}</div></div>
+          ${curSess.plaza?'':`<button class="wk-gh" onclick="openSwapPicker(${ci})" aria-label="Cambiar ejercicio"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4 3 8M7 4l4 4M17 20V4m0 16-4-4m4 4 4-4"/></svg></button>`}
           ${done?`<button class="wk-bi-done" onclick="editGroupedRound(${round})">${setShort(x,mode)}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--gn)" stroke-width="2.4" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`:''}
         </div>`;
       if(!done){
