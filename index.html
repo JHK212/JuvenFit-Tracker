@@ -5926,6 +5926,8 @@ function finishDraft(direct){
 }
 function resumeDraft(){
   const d=load("gym-draft",null);if(!d)return;
+  // El día del borrador ya no existe (la rutina cambió): no se puede armar el entreno.
+  if(!dayById(d.dayId)){toast('Ese entreno era de un día que ya no está en tu rutina','warning');return;}
   curSess=d;curDayId=d.dayId;
   // Si la sesión tiene movilidad y aún quedan ejercicios sin marcar, arrancar en MOV.
   // Los ej. de circuito core tienen claves compuestas 'exId:rN' (no se chequean con bare m.id).
