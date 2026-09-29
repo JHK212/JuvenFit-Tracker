@@ -1718,7 +1718,7 @@ function findExerciseByName(name){
 }
 function sessionCountFor(eid){let n=0;for(const s of (sessions||[])){if(s.exercises&&s.exercises.some(e=>e.eid===eid)) n++;}return n;}
 function getActiveRoutine(){return routineStore&&routineStore.list&&(routineStore.list.find(r=>r.id===routineStore.active)||routineStore.list[0]);}
-function saveRoutine(){save("gym-r",routineStore);}
+function saveRoutine(){save("gym-r",routineStore);scheduleRoutinePush();}
 
 // ══ MUSCLE VOLUME ══
 const MUSCLE_COLORS={pecho:'#dc2626',dorsal:'#2563eb',trapecio:'#7c3aed',lumbar:'#92400e',biceps:'#ea580c',triceps:'#e11d48',antebrazo:'#ca8a04',delt_ant:'#db2777',delt_lat:'#0891b2',delt_post:'#0d9488',cuadriceps:'#3b82f6',isquios:'#16a34a',gluteo:'#9333ea',gemelos:'#84a829',aductor:'#a855f7',core:'#A1A1AA'};
@@ -7551,15 +7551,19 @@ function applyImportedRoutine(mode){
     importedAt:new Date().toISOString(),
     coachName:coachName,
     remoteHash:routineHash(remote),
+    remoteVersion:remote.version||1,
+    remoteDays:JSON.parse(JSON.stringify(remote.days||[])),
     assignedDays:remote.assigned_days||null,
     days:(remote.days||[]).map((d,i)=>({
       // day.id como número para mantener compatibilidad con startWorkout(${id}) interpolado
       id:Date.now()+i,
+      rid:d.id,
       name:d.name||('Día '+(i+1)),
       sub:d.sub||'',
       blocks:d.blocks||[]
     }))
   };
+  localRoutine.syncedSig=JSON.stringify(routineRemoteDays(localRoutine));
   if(mode==='update'){
     const idx=routineStore.list.findIndex(r=>r.sourceRoutineId===remote.id);
     if(idx>=0){
@@ -7912,14 +7916,72 @@ async function restoreFromAccount(){
   toast(`Datos restaurados${added?` · ${added} sesiones`:''}`,'success');
 }
 
+// ══ Subida de ediciones de la rutina al coach (versionado en Supabase) ══
+// Los días locales guardan rid = id del día en el Coach; se suben en su formato para no romperle
+// ids ni campos. push_routine_edit solo aplica si la versión remota sigue siendo remoteVersion.
+function routineRemoteDays(r){
+  return (r.days||[]).map(d=>{
+    const base=(r.remoteDays||[]).find(x=>x&&x.id!=null&&x.id===d.rid)||{};
+    const blocks=(d.blocks||[]).map(b=>({...b,exercises:(b.exercises||[]).map(e=>typeof e.rest==='number'?{...e,rest:`${e.rest} segs`}:e)}));
+    return {...base,id:d.rid||('tr-'+d.id),name:d.name,sub:d.sub||'',blocks};
+  });
+}
+function adoptRemoteVersion(r,remote){
+  r.remoteVersion=remote.version||1;
+  r.remoteDays=JSON.parse(JSON.stringify(remote.days||[]));
+  (r.days||[]).forEach((d,i)=>{const rd=(remote.days||[])[i];if(!d.rid&&rd&&rd.name===d.name) d.rid=rd.id;});
+  r.syncedSig=remoteSig(r.remoteDays);
+  save("gym-r",routineStore);
+}
+// Firma de los días del coach tal cual: si el teléfono tiene ediciones, difiere y se suben.
+function remoteSig(remoteDays){
+  const virt={remoteDays,days:(remoteDays||[]).map((d,i)=>({id:i,rid:d.id,name:d.name||('Día '+(i+1)),sub:d.sub||'',blocks:d.blocks||[]}))};
+  return JSON.stringify(routineRemoteDays(virt));
+}
+let _rtPushT=null,_rtPushing=false;
+function scheduleRoutinePush(){clearTimeout(_rtPushT);_rtPushT=setTimeout(pushRoutineIfChanged,1500);}
+async function pushRoutineIfChanged(){
+  if(!SYNC_WRITES||_rtPushing) return;
+  const r=getActiveRoutine(),link=loadLink();
+  if(!r||!r.sourceRoutineId||r.remoteVersion==null||!link) return;
+  if(r.syncedSig==null){r.syncedSig=remoteSig(r.remoteDays);save("gym-r",routineStore);}
+  const days=routineRemoteDays(r),sig=JSON.stringify(days);
+  if(sig===r.syncedSig){if(r.pushPending){delete r.pushPending;save("gym-r",routineStore);}return;}
+  const sb=getSupabase();
+  if(!sb||!navigator.onLine){r.pushPending=true;save("gym-r",routineStore);return;}
+  _rtPushing=true;
+  try{
+    const {data,error}=await sb.rpc('push_routine_edit',{p_athlete_id:link.athleteId,p_device_secret:link.deviceSecret,p_routine_id:r.sourceRoutineId,p_base_version:r.remoteVersion,p_days:days});
+    if(error) throw error;
+    delete r.pushPending;
+    if(data&&data.ok&&data.routine){
+      r.days.forEach(d=>{if(!d.rid) d.rid='tr-'+d.id;});
+      r.remoteVersion=data.routine.version;
+      r.remoteHash=routineHash(data.routine);
+      r.remoteDays=JSON.parse(JSON.stringify(data.routine.days||[]));
+      r.syncedSig=sig;
+      save("gym-r",routineStore);
+    } else if(data&&data.conflict){
+      save("gym-r",routineStore);
+      toast('Tu coach cambió la rutina: tus cambios quedaron solo en este teléfono','warning');
+      setTimeout(maybeSyncRoutine,0);
+    } else save("gym-r",routineStore);
+  }catch(e){r.pushPending=true;save("gym-r",routineStore);}
+  finally{_rtPushing=false;}
+}
 async function maybeSyncRoutine(){
   const link=loadLink();if(!link)return;
   const sb=getSupabase();if(!sb||!navigator.onLine)return;
   try{
     const {data,error}=await sb.rpc('get_active_routine',{p_athlete_id:link.athleteId,p_device_secret:link.deviceSecret});
     if(error||!data)return;
-    const active=getActiveRoutine();
-    if(active&&active.remoteHash===routineHash(data))return;  // sin cambios
+    let active=getActiveRoutine();
+    if(active&&active.remoteHash===routineHash(data)){
+      // Importada antes del versionado: se adopta la versión recién ahora que se sabe que está al día.
+      if(active.sourceRoutineId===data.id&&active.remoteVersion==null) adoptRemoteVersion(active,data);
+      if(active.remoteVersion!=null) await pushRoutineIfChanged();
+      return;  // sin cambios del coach
+    }
     data._token=null;
     _pendingImport=data;
     renderHomeNotices();
