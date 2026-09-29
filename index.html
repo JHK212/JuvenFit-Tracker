@@ -7,6 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Tracker">
 <meta name="theme-color" content="#0A0A0B">
+<!-- La app ya es oscura: evita que Samsung Internet / Chrome con modo oscuro forzado le reprocesen los colores. -->
+<meta name="color-scheme" content="dark">
 <title>Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +28,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 button{touch-action:manipulation;user-select:none;-webkit-user-select:none;color:inherit;}
-:root{
+:root{color-scheme:dark;
   /* Sport v3 · Dark cálido · industrial-editorial · tri-color verde/naranja/azul */
   --bg:#0A0A0B;            /* fondo página */
   --bg-warm:#15110D;        /* tinte cálido para gradient hero */
