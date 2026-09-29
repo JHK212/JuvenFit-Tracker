@@ -8187,7 +8187,10 @@ function importData(event){
 }
 function doImport(mode){
   if(!_importData) return;const data=_importData;
-  if(data.sessions){const ids=new Set(sessions.map(s=>s.id));sessions=[...sessions,...data.sessions.filter(s=>!ids.has(s.id))];}
+  let added=[];
+  if(data.sessions){const ids=new Set(sessions.map(s=>s.id));added=data.sessions.filter(s=>!ids.has(s.id));sessions=[...sessions,...added];}
+  // Sesiones traídas de otro lado (ej. la beta, que no escribe al coach): quedan en cola para subirse.
+  added.forEach(x=>markUnsynced(x.id));
   if(mode==='all'){
     if(data.routine){
       // Soporta import de formato viejo {days:[]} y nuevo {active,list:[]}
@@ -8200,6 +8203,7 @@ function doImport(mode){
     if(data.customLib&&Array.isArray(data.customLib)){save("gym-ex-custom",data.customLib);}
   }
   save("gym-s",sessions);_importData=null;closeModal();showPage('home');
+  if(added.length){toast(`${added.length} sesion${added.length===1?'':'es'} importada${added.length===1?'':'s'}`,'success');flushUnsynced();}
 }
 
 // ══ PWA ══
