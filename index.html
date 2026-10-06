@@ -1016,6 +1016,8 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 .cc-tm{font-family:var(--fm);font-size:10.5px;font-weight:700;color:var(--mt);background:none;border:1px solid var(--bd-hi);border-radius:8px;padding:5px 8px;cursor:pointer;flex:none;}
 .wk-cta:disabled{cursor:default;}
 #today{padding-bottom:0;}
+/* Quitar la serie pendiente final */
+.wk-less{display:block;margin:10px auto 0;padding:8px 12px;background:none;border:none;font-family:var(--fm);font-size:10px;font-weight:700;letter-spacing:1.4px;color:var(--mt2);cursor:pointer;text-align:center;}
 /* Dropset */
 .wk-card.drop{border-color:rgba(215,121,62,.55);}
 .wk-drop-sub{font-size:12px;color:var(--mt);padding:2px 16px 4px;}
@@ -3256,10 +3258,6 @@ function renderHome(){
       <button class="rs-go" onclick="resumeDraft()">RETOMAR</button>
       <div class="rs-row"><button class="rs-b" onclick="finishDraft()">Terminar y guardar</button><button class="rs-b dn" onclick="discardDraft()">Descartar</button></div>
     </div>`;
-    if(ds.ageH>=6&&!draft.stalePrompted){
-      draft.stalePrompted=true;save("gym-draft",draft);
-      setTimeout(()=>showConfirmSheet({title:'¿Terminaste este entreno?',desc:`Lo empezaste hace ${Math.floor(ds.ageH)} h. ¿Lo guardamos como terminado? Solo se guardan las series con RIR.`,confirmLabel:'Guardar como terminado',danger:false,onConfirm:()=>finishDraft(true)}),400);
-    }
   } else {db.style.display="none";db.innerHTML="";if(heroWrap) heroWrap.style.display='';}
 
   // HERO — kicker + título del día con estela + dibujo del primer ejercicio + tiles
@@ -4325,6 +4323,9 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
     if(chips.length){
       html+=`<div class="wk-chips">${chips.map(({x,i})=>`<button class="wk-chip${editing&&i===currentSi?' on':''}" onclick="wkChipTap(${ci},${i})"><span class="d" style="background:${rirColorVar(rirOfSet(x))}"></span>${setShort(x,mode)}<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`).join('')}</div>`;
     }
+    if(!editing&&sets.length>1&&sets[sets.length-1].rpe==null){
+      html+=`<button class="wk-less" onclick="removeWorkSet(${ci})">− UNA SERIE MENOS</button>`;
+    }
   } else if(dropPending(ci,ex)){
     html+=dropCardHTML(ci,ex);
   } else {
@@ -4750,6 +4751,8 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
       html+=`</div>`;
     });
     html+=`</div>`;
+    if(!editing&&maxSets>1&&indexes.every(ci=>{const ss=curSess.exercises[ci]?.sets||[];return ss.length===maxSets&&ss[ss.length-1].rpe==null;}))
+      html+=`<button class="wk-less" onclick="removeWorkSet(${indexes[0]})">− UNA VUELTA MENOS</button>`;
     if(!editing) html+=`<div class="wk-note">Sin descanso entre ${indexes.map((_,i)=>'A'+(i+1)).join(' y ')}. El descanso arranca cuando ${grp.size===2?'los dos tienen':'todos tienen'} RIR.</div>`;
   }
   const past=[];
@@ -5219,7 +5222,7 @@ haptic.error=()=>{
 // tappable como <label> con un input switch invisible adentro, así cuando el dedo
 // toca el botón, iOS dispara haptic nativo. Un MutationObserver lo aplica
 // automáticamente a botones rendereados dinámicamente (renderWork, etc.).
-const _HAPTIC_WRAP_SEL='.iv-btn,.sw-row,.sw-go,.sw-seg>button,.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check,.hm-cta,.hm-day,.hm-more,.rt-dh,.rt-edit,.rt-mv,.rt-add,.wk-gh,.rs-sh-c,.ih-all,.wk-drop-go,.wk-drop-skip';
+const _HAPTIC_WRAP_SEL='.iv-btn,.sw-row,.sw-go,.sw-seg>button,.rs-go,.rs-b,.wk-hgo,.wk-hpause,.td-row,.td-cta,.td-seg>button,.wk-tb,.wk-cell,.wk-pm,.wk-chip,.wk-li,.wk-cta,.wk-extra,.wk-mbtn,.wk-bi-done,.wk-prow,.wk-mv,.wk-rbtn,.sm-cta,.btn,.btn-out,.btn-sm,.btn-danger,.icon-btn,.w-btn,.rpe-btn-min,.rpe-btn,.rir-seg,.ws-pill-done,.ws-pill-add,.dpw-btn,.ex-tab,.hero-cta,.day-card,.acc-check,.hm-cta,.hm-day,.hm-more,.rt-dh,.rt-edit,.rt-mv,.rt-add,.wk-gh,.rs-sh-c,.ih-all,.wk-drop-go,.wk-drop-skip,.wk-less';
 // El <label> wrappeado corre su onclick DOS veces por tap: el click real sobre el label,
 // más el click sintético que la acción por defecto del label manda al checkbox interno
 // (que burbujea de vuelta al label). Frenamos esa 2da pasada en el input sin matar el toggle
@@ -5322,8 +5325,9 @@ function removeWorkSet(ci){
   const compounds=getCompounds(day);
   const grp=groupOfCompoundIdx(compounds,ci);
   const targets=grp?grp.indexes:[ci];
-  // No remover si alguno del grupo quedaría con 0 sets
+  // No remover si alguno del grupo quedaría con 0 sets, ni si la última ya tiene RIR (sería borrar lo hecho)
   if(targets.some(idx=>(curSess.exercises[idx]?.sets||[]).length<=1)) return;
+  if(targets.some(idx=>{const ss=curSess.exercises[idx].sets;return ss[ss.length-1].rpe!=null;})) return;
   targets.forEach(idx=>{curSess.exercises[idx].sets.pop();});
   curWorkSetEdit=null;saveDraft();renderWork();
 }
