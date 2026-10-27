@@ -714,6 +714,8 @@ body.wk-live .wk-glow{animation:wkBreathe 4s ease-in-out infinite;}
 .wk-thumb:has(> .ini:not(.tag)){display:none;}
 .wk-tb-bi{position:absolute;right:1px;bottom:1px;font-family:var(--fm);font-size:7.5px;font-weight:800;color:var(--yw-dark);background:var(--yw);padding:1px 3px;border-radius:3px;}
 .wk-tb-lbl{font-family:var(--fm);font-size:9.5px;font-weight:700;color:var(--mt2);}
+.wk-tb-add{background:none;border-style:dashed;color:var(--mt);}
+.wk-tb-add .wk-tb-tile{background:none;}
 .wk-tb.on .wk-tb-lbl{color:var(--tx);}
 .wk-tb.done .wk-tb-lbl{color:var(--gn);}
 /* Panel de ejercicio */
@@ -763,6 +765,10 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-card-breathe{animation:wkBord
 .wk-hoy .v .x{font-size:18px;letter-spacing:-.4px;}
 .wk-hoy .chip{display:inline-block;font-family:var(--fm);font-size:10px;font-weight:800;letter-spacing:.8px;padding:3px 7px;border-radius:5px;}
 .wk-hoy .why{font-family:var(--fm);font-size:10.5px;color:var(--mt);margin-top:5px;line-height:1.4;}
+.wk-bi-hoy{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;margin-top:10px;}
+.wk-bi-hoy .k{font-family:var(--fm);font-size:9.5px;font-weight:800;letter-spacing:1.5px;color:var(--yw);}
+.wk-bi-hoy .chip{font-family:var(--fm);font-size:9.5px;font-weight:800;letter-spacing:.8px;padding:2px 6px;border-radius:5px;}
+.wk-bi-hoy .why{font-family:var(--fm);font-size:10px;color:var(--mt);line-height:1.4;}
 .wk-holdbox{padding:8px 12px 6px;text-align:center;}
 .wk-hdone{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px 2px;font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:1px;color:var(--gn);}
 .wk-hdone b{font-family:var(--fd);font-size:18px;letter-spacing:-.4px;}
@@ -811,6 +817,8 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .wk-card-breathe{animation:wkBord
 .wk-li .v{flex:1;font-family:var(--fd);font-size:21px;font-weight:800;letter-spacing:-.5px;}
 .wk-li .r{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:10.5px;color:var(--mt);}
 .wk-li .r i{width:8px;height:8px;border-radius:50%;}
+.wk-extra-row{display:flex;}
+.wk-extra-row>*{flex:1;}
 .wk-extra{display:block;width:100%;padding:12px 16px;border:none;background:none;font-family:var(--fm);font-size:11px;font-weight:700;letter-spacing:1px;color:var(--mt);text-align:left;cursor:pointer;}
 .wk-cta{display:flex;align-items:center;justify-content:center;width:100%;margin-top:14px;height:60px;border-radius:18px;border:none;background:linear-gradient(135deg,var(--yw-bright) 0%,var(--yw) 55%,var(--yw-deep) 100%);color:var(--yw-dark);font-family:var(--fs);font-size:15px;font-weight:800;cursor:pointer;}
 /* Descanso flotante (reemplaza la barra pegada abajo) */
@@ -1048,6 +1056,7 @@ body:not(.wk-resting) .wk-panel.on .wk-ex.live .cur .wk-thumb .f1{animation:wkF1
 .rs-sh-c.on{border-color:var(--ac);color:var(--ac);background:rgba(91,157,248,.1);}
 .rs-sh-n{font-size:12px;color:var(--mt);text-align:center;margin-top:14px;line-height:1.45;}
 .ih-list{display:flex;flex-direction:column;}
+.ih-chart{display:block;margin:2px 0 8px;}
 .ih-row{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--bd);}
 .ih-row .d{font-family:var(--fm);font-size:9.5px;letter-spacing:1px;color:var(--mt2);min-width:56px;}
 .ih-row .v{flex:1;font-family:var(--fm);font-size:12.5px;font-weight:700;color:var(--tx);}
@@ -2806,15 +2815,18 @@ function dayTap(btn){
 }
 function dayById(dayId){
   const d=routine.days.find(x=>x.id===dayId)||EXTRA_DAYS.find(x=>x.id===dayId);
-  if(d&&curSess&&curSess.plaza&&curSess.dayId===dayId) return plazaDayOf(d);
-  if(d&&curSess&&curSess.dayId===dayId&&curSess.swaps&&Object.keys(curSess.swaps).length) return swapDayOf(d,curSess.swaps);
-  return d;
+  if(!d||!curSess||curSess.dayId!==dayId) return d;
+  const base=curSess.plaza?plazaDayOf(d):d;
+  const swaps=curSess.swaps||{},adds=curSess.adds||[];
+  return Object.keys(swaps).length||adds.length?swapDayOf(base,swaps,adds):base;
 }
-// Cambio "solo hoy" (3c): clon del día con exerciseId reemplazado; la rutina del coach no se toca.
+// Cambios "solo hoy" (swap 3c y ejercicios agregados): clon del día; la rutina del coach no se toca.
 // Cacheado por contenido para que el objeto sea estable entre renders (openTimeEdit muta el ex).
+// adds = [{after:id|null, ex}] en orden; after=null → al final del último bloque no-movilidad.
 let _swapCache=null;
-function swapDayOf(day,swaps){
-  const key=day.id+'|'+JSON.stringify(swaps);
+function swapDayOf(day,swaps,adds){
+  adds=adds||[];
+  const key=day.id+'|'+JSON.stringify(swaps)+'|'+JSON.stringify(adds);
   if(_swapCache&&_swapCache.key===key) return _swapCache.day;
   const mapEx=e=>{
     if(!swaps[e.id]) return e;
@@ -2823,8 +2835,16 @@ function swapDayOf(day,swaps){
   const clone=day.blocks&&day.blocks.length
     ?{...day,blocks:day.blocks.map(b=>({...b,exercises:(b.exercises||[]).map(mapEx)}))}
     :{...day,exercises:(day.exercises||[]).map(mapEx)};
+  adds.forEach(a=>insertExInDay(clone,a.after,{...a.ex}));
   _swapCache={key,day:clone};
   return clone;
+}
+function insertExInDay(day,afterId,ex){
+  const lists=day.blocks&&day.blocks.length?day.blocks.filter(b=>!isMobilityBlock(b)).map(b=>b.exercises=b.exercises||[]):[day.exercises=day.exercises||[]];
+  const host=afterId!=null&&lists.find(l=>l.some(x=>x.id===afterId));
+  if(host){host.splice(host.findIndex(x=>x.id===afterId)+1,0,ex);return;}
+  if(lists.length) lists[lists.length-1].push(ex);
+  else getOrCreatePrincipalBlock(day).exercises.push(ex);
 }
 function showExtraDayPicker(){
   let html='<div style="font-size:18px;font-weight:800;margin-bottom:8px">Día extra</div><div class="text-sm text-mt mb-18">Entreno adicional — no mueve tu rotación de días.</div>';
@@ -2913,7 +2933,15 @@ function formatSetBadge(s,mode){
   if(mode==='time') return `${s.r||0} segs`;
   return `${s.w||0}kg×${s.r||0}`;
 }
-function allCompounds(){return routine.days.concat(EXTRA_DAYS).flatMap(d=>getCompounds(d));}
+// Incluye el día en curso (agregados/cambios "solo hoy") y, al final, la biblioteca:
+// un ejercicio que ya no está en ninguna rutina sigue teniendo nombre, modo e historial.
+function allCompounds(){
+  const c=routine.days.concat(EXTRA_DAYS).flatMap(d=>getCompounds(d));
+  if(curSess){const d=dayById(curSess.dayId);if(d) c.push(...getCompounds(d));}
+  const seen=new Set(c.map(eidOf));
+  getExerciseLib().forEach(l=>{if(!seen.has(l.id)) c.push({id:l.id,exerciseId:l.id,type:'compound'});});
+  return c;
+}
 
 // ══ FEEDBACK ENGINE v3 ══
 // Score-based: cada set aporta -2..+2 según rango × completed × RPE.
@@ -3472,7 +3500,8 @@ function progressTopExercises(){
   const now=Date.now();
   const sevenAgo=now-7*24*3600*1000;
   const thirtyAgo=new Date(now-30*24*3600*1000).toISOString().slice(0,10);
-  const items=allCompounds().filter(ex=>hist(eidOf(ex)).length>0).map(ex=>{
+  const seen=new Set();
+  const items=allCompounds().filter(ex=>{const e=eidOf(ex);if(seen.has(e)) return false;seen.add(e);return hist(e).length>0;}).map(ex=>{
     const eid=eidOf(ex);
     const mode=getTrackMode(ex);
     const prAt=progressPRAt(eid,mode);
@@ -4204,12 +4233,15 @@ function hoyInitSets(ex,eid,mode){
   }));
   return {sets,hoy};
 }
-function hoyCardHTML(hoy){
-  const chip=hoy.legacy?['≈ ESTIMADO','var(--bd-hi)','var(--tx)']
+function hoyChip(hoy){
+  return hoy.legacy?['≈ ESTIMADO','var(--bd-hi)','var(--tx)']
     :hoy.dir==='up'?[`↑ +${hoy.step} KG`,'var(--gn)','var(--bg)']
     :hoy.dir==='down'?[hoy.mode==='weight'?`↓ −${hoy.step} KG`:'↓ MENOS','var(--yw)','var(--yw-dark)']
     :hoy.dir==='reps'?['↑ MÁS REPS','var(--gn)','var(--bg)']
     :['= REPETÍ','var(--bd-hi)','var(--tx)'];
+}
+function hoyCardHTML(hoy){
+  const chip=hoyChip(hoy);
   const big=hoy.mode==='weight'
     ?`${hoy.w} kg${hoy.dir==='reps'?` <span class="x">× ${hoy.r}</span>`:''}`
     :`${hoy.r}<span class="x">${hoy.mode==='time'?' s':' reps'}</span>`;
@@ -4283,13 +4315,13 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
   html+=`<div style="padding:0 4px">
     <div class="wk-nrow"><div class="wk-name">${esc(getExName(ex))}</div>
       ${curSess.plaza?'':`<button class="wk-gh" onclick="openSwapPicker(${ci})" aria-label="Cambiar ejercicio"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4 3 8M7 4l4 4M17 20V4m0 16-4-4m4 4 4-4"/></svg></button>`}
-      <button class="wk-gh" onclick="openExInfoSheet(${ci})" aria-label="Historial y tips"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></button>
+      <button class="wk-gh" onclick="openExInfoSheet(${ci},'hist')" aria-label="Historial"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></button>
     </div>
     <div class="wk-data">
       <span${mode==='time'?` class="tap" onclick="openTimeEdit(${ci})"`:''}><b>${ex.sets||sets.length} × ${esc(repsTxt)}</b><i>${mode==='time'?'SEGS':'REPS'}</i></span>
       <span class="tap" onclick="openRestSheet(${ci})"><b class="ul">${restSec?restLbl:'—'}</b><i>DESC</i></span>
       <span><b>1–3</b><i>RIR</i></span>
-      ${dropCfg(ex)?`<span><b>↓${dropCfg(ex).drops}</b><i>DROP</i></span>`:''}
+      ${wkDropCfg(ex)?`<span><b>↓${wkDropCfg(ex).drops}</b><i>DROP</i></span>`:''}
     </div>`;
   if(curSess.plaza&&String(ex.id).startsWith('pz-')){
     const realDay=routine.days.find(d=>d.id===curDayId);
@@ -4335,7 +4367,9 @@ function renderSingleCompoundWorkoutHTML(ci,compounds,day){
       const r=rirOfSet(x);
       html+=`<button class="wk-li" onclick="setForcedSetEdit(${i})"><span class="n">S${i+1}</span><span class="v">${v}</span><span class="r"><i style="background:${rirColorVar(r)}"></i>${r==null?'':(x.rir==null?'≈':'')+rirShort(r,mode)}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mt2)" stroke-width="2.2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`;
     });
-    html+=`<button class="wk-extra" onclick="addWorkSet(${ci})">+ SERIE EXTRA</button></div>`;
+    html+=mode==='weight'
+      ?`<div class="wk-extra-row"><button class="wk-extra" onclick="addWorkSet(${ci})">+ SERIE EXTRA</button><button class="wk-extra" onclick="addAdhocDrop(${ci})">${(sets[sets.length-1]?.drops||[]).length?'+ OTRO DROP':'+ DROPSET'}</button></div></div>`
+      :`<button class="wk-extra" onclick="addWorkSet(${ci})">+ SERIE EXTRA</button></div>`;
     html+=wkNextCTA(ci,compounds);
   }
   const lib=ex.exerciseId?getExercise(ex.exerciseId):null;
@@ -4737,8 +4771,14 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
           <div class="wk-thumb" onpointerdown="wkLpDown(event,${ci})" onpointermove="wkTbMove(event)" onpointerup="wkTbUp()" onpointercancel="wkTbUp()" onpointerleave="wkTbUp()">${thumb}</div>
           <div style="flex:1;min-width:0"><div class="wk-bi-name">${esc(getExName(ex))}</div><div class="wk-bi-meta">${esc(repsTxt)}${mode==='time'?'':' reps'}</div></div>
           ${curSess.plaza?'':`<button class="wk-gh" onclick="openSwapPicker(${ci})" aria-label="Cambiar ejercicio"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4v16M7 4 3 8M7 4l4 4M17 20V4m0 16-4-4m4 4 4-4"/></svg></button>`}
+          <button class="wk-gh" onclick="openExInfoSheet(${ci},'hist')" aria-label="Historial"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg></button>
           ${done?`<button class="wk-bi-done" onclick="editGroupedRound(${round})">${setShort(x,mode)}<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--gn)" stroke-width="2.4" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>`:''}
         </div>`;
+      const hoy=curSess.exercises[ci]?.hoy;
+      if(hoy&&round===0&&!done&&!editing){
+        const c=hoyChip(hoy);
+        html+=`<div class="wk-bi-hoy"><span class="k">HOY</span><span class="chip" style="background:${c[1]};color:${c[2]}">${c[0]}</span><span class="why">${esc(hoy.why)}</span></div>`;
+      }
       if(!done){
         const box=(field,unit,dn,up,typeLbl)=>`<div class="wk-mbox"><button class="wk-mbtn" onclick="event.stopPropagation();${dn}" aria-label="Menos">−</button><div class="wk-mval" onclick="typeVal(${round},'${field}',${typeLbl},${ci})"><span id="val-${field}-${ci}-${round}" class="wk-num">${field==='w'?x.w:x.r}</span><small>${unit}</small></div><button class="wk-mbtn" onclick="event.stopPropagation();${up}" aria-label="Más">+</button></div>`;
         html+=`<div class="wk-mini">`;
@@ -4766,6 +4806,7 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
     html+=`<button class="wk-extra" style="margin-top:4px" onclick="addWorkSet(${indexes[0]})">+ VUELTA EXTRA</button>`;
     html+=wkNextCTA(indexes[0],compounds);
   }
+  indexes.forEach((ci,gi)=>{if(compounds[ci].notes) html+=profeTipHTML(compounds[ci].notes,'A'+(gi+1));});
   html+=`</div>`;
   return html;
 }
@@ -4847,7 +4888,7 @@ function renderWork(opts){
       label=`${n}/${sets.length}`;
     }
     return `<button class="wk-tb${k===activeK?' on':''}${done?' done':''}" onclick="wkTbClick(${k})" onpointerdown="wkTbDown(event,${k})" onpointermove="wkTbMove(event)" onpointerup="wkTbUp()" onpointercancel="wkTbUp()" onpointerleave="wkTbUp()"><span class="wk-tb-tile">${tile}${badge}</span><span class="wk-tb-lbl">${done?'✓':label}</span></button>`;
-  }).join('');
+  }).join('')+`<button class="wk-tb wk-tb-add" onclick="openAddExPicker()" aria-label="Agregar ejercicio"><span class="wk-tb-tile"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><span class="wk-tb-lbl">SUMAR</span></button>`;
 
   const buildPanel=(st)=>{
   let html=`<div class="sec">`;
@@ -5364,8 +5405,8 @@ function cancelSetCountdown(silent){
 
 // Bottom sheet · info del ejercicio (3 tabs: coach / historial / última sesión)
 // Caller: tocar el dibujo del ejercicio en el panel del workout.
-function openExInfoSheet(ci){
-  _infoSheetCi=ci;_infoSheetTab='coach';
+function openExInfoSheet(ci,tab){
+  _infoSheetCi=ci;_infoSheetTab=tab||'coach';
   const day=dayById(curDayId);
   const compounds=getCompounds(day);
   const ex=compounds[ci];
@@ -5373,10 +5414,10 @@ function openExInfoSheet(ci){
   $("bsheet-title").textContent=getExName(ex);
   ['coach','hist','last'].forEach(t=>{
     const btn=$("bsheet-tab-"+t);
-    if(btn) btn.classList.toggle('active',t==='coach');
+    if(btn) btn.classList.toggle('active',t===_infoSheetTab);
   });
-  renderExInfoSheetContent();
   $("ex-info-sheet").classList.add('show');
+  renderExInfoSheetContent();
 }
 function closeExInfoSheet(){
   $("ex-info-sheet").classList.remove('show');
@@ -5417,7 +5458,8 @@ function renderExInfoSheetContent(){
       content=`<div class="empty">Sin sesiones registradas todavía.</div>`;
     } else {
       const today=new Date(td()+'T00:00:00');
-      content=`<div class="ih-list">${rows.map(x=>{
+      content=hist(eid).length>=2?`<svg id="ih-svg" class="chart-svg ih-chart"></svg>`:'';
+      content+=`<div class="ih-list">${rows.map(x=>{
         const ds=doneSets(x.exercises.find(e=>e.eid===eid));
         const n=Math.round((today-new Date(x.date+'T00:00:00'))/864e5);
         const ago=n<=0?'HOY':`HACE ${n}D`;
@@ -5438,6 +5480,7 @@ function renderExInfoSheetContent(){
     }
   }
   $("bsheet-content").innerHTML=content;
+  if($("ih-svg")) drawChart(hist(eid),mode,$("ih-svg"));
 }
 
 // Saltar al siguiente ejercicio (botón en estado D "Ejercicio completo")
@@ -5578,7 +5621,7 @@ function setRpe(si,v,ci){
   const isEditMode=curWorkSetEdit!==null;
   if(!grp){
     const sets=curSess.exercises[ci].sets;
-    const dropNext=si===sets.length-1&&dropCfg(ex)&&!sets.some(x=>x.dropDone);
+    const dropNext=si===sets.length-1&&wkDropCfg(ex)&&!sets.some(x=>x.dropDone);
     if(!timerRef&&wasNullBefore&&!dropNext) startTimer(sessRest(ex));
     // 2s con el RIR visible para corregir; tocar otro valor dentro de la ventana la reinicia.
     const holding=_workCountdown&&_workCountdown.ci===ci&&_workCountdown.si===si;
@@ -6196,9 +6239,9 @@ function showHist(eid){
   }).join(''):'<div style="text-align:center;color:var(--mt2);font-size:13px;padding:24px 0">Sin datos todavía.</div>';
   showPage('hist');
 }
-function drawChart(data,mode){
+function drawChart(data,mode,svg){
   mode=mode||'weight';
-  const svg=$("hist-svg");const W=svg.clientWidth||300;const H=180;const pad={t:10,r:10,b:30,l:40};const iW=W-pad.l-pad.r;const iH=H-pad.t-pad.b;
+  svg=svg||$("hist-svg");const W=svg.clientWidth||300;const H=180;const pad={t:10,r:10,b:30,l:40};const iW=W-pad.l-pad.r;const iH=H-pad.t-pad.b;
   // Para weight grafico peso; para reps/time grafico el peak de reps/segs
   const vals=data.map(d=>mode==='weight'?d.peso:d.peakR);
   const span=mode==='weight'?5:(mode==='time'?5:1);
@@ -6206,7 +6249,7 @@ function drawChart(data,mode){
   const pts=data.map((d,i)=>{const v=mode==='weight'?d.peso:d.peakR;return {x:pad.l+(data.length>1?i/(data.length-1):0.5)*iW,y:pad.t+iH-(((v-mn)/(mx-mn||1))*iH),d}});
   const line=pts.map((p,i)=>(i===0?'M':'L')+p.x+','+p.y).join(' ');
   let labels='';const step=Math.max(1,Math.floor(data.length/4));
-  pts.forEach((p,i)=>{if(i%step===0||i===pts.length-1)labels+=`<text x="${p.x}" y="${H-5}" fill="#A1A1AA" font-size="10" text-anchor="middle">${p.d.date}</text>`;});
+  pts.forEach((p,i)=>{if(i%step===0||i===pts.length-1)labels+=`<text x="${p.x}" y="${H-5}" fill="#A1A1AA" font-size="10" text-anchor="${i===0?'start':i===pts.length-1?'end':'middle'}">${p.d.date}</text>`;});
   let yLabels='';for(let i=0;i<=4;i++){const v=mn+((mx-mn)/4)*i;const y=pad.t+iH-((i/4)*iH);yLabels+=`<text x="${pad.l-8}" y="${y+4}" fill="#A1A1AA" font-size="10" text-anchor="end" font-family="'JetBrains Mono',monospace">${Math.round(v)}</text><line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="#27272A" stroke-width="0.5"/>`;}
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
   svg.innerHTML=`${yLabels}<path d="${line}" fill="none" stroke="#FAFAFA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>${pts.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="#FAFAFA"/>`).join('')}${labels}`;
@@ -6504,8 +6547,24 @@ function doSwap(){if(_swapPick) swapExercise(_swapCi,_swapPick,isExtraDay(curDay
 // (set.drops=[{w,r}]) y no cuentan para PR ni volumen: la serie en sí no cambia.
 let _dropDraft=null;
 function dropCfg(ex){return ex&&ex.dropset&&ex.dropset.drops>0&&getTrackMode(ex)==='weight'?ex.dropset:null;}
+// En el entreno: el del coach o uno agregado a mano ("+ DROPSET", curSess.dropAdd[exId] = bajadas).
+function wkDropCfg(ex){
+  const add=ex&&curSess&&curSess.dropAdd&&curSess.dropAdd[ex.id];
+  if(add&&getTrackMode(ex)==='weight') return {drops:add,pct:(ex.dropset&&ex.dropset.pct)||20,adhoc:true};
+  return dropCfg(ex);
+}
+function addAdhocDrop(ci){
+  const ex=getCompounds(dayById(curDayId))[ci];if(!ex||!curSess) return;
+  const sets=curSess.exercises[ci]?.sets||[],last=sets[sets.length-1];
+  if(!last||last.rpe==null) return;
+  curSess.dropAdd=curSess.dropAdd||{};
+  curSess.dropAdd[ex.id]=(last.drops||[]).length+1;
+  sets.forEach(x=>delete x.dropDone);
+  _dropDraft=null;stopTimer();
+  saveDraft();renderWork();
+}
 function dropPending(ci,ex){
-  const cfg=dropCfg(ex);if(!cfg||!curSess) return null;
+  const cfg=wkDropCfg(ex);if(!cfg||!curSess) return null;
   const compounds=getCompounds(dayById(curDayId));
   if(groupOfCompoundIdx(compounds,ci)) return null;
   const sets=curSess.exercises[ci]?.sets||[],last=sets[sets.length-1];
@@ -6526,7 +6585,7 @@ function dropCardHTML(ci,ex){
       <button class="wk-pm" onclick="event.stopPropagation();adjDrop('${f}',${step})" aria-label="Más">+</button>
     </div>`;
   return `<div class="wk-card drop"><div class="wk-card-breathe"></div>
-    <div class="wk-card-h"><span class="dot"></span><span class="lbl">DROP ${k+1} DE ${cfg.drops} · SIN DESCANSO</span></div>
+    <div class="wk-card-h"><span class="dot"></span><span class="lbl">DROP ${k+1}${cfg.adhoc?'':` DE ${cfg.drops}`} · SIN DESCANSO</span></div>
     <div class="wk-drop-sub">Bajá ${cfg.pct||20}% y seguí hasta el fallo</div>
     ${row('w','KG',2.5)}<div class="wk-div"></div>${row('r','REPS',1)}
     <button class="wk-drop-go" onclick="dropDone(${ci})">HECHO</button>
@@ -6561,8 +6620,8 @@ function sessRest(ex){
   return ov!=null?ov:restAsSeconds(ex.rest);
 }
 function restShortLbl(sec){return sec<60?`${sec}s`:(sec%60?`${Math.floor(sec/60)}:${String(sec%60).padStart(2,'0')}`:`${sec/60} min`);}
-function profeTipHTML(notes){
-  return `<div class="wk-tip" onclick="this.classList.toggle('open')"><span class="ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><div class="tx"><div class="k">TIP DEL PROFE</div><div class="b">${esc(notes)}</div></div><svg class="ch" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg></div>`;
+function profeTipHTML(notes,lbl){
+  return `<div class="wk-tip" onclick="this.classList.toggle('open')"><span class="ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><div class="tx"><div class="k">TIP DEL PROFE${lbl?' · '+lbl:''}</div><div class="b">${esc(notes)}</div></div><svg class="ch" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg></div>`;
 }
 // Grupos: el descanso es del grupo y vive en el primer miembro (el que arranca el timer).
 function openRestSheet(ci){
@@ -6643,6 +6702,69 @@ function swapExercise(ci,newExId,scope){
   if(hoy) entry.hoy=hoy; else delete entry.hoy;
   saveDraft();closeModal();renderWork();
   toast(scope==='routine'&&!isExtraDay(curDayId)?`Cambiado a ${lib.name} · queda en tu rutina`:`Cambiado a ${lib.name} · solo hoy`,'success');
+}
+
+// ══ AGREGAR EJERCICIO EN PLENO WORKOUT ══
+// Entra después del ejercicio/grupo actual (desde MOV o ACC, al final). "Solo hoy" vive en
+// curSess.adds (swapDayOf lo inserta en el clon); "En mi rutina" se escribe en routine.days.
+// En ambos casos curSess.exercises recibe la entrada nueva en el mismo índice que el compound.
+let _addMode='today',_addPick=null;
+function openAddExPicker(){
+  if(!curSess) return;
+  _addMode='today';_addPick=null;_pickZone=null;
+  renderAddExSheet();$("modal").classList.add('show');
+  setTimeout(()=>{const i=$('picker-search');if(i&&!_hapticTouch)i.focus();},50);
+}
+function addExRoutineOk(){return !isExtraDay(curDayId)&&!curSess.plaza;}
+function renderAddExSheet(){
+  const all=getExerciseLib().filter(e=>e.category!=='movilidad').sort((x,y)=>x.name.localeCompare(y.name,'es',{sensitivity:'base'}));
+  const row=ex=>{
+    const muscles=Object.keys(ex.muscleActivation||{}).slice(0,2).map(m=>MUSCLE_LABELS[m]||m).join(' · ');
+    const img=EX_IMGS.has(ex.id)?`<img src="imgs/${ex.id}-0.png" alt="" onerror="this.remove()">`:`<span class="ini">${exInitials(ex)}</span>`;
+    return `<div class="sw-row pick-item${_addPick===ex.id?' on':''}" data-id="${ex.id}" data-name="${normalizeText(ex.name+' '+(ex.aliases||[]).join(' '))}" data-zones="${zonesOfEx(ex).join(',')}" onclick="pickAddEx('${ex.id}')"><div class="wk-thumb">${img}</div><div style="flex:1;min-width:0"><div class="nm">${esc(ex.name)}</div><div class="mt">${esc(muscles)}</div></div></div>`;
+  };
+  let html=`<div class="sw"><div class="sw-k">AGREGAR</div><div class="sw-t">Nuevo ejercicio</div>`;
+  html+=addExRoutineOk()
+    ?`<div class="sw-seg"><button class="${_addMode==='today'?'on':''}" onclick="setAddMode('today')">Solo hoy</button><button class="${_addMode==='routine'?'on':''}" onclick="setAddMode('routine')">En mi rutina</button></div>`
+    :`<div class="sw-note">${curSess.plaza?'Versión plaza':'Día extra'}: se agrega solo para esta sesión.</div>`;
+  html+=`<input id="picker-search" class="input" placeholder="Buscar..." oninput="filterPicker(this.value)" style="width:100%;box-sizing:border-box;margin:0 0 10px">${pickerZoneChipsHTML()}<div id="picker-list" class="sw-list" style="max-height:40dvh;overflow-y:auto;-webkit-overflow-scrolling:touch">${all.map(row).join('')}</div>`;
+  html+=`<button class="sw-go" ${_addPick?'':'disabled'} onclick="doAddEx()">AGREGAR</button><button class="btn-out mt-8" onclick="closeModal()">Cancelar</button></div>`;
+  $("modal-content").innerHTML=html;
+}
+function setAddMode(m){_addMode=m;$("modal-content").querySelectorAll('.sw-seg>*').forEach((b,i)=>b.classList.toggle('on',(i===0)===(m==='today')));}
+function pickAddEx(id){
+  _addPick=id;
+  $("modal-content").querySelectorAll('.sw-row').forEach(r=>r.classList.toggle('on',r.dataset.id===id));
+  const go=$("modal-content").querySelector('.sw-go');if(go) go.disabled=false;
+}
+function doAddEx(){if(_addPick) addExerciseToWorkout(_addPick,addExRoutineOk()?_addMode:'today');}
+function addExerciseToWorkout(exId,scope){
+  const lib=getExercise(exId);if(!lib||!curSess){closeModal();return;}
+  const compounds=getCompounds(dayById(curDayId));
+  let afterId=null;
+  if(curExI>=0&&curExI<compounds.length){
+    const grp=groupOfCompoundIdx(compounds,curExI);
+    afterId=compounds[grp?grp.indexes[grp.indexes.length-1]:curExI].id;
+  }
+  const mode=lib.track_mode||'weight',iso=lib.category==='aislacion';
+  const ex={id:uid(),exerciseId:exId,sets:mode==='weight'&&!iso?4:3,
+    reps:mode==='time'?'30 segs':mode==='weight'&&!iso?'8-10':'12',
+    rest:mode==='time'||iso?'60 segs':'90 segs',objective:'',notes:'',type:'compound'};
+  if(scope==='routine'){
+    const realDay=routine.days.find(x=>x.id===curDayId);if(!realDay){closeModal();return;}
+    insertExInDay(realDay,afterId,ex);
+    _swapCache=null;
+    saveRoutine();
+  } else {
+    curSess.adds=(curSess.adds||[]).concat({after:afterId,ex});
+  }
+  const ni=getCompounds(dayById(curDayId)).findIndex(e=>e.id===ex.id);
+  if(ni<0){closeModal();return;}
+  const {sets,hoy}=hoyInitSets(ex,exId,getTrackMode(ex));
+  curSess.exercises.splice(ni,0,hoy?{eid:exId,sets,note:'',hoy}:{eid:exId,sets,note:''});
+  curExI=ni;
+  saveDraft();closeModal();renderWork();
+  toast(scope==='routine'?`${lib.name} agregado · queda en tu rutina`:`${lib.name} agregado · solo hoy`,'success');
 }
 
 function filterPicker(q){
