@@ -4807,6 +4807,14 @@ function renderGroupedWorkoutHTML(grp,compounds,day){
     html+=wkNextCTA(indexes[0],compounds);
   }
   indexes.forEach((ci,gi)=>{if(compounds[ci].notes) html+=profeTipHTML(compounds[ci].notes,'A'+(gi+1));});
+  indexes.forEach((ci,gi)=>{
+    const note=curSess.exercises[ci]?.note||'',lbl=`A${gi+1} · ${esc(getExName(compounds[ci]))}`;
+    const ta=`<textarea class="note-input" placeholder="Nota de hoy · ${lbl}" oninput="curSess.exercises[${ci}].note=this.value;saveDraft()" onblur="curSess.exercises[${ci}].note=this.value;saveDraft()">${esc(note)}</textarea>`;
+    html+=note?ta:`<details class="mt-8"><summary style="font-size:12px;color:var(--mt);cursor:pointer;padding:8px 4px;display:flex;align-items:center;gap:6px;font-weight:500">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Agregar nota · ${lbl}
+    </summary>${ta.replace('class="note-input"','class="note-input mt-4"')}</details>`;
+  });
   html+=`</div>`;
   return html;
 }
